@@ -1,0 +1,3552 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cozy TCG ✦</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Comfortaa:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <script src="cards.js"></script>
+    <script src="packs.js"></script>
+    <script src="codes.js"></script>
+
+    <!-- ═══ FIREBASE (module) ═══════════════════════════════════════ -->
+<script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+      import { 
+        getAuth, 
+        createUserWithEmailAndPassword, 
+        signInWithEmailAndPassword, 
+        onAuthStateChanged, 
+        signOut, 
+        deleteUser, 
+        EmailAuthProvider,           // Importiert für Sicherheits-Check
+        reauthenticateWithCredential // Importiert für Sicherheits-Check
+      } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+      
+      import { 
+        getFirestore, doc, setDoc, getDoc, deleteDoc, collection, query, where, 
+        getDocs, addDoc, updateDoc, serverTimestamp, Timestamp, writeBatch, orderBy 
+      } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBhMnXR9WVMWON4kz5K2-m9rCaEmJYPmc8",
+        authDomain: "tcggame-ef1c3.firebaseapp.com",
+        projectId: "tcggame-ef1c3",
+        storageBucket: "tcggame-ef1c3.firebasestorage.app",
+        messagingSenderId: "118974198654",
+        appId: "1:118974198654:web:99a44e020ad59d09b5f92f"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      window.fbAuth = auth;
+      window.fbDb = db;
+      
+      // Hier wurden die beiden Funktionen hinzugefügt, damit promptDeleteAccount() sie findet:
+      window.fbFuncs = {
+        createUserWithEmailAndPassword, 
+        signInWithEmailAndPassword, 
+        onAuthStateChanged,
+        signOut, 
+        deleteUser, 
+        EmailAuthProvider,           // NEU hinzugefügt
+        reauthenticateWithCredential, // NEU hinzugefügt
+        doc, setDoc, getDoc, deleteDoc, collection, query, where,
+        getDocs, addDoc, updateDoc, serverTimestamp, Timestamp, writeBatch, orderBy
+      };
+
+      onAuthStateChanged(auth, (user) => {
+        if (window.onFirebaseAuthChange) window.onFirebaseAuthChange(user);
+      });
+    </script>
+
+    <style>
+      /* ═══════════════════════════════════════════════
+       RESET & TOKENS
+      ═══════════════════════════════════════════════ */
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --bg: #0b0a12;
+        --surface: #131120;
+        --surface-2: #1a172c;
+        --surface-3: #231e3a;
+        --surface-4: #2e2850;
+        --glass: rgba(19,17,32,0.82);
+        --glass-edge: rgba(255,255,255,0.065);
+        --glass-hi: rgba(255,255,255,0.11);
+        --text: #eae6ff;
+        --subtext: #6a607e;
+        --muted: rgba(255,255,255,0.05);
+        --accent: #b49eff;
+        --accent-dim: rgba(180,158,255,0.13);
+        --accent-glow: rgba(180,158,255,0.28);
+        --gold: #eec060;
+        --gold-glow: rgba(238,192,96,0.32);
+        --rose: #ff96bc;
+        --mint: #58f0c0;
+        --sky: #7ec8f8;
+        --c-common: #8aacbc;
+        --c-rare: #6ab2ff;
+        --c-epic: #ba7cff;
+        --c-mythical: #ff6e9e;
+        --c-legendary: #eec060;
+        --c-sssr: #48eeb8;
+        --c-hidden: #ff96bc;
+        --r-xs: 6px; --r-sm: 12px; --r-md: 18px; --r-lg: 24px; --r-xl: 36px; --r-pill: 9999px;
+        --ease: cubic-bezier(0.16,1,0.3,1);
+        --ease-bounce: cubic-bezier(0.34,1.56,0.64,1);
+        --ease-inout: cubic-bezier(0.65,0,0.35,1);
+        --ease-in: cubic-bezier(0.55,0,1,0.45);
+      }
+
+      html, body { height: 100%; overflow: hidden; }
+      body { font-family: "Quicksand", sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+
+      body::after {
+        content: ""; position: fixed; inset: 0; z-index: 1100; pointer-events: none;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        opacity: 0.017;
+      }
+
+      /* ═══ BACKGROUND ORBS ═══════════════════════════════════════ */
+      .bg-layer { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+      .orb { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.08; animation: orbDrift 20s ease-in-out infinite alternate; }
+      .orb-1 { width: 640px; height: 640px; background: var(--accent); top: -220px; right: -120px; }
+      .orb-2 { width: 500px; height: 500px; background: var(--rose); bottom: -100px; left: -80px; animation-delay: -7s; }
+      .orb-3 { width: 320px; height: 320px; background: var(--mint); top: 38%; left: 34%; animation-delay: -13s; opacity: 0.045; }
+      @keyframes orbDrift { from { transform: translateY(0) scale(1); } to { transform: translateY(-55px) scale(1.1); } }
+
+      /* ═══ TYPE HELPERS ══════════════════════════════════════════ */
+      .f-display { font-family: "Comfortaa", cursive; }
+      .f-mono { font-family: "DM Mono", monospace; }
+
+      /* ═══ ENTRY SCREEN ══════════════════════════════════════════ */
+      #entry { position: fixed; inset: 0; z-index: 600; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg); transition: opacity 0.7s var(--ease-inout), transform 0.7s var(--ease-inout); }
+      #entry.exit { opacity: 0; transform: scale(1.06); pointer-events: none; }
+      .entry-gem { width: 78px; height: 78px; border-radius: 50%; background: conic-gradient(from 0deg, var(--accent), var(--rose), var(--mint), var(--gold), var(--accent)); display: flex; align-items: center; justify-content: center; margin-bottom: 1.6rem; box-shadow: 0 0 48px var(--accent-glow); animation: gemSpin 9s linear infinite, fadeUp 0.8s 0.1s var(--ease) both; }
+      .entry-gem-core { width: 65px; height: 65px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+      @keyframes gemSpin { to { transform: rotate(360deg); } }
+      .entry-logo { font-family: "Comfortaa", cursive; font-size: clamp(2rem,5vw,2.8rem); font-weight: 700; color: var(--accent); letter-spacing: -0.01em; margin-bottom: 0.2rem; animation: fadeUp 0.8s 0.22s var(--ease) both; }
+      .entry-tag { font-size: 0.78rem; color: var(--subtext); letter-spacing: 0.11em; text-transform: uppercase; margin-bottom: 2.4rem; animation: fadeUp 0.8s 0.36s var(--ease) both; }
+      @keyframes fadeUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+      .entry-card { background: var(--surface); border: 1px solid var(--glass-edge); border-radius: var(--r-xl); padding: 2rem 1.8rem; width: min(360px,90vw); display: flex; flex-direction: column; gap: 1rem; box-shadow: 0 24px 60px rgba(0,0,0,0.5), inset 0 1px 0 var(--glass-hi); animation: fadeUp 0.8s 0.5s var(--ease) both; }
+      .entry-hint { font-size: 0.74rem; color: var(--subtext); text-align: center; }
+
+      /* ═══ SHARED COMPONENTS ═════════════════════════════════════ */
+      .input-field { width: 100%; padding: 0.82rem 1rem; background: rgba(0,0,0,0.22); border: 1.5px solid rgba(255,255,255,0.07); border-radius: var(--r-sm); color: var(--text); font-family: "Quicksand", sans-serif; font-size: 0.95rem; font-weight: 500; text-align: center; outline: none; transition: border-color 0.25s, box-shadow 0.25s, background 0.25s; }
+      .input-field::placeholder { color: var(--subtext); }
+      .input-field:focus { border-color: var(--accent); background: rgba(180,158,255,0.05); box-shadow: 0 0 0 3px rgba(180,158,255,0.12); }
+      .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.78rem 1.3rem; border: none; border-radius: var(--r-sm); font-family: "Quicksand", sans-serif; font-weight: 700; font-size: 0.9rem; cursor: pointer; white-space: nowrap; letter-spacing: 0.01em; transition: transform 0.18s var(--ease-bounce), box-shadow 0.18s, opacity 0.18s, background 0.18s; }
+      .btn:active:not(:disabled) { transform: scale(0.96) !important; }
+      .btn:disabled { opacity: 0.38; cursor: not-allowed; pointer-events: none; }
+      .btn-primary { background: var(--accent); color: #0b0a12; }
+      .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px var(--accent-glow); }
+      .btn-gold { background: var(--gold); color: #0b0a12; }
+      .btn-gold:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 24px var(--gold-glow); }
+      .btn-ghost { background: transparent; color: var(--text); border: 1.5px solid var(--glass-hi); }
+      .btn-ghost:hover:not(:disabled) { background: var(--muted); }
+      .btn-surface { background: var(--surface-3); color: var(--text); }
+      .btn-surface:hover:not(:disabled) { background: var(--surface-4); transform: translateY(-1px); }
+      .btn-danger { background: rgba(255,80,80,0.15); color: #ff6666; border: 1px solid rgba(255,80,80,0.3); }
+      .btn-danger:hover:not(:disabled) { background: rgba(255,80,80,0.25); }
+      .btn-rose { background: rgba(255,150,188,0.18); color: var(--rose); border: 1px solid rgba(255,150,188,0.32); }
+      .btn-rose:hover:not(:disabled) { background: rgba(255,150,188,0.28); transform: translateY(-1px); }
+      .btn-mint { background: rgba(88,240,192,0.15); color: var(--mint); border: 1px solid rgba(88,240,192,0.3); }
+      .btn-mint:hover:not(:disabled) { background: rgba(88,240,192,0.25); }
+      .btn-sm { padding: 0.48rem 0.82rem; font-size: 0.8rem; border-radius: var(--r-xs); }
+      .btn-full { width: 100%; }
+      .btn-icon { width: 34px; height: 34px; padding: 0; border-radius: 50%; }
+      .shake { animation: shakeFx 0.42s ease; }
+      @keyframes shakeFx { 0%,100% { transform: translateX(0); } 20%,60% { transform: translateX(-7px); } 40%,80% { transform: translateX(7px); } }
+
+      /* ═══ APP SHELL ═════════════════════════════════════════════ */
+      #app { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; opacity: 0; transform: scale(0.97); pointer-events: none; transition: opacity 0.5s var(--ease), transform 0.5s var(--ease); }
+      #app.visible { opacity: 1; transform: scale(1); pointer-events: all; }
+      .header { height: 60px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(1rem,4vw,2rem); background: rgba(11,10,18,0.88); backdrop-filter: blur(22px) saturate(160%); -webkit-backdrop-filter: blur(22px) saturate(160%); border-bottom: 1px solid var(--glass-edge); position: relative; z-index: 10; }
+      .logo { font-family: "Comfortaa", cursive; font-size: 1.08rem; font-weight: 700; color: var(--accent); display: flex; align-items: center; gap: 0.4rem; }
+      .header-right { display: flex; gap: 0.45rem; align-items: center; }
+      .stat-pill { display: flex; align-items: center; gap: 0.38rem; background: var(--surface-2); border: 1px solid var(--glass-edge); border-radius: var(--r-pill); padding: 0.28rem 0.75rem; font-size: 0.8rem; font-weight: 700; }
+      .mailbox-btn { width: 34px; height: 34px; border-radius: var(--r-sm); background: var(--surface-2); border: 1px solid var(--glass-edge); color: var(--text); font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s var(--ease-bounce); position: relative; }
+      .mailbox-btn:hover { background: var(--surface-3); transform: translateY(-1px); }
+      .mailbox-badge { position: absolute; top: -4px; right: -4px; width: 14px; height: 14px; background: var(--rose); border-radius: 50%; font-size: 0.55rem; font-weight: 700; color: #0b0a12; display: flex; align-items: center; justify-content: center; animation: pulseBadge 2s ease-in-out infinite; }
+      @keyframes pulseBadge { 0%,100%{transform:scale(1);}50%{transform:scale(1.2);} }
+      .viewport { flex: 1; overflow: hidden; position: relative; }
+      .track { display: flex; width: 400%; height: 100%; transition: transform 0.52s var(--ease-inout); }
+      .panel { width: 25%; height: 100%; overflow-y: auto; overflow-x: hidden; padding: clamp(1.2rem,3vw,2rem) clamp(1rem,3vw,2rem) 8rem; scroll-behavior: smooth; }
+      .panel::-webkit-scrollbar { width: 4px; }
+      .panel::-webkit-scrollbar-track { background: transparent; }
+      .panel::-webkit-scrollbar-thumb { background: var(--surface-4); border-radius: 99px; }
+      .section-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; gap: 1rem; flex-wrap: wrap; }
+      .section-title { font-family: "Comfortaa", cursive; font-size: clamp(1.1rem,2.5vw,1.35rem); font-weight: 700; color: var(--accent); }
+      .section-pill { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(180,158,255,0.22); border-radius: var(--r-pill); padding: 0.24rem 0.68rem; }
+      .info-btn { width: 22px; height: 22px; border-radius: 50%; background: var(--surface-3); border: 1px solid var(--glass-hi); color: var(--subtext); font-size: 0.7rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; }
+      .info-btn:hover { background: var(--surface-4); color: var(--text); }
+      .divider { height: 1px; background: var(--glass-edge); margin: 1.2rem 0; }
+
+      /* ═══ COLLECTION TAB SWITCH ═════════════════════════════════ */
+      .col-tab-switch { display: flex; gap: 3px; background: var(--surface-2); border: 1px solid var(--glass-edge); border-radius: var(--r-md); padding: 3px; margin-bottom: 1.2rem; }
+      .col-tab { flex: 1; padding: 0.52rem 1rem; font-size: 0.82rem; font-weight: 700; background: transparent; border: none; color: var(--subtext); border-radius: calc(var(--r-md) - 3px); cursor: pointer; transition: all 0.22s var(--ease); font-family: "Quicksand", sans-serif; display: flex; align-items: center; justify-content: center; gap: 0.35rem; }
+      .col-tab.active { background: var(--surface-3); color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+      .col-tab-badge { font-size: 0.65rem; background: var(--accent-dim); color: var(--accent); border-radius: var(--r-pill); padding: 1px 6px; font-weight: 700; }
+      .col-tab.active .col-tab-badge { background: rgba(180,158,255,0.22); }
+
+      /* ═══ PANEL 0 — COLLECTION ══════════════════════════════════ */
+      .filter-bar { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 0.55rem; margin-bottom: 1.4rem; }
+      @media (max-width: 560px) { .filter-bar { grid-template-columns: 1fr 1fr; } }
+      .filter-select { padding: 0.62rem 0.88rem; padding-right: 1.9rem; background: var(--surface-2); border: 1px solid var(--glass-edge); border-radius: var(--r-sm); color: var(--text); font-family: "Quicksand", sans-serif; font-size: 0.8rem; font-weight: 600; outline: none; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236a607e' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.65rem center; transition: border-color 0.2s; }
+      .filter-select:focus { border-color: var(--accent); }
+      .col-meta { font-size: 0.72rem; color: var(--subtext); margin-bottom: 0.9rem; }
+      .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 0.75rem; }
+      .ccard { background: var(--surface); border: 1.5px solid; border-radius: var(--r-md); padding: 0.7rem; display: flex; flex-direction: column; align-items: center; cursor: pointer; position: relative; transition: transform 0.28s var(--ease-bounce), box-shadow 0.28s; animation: cardIn 0.38s var(--ease) both; overflow: hidden; }
+      .ccard::after { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 55%); pointer-events: none; border-radius: inherit; }
+      @keyframes cardIn { from { opacity: 0; transform: translateY(18px) scale(0.94); } to { opacity: 1; transform: translateY(0) scale(1); } }
+      .ccard:hover { transform: translateY(-5px) scale(1.025); }
+      .ccard-art { width: 100%; aspect-ratio: 1 / 1; border-radius: 9px; overflow: hidden; background: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; margin-bottom: 0.55rem; position: relative; }
+.ccard-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .ccard-footer { width: 100%; text-align: center; }
+      .ccard-name { font-size: 0.72rem; font-weight: 700; margin-bottom: 0.22rem; line-height: 1.2; }
+      .ccard-rarity { font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; }
+      .ccard-count { position: absolute; top: 0.48rem; right: 0.48rem; background: rgba(0,0,0,0.55); font-size: 0.58rem; font-weight: 700; padding: 2px 5px; border-radius: 5px; font-family: "DM Mono", monospace; }
+      .cls-mini { font-size: 0.52rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; border-radius: var(--r-pill); padding: 2px 6px; margin-bottom: 0.38rem; display: inline-block; }
+      .empty-state { grid-column: 1/-1; text-align: center; padding: 4rem 1rem; color: var(--subtext); }
+      .empty-icon { font-size: 2.8rem; display: block; margin-bottom: 1rem; }
+      .empty-state p { font-size: 0.86rem; line-height: 1.65; }
+
+      /* ═══ SHINY CARDS ═══════════════════════════════════════════ */
+      .ccard.shiny { box-shadow: 0 0 14px rgba(255,220,100,0.22); }
+      .ccard.shiny::before {
+        content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none;
+        background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0) 40%, rgba(255,220,100,0.18) 50%, rgba(255,255,255,0) 60%, transparent 100%);
+        background-size: 200% 200%;
+        animation: shinySlide 2.8s ease-in-out infinite;
+        border-radius: inherit;
+      }
+      @keyframes shinySlide {
+        0%   { background-position: -100% -100%; opacity:0.6; }
+        40%  { opacity:1; }
+        100% { background-position: 200% 200%; opacity:0.6; }
+      }
+      .shiny-badge { position: absolute; bottom: 0.42rem; left: 0.42rem; font-size: 0.5rem; font-weight: 700; background: linear-gradient(90deg, #eec060, #ffe090, #eec060); background-size: 200%; animation: shineBadgeShimmer 1.8s linear infinite; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: 0.04em; text-transform: uppercase; z-index: 4; }
+      @keyframes shineBadgeShimmer { 0%{background-position:0%} 100%{background-position:200%} }
+      .flip-wrap.fx-shiny .flip-inner { filter: drop-shadow(0 0 16px rgba(255,220,80,0.85)); }
+      .flip-wrap.fx-shiny .flip-front { animation: shinyFlipGlow 1.4s ease-in-out infinite alternate; }
+      @keyframes shinyFlipGlow { from{filter:brightness(1);} to{filter:brightness(1.28) saturate(1.4);} }
+
+      /* ═══ PACK INVENTORY GRID ═══════════════════════════════════ */
+      .pack-inv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.8rem; }
+      .pack-inv-card { border: 1px solid var(--glass-edge); border-radius: var(--r-lg); padding: 1.1rem 0.9rem; display: flex; flex-direction: column; align-items: center; gap: 0.55rem; cursor: pointer; position: relative; overflow: hidden; transition: transform 0.28s var(--ease-bounce), box-shadow 0.28s; animation: cardIn 0.38s var(--ease) both; text-align: center; }
+      .pack-inv-card::before { content:""; position:absolute; inset:0; background: linear-gradient(145deg, rgba(255,255,255,0.04) 0%, transparent 55%); pointer-events:none; }
+      .pack-inv-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 12px 32px rgba(0,0,0,0.3); }
+      .pack-inv-icon { font-size: 2rem; }
+      .pack-inv-name { font-size: 0.75rem; font-weight: 700; line-height: 1.25; }
+      .pack-inv-date { font-size: 0.58rem; color: var(--subtext); font-family: "DM Mono", monospace; }
+      .pack-inv-empty { grid-column: 1/-1; }
+
+      /* ═══ PANEL 1 — PACKS ═══════════════════════════════════════ */
+      .timed-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2.2rem; }
+      .pack-box { border: 1px solid var(--glass-edge); border-radius: var(--r-lg); padding: 1.4rem; display: flex; flex-direction: column; gap: 1rem; position: relative; overflow: hidden; transition: transform 0.28s var(--ease-bounce), box-shadow 0.28s; }
+      .pack-box::before { content: ""; position: absolute; inset: 0; background: linear-gradient(145deg, rgba(255,255,255,0.04) 0%, transparent 65%); pointer-events: none; }
+      .pack-box:hover { transform: translateY(-3px); box-shadow: 0 14px 40px rgba(0,0,0,0.3); }
+      .pack-box.dimmed { opacity: 0.5; }
+      .pack-top { display: flex; align-items: flex-start; gap: 1rem; }
+      .pack-icon-bubble { width: 50px; height: 50px; border-radius: var(--r-md); flex-shrink: 0; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+      .pack-info { flex: 1; min-width: 0; }
+      .pack-label { font-weight: 700; font-size: 0.96rem; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.4rem; }
+      .pack-desc { font-size: 0.76rem; color: var(--subtext); line-height: 1.5; }
+      .pack-cd-bar-track { height: 4px; background: rgba(255,255,255,0.07); border-radius: 99px; overflow: hidden; margin-top: 0.4rem; }
+      .pack-cd-bar-fill { height: 100%; border-radius: 99px; transition: width 1s linear; }
+      .pack-cd-label { font-size: 0.72rem; font-weight: 700; display: flex; justify-content: space-between; }
+      .pack-cd-label.ready { color: var(--mint); }
+      .pack-cd-label.waiting { color: var(--subtext); }
+      .pack-footer { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+      .pack-luck-badge { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; background: rgba(88,240,192,0.13); color: var(--mint); border: 1px solid rgba(88,240,192,0.28); border-radius: var(--r-pill); padding: 0.22rem 0.58rem; }
+      .pack-owned-badge { font-size: 0.65rem; font-weight: 700; background: rgba(106,96,126,0.18); color: var(--subtext); border: 1px solid rgba(106,96,126,0.28); border-radius: var(--r-pill); padding: 0.22rem 0.58rem; }
+      .pack-rotation-tag { position: absolute; top: 0.65rem; right: 0.65rem; font-size: 0.56rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; border-radius: var(--r-pill); padding: 2px 7px; background: rgba(88,240,192,0.15); color: var(--mint); border: 1px solid rgba(88,240,192,0.3); }
+      .sub-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--subtext); margin-bottom: 0.88rem; }
+      .guar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); gap: 0.7rem; }
+      .guar-box { background: var(--surface-2); border: 1px solid; border-radius: var(--r-md); padding: 0.9rem; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-align: center; transition: transform 0.25s var(--ease-bounce), box-shadow 0.25s; }
+      .guar-box:hover { transform: translateY(-3px); }
+      .guar-icon { font-size: 1.3rem; }
+      .guar-name { font-size: 0.78rem; font-weight: 700; }
+      .guar-cost { font-size: 0.7rem; font-family: "DM Mono", monospace; color: var(--subtext); }
+      .special-section-hd { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 1rem; flex-wrap: wrap; }
+      .rotation-badge { font-size: 0.68rem; font-weight: 700; background: rgba(180,158,255,0.13); color: var(--accent); border: 1px solid rgba(180,158,255,0.28); border-radius: var(--r-pill); padding: 0.2rem 0.65rem; }
+      .rotation-time { font-size: 0.65rem; color: var(--subtext); font-family: "DM Mono", monospace; }
+
+      /* ═══ PANEL 2 — SHOP ════════════════════════════════════════ */
+      .shop-card { background: var(--surface); border: 1px solid var(--glass-edge); border-radius: var(--r-lg); padding: 1.4rem; margin-bottom: 1rem; }
+      .shop-card-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--subtext); margin-bottom: 1.1rem; }
+      .luck-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 0.75rem; }
+      .luck-name { font-weight: 700; font-size: 0.96rem; margin-bottom: 0.18rem; }
+      .luck-desc { font-size: 0.74rem; color: var(--subtext); line-height: 1.5; }
+      .luck-pct { font-family: "DM Mono", monospace; font-size: 1.7rem; font-weight: 500; color: var(--mint); flex-shrink: 0; }
+      .luck-track { height: 6px; background: rgba(255,255,255,0.07); border-radius: 99px; overflow: hidden; margin-bottom: 0.9rem; }
+      .luck-fill { height: 100%; border-radius: 99px; background: linear-gradient(to right, var(--accent), var(--mint)); transition: width 0.5s var(--ease); }
+      .luck-foot { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+      .luck-cost-txt { font-size: 0.76rem; color: var(--subtext); }
+      .luck-cost-txt b { color: var(--text); font-weight: 700; }
+      .code-row { display: flex; gap: 0.65rem; }
+      .odds-bar-row { margin-bottom: 0.7rem; }
+      .odds-bar-head { display: flex; justify-content: space-between; font-size: 0.76rem; font-weight: 700; margin-bottom: 0.28rem; }
+      .odds-bar-pct { font-family: "DM Mono", monospace; font-size: 0.7rem; color: var(--subtext); }
+      .odds-track { height: 7px; background: rgba(255,255,255,0.06); border-radius: 99px; overflow: hidden; }
+      .odds-fill { height: 100%; border-radius: 99px; animation: barGrow 0.7s var(--ease) both; }
+      .odds-fill, .rd-fill { transition: width 0.5s cubic-bezier(0.16,1,0.3,1) !important; }
+      @keyframes barGrow { from { width: 0 !important; } }
+
+      /* ═══ PANEL 3 — PROFILE ═════════════════════════════════════ */
+      .profile-card { background: var(--surface); border: 1px solid var(--glass-edge); border-radius: var(--r-lg); padding: 1.4rem; margin-bottom: 1rem; }
+      .profile-hero { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.85rem; padding: 0.5rem 0 0.8rem; }
+      .avatar-wrap { position: relative; display: inline-block; }
+      .avatar-circle { width: 88px; height: 88px; border-radius: 50%; background: var(--surface-3); border: 2px solid var(--glass-hi); overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 2.4rem; }
+      .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
+      .avatar-edit { position: absolute; bottom: 2px; right: 2px; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); border: none; color: #0b0a12; font-size: 0.72rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s var(--ease-bounce); }
+      .avatar-edit:hover { transform: scale(1.12); }
+      #avatar-upload { display: none; }
+      .profile-name { font-family: "Comfortaa", cursive; font-size: 1.35rem; font-weight: 700; display: flex; align-items: center; gap: 0.4rem; }
+      .name-edit-btn { background: none; border: none; color: var(--subtext); font-size: 0.82rem; cursor: pointer; transition: color 0.2s; line-height: 1; }
+      .name-edit-btn:hover { color: var(--accent); }
+      #name-edit-row { display: none; flex-direction: row; gap: 0.5rem; margin-top: 0.3rem; width: 100%; max-width: 300px; }
+      .profile-joined { font-size: 0.72rem; color: var(--subtext); font-weight: 600; }
+      .profile-section-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--subtext); margin-bottom: 0.9rem; }
+      .stats-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 0.65rem; }
+      .stat-box { background: var(--surface-2); border: 1px solid var(--glass-edge); border-radius: var(--r-md); padding: 0.9rem; text-align: center; }
+      .stat-box.wide { grid-column: 1/-1; }
+      .stat-lbl { font-size: 0.65rem; color: var(--subtext); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.28rem; }
+      .stat-val { font-size: 1.1rem; font-weight: 700; font-family: "DM Mono", monospace; }
+      .rarity-dist { display: flex; flex-direction: column; gap: 0.55rem; }
+      .rd-row { display: flex; align-items: center; gap: 0.75rem; }
+      .rd-label { font-size: 0.76rem; font-weight: 700; width: 72px; flex-shrink: 0; }
+      .rd-track { flex: 1; height: 5px; background: rgba(255,255,255,0.06); border-radius: 99px; overflow: hidden; }
+      .rd-fill { height: 100%; border-radius: 99px; animation: barGrow 0.6s var(--ease) both; }
+      .rd-count { font-size: 0.7rem; font-family: "DM Mono", monospace; color: var(--subtext); width: 24px; text-align: right; flex-shrink: 0; }
+
+      /* Toggle switches */
+      .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 0.55rem 0; border-bottom: 1px solid var(--glass-edge); gap: 0.5rem; }
+      .toggle-row:last-child { border-bottom: none; }
+      .toggle-label { font-size: 0.82rem; font-weight: 600; }
+      .toggle-sub { font-size: 0.68rem; color: var(--subtext); margin-top: 1px; }
+      .toggle-switch { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+      .toggle-switch input { opacity: 0; width: 0; height: 0; }
+      .toggle-slider { position: absolute; inset: 0; background: var(--surface-4); border-radius: 99px; cursor: pointer; transition: background 0.25s; }
+      .toggle-slider::before { content: ""; position: absolute; width: 14px; height: 14px; border-radius: 50%; background: #fff; top: 3px; left: 3px; transition: transform 0.25s; }
+      .toggle-switch input:checked + .toggle-slider { background: var(--accent); }
+      .toggle-switch input:checked + .toggle-slider::before { transform: translateX(16px); }
+
+      /* Firebase / Cloud section */
+      .cloud-status { display: flex; align-items: center; gap: 0.55rem; padding: 0.65rem 0.85rem; border-radius: var(--r-sm); background: var(--surface-2); border: 1px solid var(--glass-edge); margin-bottom: 0.9rem; font-size: 0.82rem; font-weight: 600; }
+      .cloud-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--subtext); flex-shrink: 0; }
+      .cloud-dot.online { background: var(--mint); box-shadow: 0 0 6px rgba(88,240,192,0.6); }
+      .cloud-form { display: flex; flex-direction: column; gap: 0.65rem; }
+      .cloud-input { padding: 0.7rem 0.9rem; background: rgba(0,0,0,0.22); border: 1.5px solid rgba(255,255,255,0.07); border-radius: var(--r-sm); color: var(--text); font-family: "Quicksand", sans-serif; font-size: 0.88rem; font-weight: 500; outline: none; transition: border-color 0.25s; width: 100%; }
+      .cloud-input::placeholder { color: var(--subtext); }
+      .cloud-input:focus { border-color: var(--accent); }
+      .cloud-tabs { display: flex; gap: 0.4rem; margin-bottom: 0.9rem; background: var(--surface-2); padding: 3px; border-radius: var(--r-sm); }
+      .cloud-tab { flex: 1; padding: 0.45rem; font-size: 0.8rem; font-weight: 700; background: transparent; border: none; color: var(--subtext); border-radius: calc(var(--r-sm) - 3px); cursor: pointer; transition: all 0.2s; }
+      .cloud-tab.active { background: var(--surface-3); color: var(--accent); }
+      .cloud-logged-in { display: flex; flex-direction: column; gap: 0.75rem; }
+      .cloud-user-row { display: flex; align-items: center; gap: 0.55rem; font-size: 0.84rem; }
+      .cloud-user-icon { font-size: 1.2rem; }
+
+      /* ═══ DOCK NAV ══════════════════════════════════════════════ */
+      .dock-wrap { position: fixed; bottom: 1.1rem; left: 50%; transform: translateX(-50%); z-index: 300; }
+      .dock { background: var(--glass); backdrop-filter: blur(26px) saturate(180%); -webkit-backdrop-filter: blur(26px) saturate(180%); border: 1px solid var(--glass-hi); border-radius: var(--r-pill); padding: 0.38rem; display: flex; gap: 0.18rem; box-shadow: 0 18px 50px rgba(0,0,0,0.52); }
+      .dock-btn { background: transparent; border: none; padding: 0.58rem 1.05rem; border-radius: var(--r-pill); color: var(--subtext); font-family: "Quicksand", sans-serif; font-weight: 700; font-size: 0.82rem; cursor: pointer; transition: all 0.25s var(--ease); display: flex; align-items: center; gap: 0.38rem; white-space: nowrap; }
+      .dock-btn.active { background: var(--surface-3); color: var(--accent); }
+      .dock-btn:hover:not(.active) { color: var(--text); background: var(--muted); }
+      @media (max-width: 380px) { .dock-btn .dlbl { display: none; } }
+
+      /* ═══ PACK OPENING OVERLAY ══════════════════════════════════ */
+      #pack-overlay { position: fixed; inset: 0; z-index: 800; background: rgba(11,10,18,0.96); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem; opacity: 0; pointer-events: none; transition: opacity 0.35s var(--ease); }
+      #pack-overlay.open { opacity: 1; pointer-events: all; }
+      .pack-ov-title { font-family: "Comfortaa", cursive; font-size: clamp(1.1rem,3vw,1.5rem); font-weight: 700; color: var(--accent); }
+      .flip-grid { display: flex; flex-wrap: wrap; gap: 0.7rem; justify-content: center; max-width: min(700px,95vw); }
+      .flip-wrap { width: 116px; height: 162px; perspective: 900px; cursor: pointer; }
+      .flip-inner { width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.65s cubic-bezier(0.4,0,0.2,1); position: relative; }
+      .flip-wrap.flipped .flip-inner { transform: rotateY(180deg); }
+      .flip-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: var(--r-md); overflow: hidden; display: flex; flex-direction: column; align-items: center; padding: 0.55rem; }
+      .flip-back { background: var(--surface-2); border: 1px solid var(--glass-edge); display: flex; align-items: center; justify-content: center; }
+      .back-glyph { font-size: 2.2rem; opacity: 0.25; }
+      .flip-front { transform: rotateY(180deg); background: var(--surface); border: 1px solid var(--glass-hi); }
+      .flip-wrap.fx-rare .flip-inner { filter: drop-shadow(0 0 12px rgba(106,178,255,0.7)); }
+      .flip-wrap.fx-epic .flip-front { animation: epicShake 1.8s ease-in-out infinite alternate; }
+      .flip-wrap.fx-mythical .flip-inner { filter: drop-shadow(0 0 20px rgba(255,110,158,0.8)); animation: mythPulse 1.6s ease-in-out infinite alternate; }
+      .flip-wrap.fx-legendary .flip-inner { filter: drop-shadow(0 0 26px rgba(238,192,96,0.85)); }
+      .flip-wrap.fx-legendary .flip-front { animation: legendShimmer 2.5s ease-in-out infinite alternate; }
+      .flip-wrap.fx-sssr .flip-inner { filter: drop-shadow(0 0 32px rgba(72,238,184,0.9)); }
+      .flip-wrap.fx-sssr .flip-front { animation: sssrPrismatic 4s linear infinite; }
+      .flip-wrap.fx-sssr { animation: sssrBurst 0.6s var(--ease) forwards; }
+      .flip-wrap.fx-hidden .flip-inner { filter: drop-shadow(0 0 22px rgba(255,150,188,0.9)); }
+      .flip-wrap.fx-hidden .flip-front { animation: hiddenGlow 2s ease-in-out infinite alternate; }
+      .flip-wrap.fx-shiny .flip-inner { filter: drop-shadow(0 0 18px rgba(255,220,80,0.85)); }
+      .flip-wrap.fx-shiny .flip-front { animation: shinyFlipGlow 1.4s ease-in-out infinite alternate; }
+      @keyframes epicShake { 0%,100% { transform: rotate(0deg) rotateY(180deg); } 25% { transform: rotate(-1.5deg) rotateY(180deg); } 75% { transform: rotate(1.5deg) rotateY(180deg); } }
+      @keyframes mythPulse { from { filter: drop-shadow(0 0 14px rgba(255,110,158,0.6)); } to { filter: drop-shadow(0 0 28px rgba(255,110,158,1)); } }
+      @keyframes legendShimmer { 0% { background: linear-gradient(135deg,#1c1525,#231b10,#1c1525); } 100% { background: linear-gradient(135deg,#231b10,#1c1525,#231b10); } }
+      @keyframes sssrBurst { 0% { transform: scale(1); } 28% { transform: scale(1.18); filter: brightness(2.5); } 60% { transform: scale(0.97); } 100% { transform: scale(1); } }
+      @keyframes sssrPrismatic { 0% { background: linear-gradient(135deg,#0e1822,#122018); } 25% { background: linear-gradient(135deg,#141026,#0e1820); } 50% { background: linear-gradient(135deg,#1a0e1e,#0e1822); } 75% { background: linear-gradient(135deg,#0e1226,#141826); } 100% { background: linear-gradient(135deg,#0e1822,#122018); } }
+      @keyframes hiddenGlow { from { filter: drop-shadow(0 0 12px rgba(255,150,188,0.5)); } to { filter: drop-shadow(0 0 26px rgba(255,150,188,1)); } }
+      .screen-flash { position: fixed; inset: 0; z-index: 900; pointer-events: none; opacity: 0; }
+      #sssr-flash { background: radial-gradient(ellipse, rgba(72,238,184,0.55) 0%, transparent 70%); }
+      #legend-flash { background: radial-gradient(ellipse, rgba(238,192,96,0.38) 0%, transparent 65%); }
+      #epic-flash { background: radial-gradient(ellipse, rgba(186,124,255,0.3) 0%, transparent 70%); }
+      #hidden-flash { background: radial-gradient(ellipse, rgba(255,150,188,0.5) 0%, transparent 68%); }
+      #shiny-flash { background: radial-gradient(ellipse, rgba(255,220,80,0.38) 0%, transparent 65%); }
+      .screen-flash.pop { animation: flashPop 1.3s var(--ease) forwards; }
+      @keyframes flashPop { 0% { opacity: 1; } 100% { opacity: 0; } }
+      .pack-actions { display: flex; gap: 0.7rem; flex-wrap: wrap; justify-content: center; }
+
+      /* ═══ MODALS ════════════════════════════════════════════════ */
+      .modal-overlay { position: fixed; inset: 0; z-index: 700; background: rgba(11,10,18,0.76); backdrop-filter: blur(9px); -webkit-backdrop-filter: blur(9px); display: flex; align-items: center; justify-content: center; padding: 1.5rem; opacity: 0; pointer-events: none; transition: opacity 0.28s var(--ease); }
+      .modal-overlay.open { opacity: 1; pointer-events: all; }
+      .modal-box { background: var(--surface); border: 1px solid var(--glass-hi); border-radius: var(--r-xl); padding: 1.9rem; width: min(420px,100%); max-height: 88vh; overflow-y: auto; position: relative; box-shadow: 0 24px 64px rgba(0,0,0,0.5), inset 0 1px 0 var(--glass-hi); animation: modalIn 0.32s var(--ease) both; }
+      @keyframes modalIn { from { opacity: 0; transform: scale(0.94) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+      .modal-close { position: absolute; top: 0.9rem; right: 0.9rem; width: 28px; height: 28px; border-radius: 50%; background: var(--surface-3); border: none; color: var(--subtext); font-size: 0.9rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.18s; }
+      .modal-close:hover { background: var(--surface-4); color: var(--text); }
+      .modal-title { font-family: "Comfortaa", cursive; font-size: 1.15rem; font-weight: 700; color: var(--accent); margin-bottom: 1.1rem; }
+      .modal-msg { font-size: 0.84rem; color: var(--subtext); line-height: 1.65; margin-bottom: 1.4rem; }
+      .detail-art { width: 150px; aspect-ratio: 1 / 1; border-radius: var(--r-md); overflow: hidden; margin: 0 auto 1.1rem; position: relative; }
+.detail-art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* ═══ SHINY OVERLAY (Pokémon TCG Pocket style) ═════════════ */
+.shiny-overlay {
+  position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2;
+  background: linear-gradient(
+    115deg,
+    rgba(255,0,128,0)    0%,
+    rgba(255,0,128,0.18) 20%,
+    rgba(0,255,200,0.22) 40%,
+    rgba(80,120,255,0.18) 60%,
+    rgba(255,200,0,0.18) 80%,
+    rgba(255,0,128,0)    100%
+  );
+  background-size: 300% 300%;
+  animation: shinyShift 3s ease-in-out infinite alternate;
+  mix-blend-mode: screen;
+}
+@keyframes shinyShift {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+/* Sparkle-Partikel */
+.shiny-sparkles { position: absolute; inset: 0; pointer-events: none; z-index: 3; overflow: hidden; border-radius: inherit; }
+.shiny-sparkles::before, .shiny-sparkles::after {
+  content: "✦";
+  position: absolute;
+  font-size: 0.55rem;
+  color: rgba(255,255,255,0.9);
+  animation: sparklePop 2.4s ease-in-out infinite;
+  text-shadow: 0 0 6px rgba(255,255,255,0.8);
+}
+.shiny-sparkles::before { top: 18%; left: 22%; animation-delay: 0s; }
+.shiny-sparkles::after  { top: 62%; left: 68%; animation-delay: 1.2s; }
+@keyframes sparklePop {
+  0%,100% { opacity: 0; transform: scale(0.4) rotate(0deg); }
+  50%      { opacity: 1; transform: scale(1.2) rotate(30deg); }
+}
+
+/* Badge für Grid-Kachel */
+.shiny-badge {
+  position: absolute; top: 4px; right: 4px; z-index: 4;
+  font-size: 0.6rem; font-weight: 700; letter-spacing: 0.04em;
+  background: linear-gradient(90deg,#ff96bc,#b49eff,#58f0c0);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 4px rgba(180,158,255,0.6));
+}
+      .detail-name { font-size: 1.15rem; font-weight: 700; text-align: center; margin-bottom: 0.18rem; }
+      .detail-rarity { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; text-align: center; margin-bottom: 0.55rem; }
+      .detail-desc { font-size: 0.8rem; color: var(--subtext); line-height: 1.62; text-align: center; margin: 0.75rem 0; }
+      .detail-odds { font-size: 0.7rem; color: var(--subtext); font-family: "DM Mono", monospace; text-align: center; margin-bottom: 0.4rem; }
+      .sell-row { display: flex; align-items: center; gap: 0.55rem; }
+      .sell-row label { font-size: 0.78rem; color: var(--subtext); white-space: nowrap; }
+      .sell-num { width: 66px; padding: 0.38rem 0.55rem; text-align: center; background: var(--surface-2); border: 1px solid var(--glass-edge); border-radius: var(--r-xs); color: var(--text); font-family: "Quicksand", sans-serif; font-size: 0.88rem; font-weight: 700; outline: none; }
+
+      /* Pack preview modal */
+      #pack-preview-modal .modal-box { max-width: 360px; padding: 0; overflow: hidden; }
+      .pp-hero { padding: 2.2rem 1.8rem 1.4rem; display: flex; flex-direction: column; align-items: center; gap: 0.7rem; position: relative; }
+      .pp-icon { font-size: 3rem; }
+      .pp-name { font-family: "Comfortaa", cursive; font-size: 1.25rem; font-weight: 700; color: var(--text); text-align: center; }
+      .pp-desc { font-size: 0.8rem; color: rgba(234,230,255,0.7); text-align: center; line-height: 1.55; }
+      .pp-odds-chip { font-size: 0.68rem; font-weight: 700; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: var(--r-pill); padding: 0.25rem 0.75rem; color: rgba(255,255,255,0.8); }
+      .pp-price { font-size: 0.78rem; font-weight: 700; color: var(--gold); font-family: "DM Mono", monospace; }
+      .pp-actions { display: flex; gap: 0.55rem; padding: 1.2rem 1.4rem; background: var(--surface-2); border-top: 1px solid var(--glass-edge); }
+      .pp-actions .btn { flex: 1; font-size: 0.82rem; padding: 0.65rem 0.5rem; }
+      .pp-close { position: absolute; top: 0.75rem; right: 0.75rem; width: 28px; height: 28px; border-radius: 50%; background: rgba(0,0,0,0.3); border: none; color: rgba(255,255,255,0.6); font-size: 0.9rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+      /* Congratulations modal */
+      #congrats-modal .modal-box { border: 1px solid rgba(238,192,96,0.25); text-align: center; max-width: 360px; }
+      #congrats-modal.sssr-mode .modal-box { border-color: rgba(72,238,184,0.35); }
+      #congrats-modal.hidden-mode .modal-box { border-color: rgba(255,150,188,0.4); }
+      #congrats-modal.shiny-mode .modal-box { border-color: rgba(255,220,80,0.4); }
+      .congrats-sparkles { font-size: 2rem; margin-bottom: 0.6rem; animation: sparklePop 0.6s var(--ease-bounce) both; }
+      @keyframes sparklePop { from { transform: scale(0.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+      .congrats-title { font-family: "Comfortaa", cursive; font-size: 1.4rem; font-weight: 700; margin-bottom: 0.3rem; animation: fadeUp 0.5s 0.15s var(--ease) both; }
+      .congrats-art { width: 120px; height: 168px; border-radius: var(--r-md); overflow: hidden; margin: 0.8rem auto; animation: fadeUp 0.5s 0.25s var(--ease) both; }
+      .congrats-card-name { font-size: 1rem; font-weight: 700; margin-bottom: 0.2rem; animation: fadeUp 0.4s 0.35s var(--ease) both; }
+      .congrats-card-rarity { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; animation: fadeUp 0.4s 0.38s var(--ease) both; }
+      .congrats-desc { font-size: 0.78rem; color: var(--subtext); line-height: 1.6; margin-bottom: 1.2rem; animation: fadeUp 0.4s 0.42s var(--ease) both; }
+
+      /* Custom confirm modal */
+      #confirm-modal .modal-box { max-width: 340px; text-align: center; }
+      .confirm-icon { font-size: 2.4rem; margin-bottom: 0.6rem; }
+      .confirm-title { font-family: "Comfortaa", cursive; font-size: 1.1rem; font-weight: 700; color: #ff6666; margin-bottom: 0.6rem; }
+      .confirm-msg { font-size: 0.82rem; color: var(--subtext); line-height: 1.65; margin-bottom: 1.4rem; }
+      .confirm-actions { display: flex; gap: 0.65rem; }
+
+      /* Twist Pack modal */
+      #twist-modal .modal-box { max-width: 500px; }
+      .twist-pairs { display: flex; flex-direction: column; gap: 0.9rem; margin-bottom: 1.2rem; }
+      .twist-pair { display: flex; align-items: center; gap: 0.6rem; }
+      .twist-card { flex: 1; background: var(--surface-2); border: 2px solid var(--glass-edge); border-radius: var(--r-md); padding: 0.7rem 0.5rem; cursor: pointer; transition: all 0.22s var(--ease-bounce); text-align: center; min-height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.3rem; }
+      .twist-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+      .twist-card.selected { border-color: var(--accent); background: var(--accent-dim); box-shadow: 0 0 0 2px rgba(180,158,255,0.25); }
+      .twist-card.rejected { opacity: 0.35; }
+      .twist-card-art { width: 48px; height: 48px; border-radius: 6px; overflow: hidden; margin: 0 auto; }
+      .twist-card-name { font-size: 0.66rem; font-weight: 700; line-height: 1.2; }
+      .twist-card-rarity { font-size: 0.56rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+      .twist-vs { font-size: 0.7rem; font-weight: 700; color: var(--subtext); flex-shrink: 0; padding: 0 0.1rem; }
+
+      /* ═══ GIFT MODAL ════════════════════════════════════════════ */
+      #gift-modal .modal-box { max-width: 420px; }
+      .gift-field { margin-bottom: 1.1rem; }
+      .gift-field-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--subtext); margin-bottom: 0.45rem; display: flex; align-items: center; gap: 0.4rem; }
+      .gift-field-label .opt { font-size: 0.62rem; color: var(--subtext); opacity: 0.6; text-transform: none; letter-spacing: 0; font-weight: 500; }
+      .gift-recipient-row { display: flex; gap: 0.55rem; }
+      .gift-recipient-row input { flex: 1; padding: 0.72rem 0.9rem; background: var(--surface-2); border: 1.5px solid var(--glass-edge); border-radius: var(--r-sm); color: var(--text); font-family: "Quicksand", sans-serif; font-size: 0.9rem; font-weight: 600; outline: none; transition: border-color 0.22s; }
+      .gift-recipient-row input:focus { border-color: var(--accent); }
+      .gift-recipient-status { font-size: 0.74rem; font-weight: 700; margin-top: 0.35rem; min-height: 1.1em; }
+      .gift-recipient-status.ok { color: var(--mint); }
+      .gift-recipient-status.err { color: #ff6666; }
+      .gift-recipient-status.loading { color: var(--subtext); }
+      .gift-textarea { width: 100%; padding: 0.75rem 0.9rem; background: var(--surface-2); border: 1.5px solid var(--glass-edge); border-radius: var(--r-sm); color: var(--text); font-family: "Quicksand", sans-serif; font-size: 0.88rem; font-weight: 500; outline: none; resize: none; min-height: 76px; transition: border-color 0.22s; }
+      .gift-textarea:focus { border-color: var(--accent); }
+      .gift-textarea::placeholder { color: var(--subtext); }
+      .gift-attachment-block { background: var(--surface-2); border: 1px solid var(--glass-edge); border-radius: var(--r-md); padding: 0.9rem; display: flex; flex-direction: column; gap: 0.7rem; }
+      .gift-att-row { display: flex; align-items: center; gap: 0.75rem; }
+      .gift-att-label { font-size: 0.8rem; font-weight: 700; width: 62px; flex-shrink: 0; display: flex; align-items: center; gap: 0.3rem; }
+      .gift-att-control { flex: 1; }
+      .gift-att-input { width: 100%; padding: 0.52rem 0.75rem; background: var(--surface-3); border: 1px solid var(--glass-edge); border-radius: var(--r-xs); color: var(--text); font-family: "Quicksand", sans-serif; font-size: 0.88rem; font-weight: 600; outline: none; transition: border-color 0.2s; }
+      .gift-att-input:focus { border-color: var(--accent); }
+      .gift-att-select { width: 100%; padding: 0.52rem 0.75rem; background: var(--surface-3); border: 1px solid var(--glass-edge); border-radius: var(--r-xs); color: var(--text); font-family: "Quicksand", sans-serif; font-size: 0.82rem; font-weight: 600; outline: none; cursor: pointer; }
+      .gift-cost-bar { display: flex; align-items: center; justify-content: space-between; background: var(--surface-2); border: 1px solid var(--glass-edge); border-radius: var(--r-sm); padding: 0.75rem 1rem; margin-bottom: 1rem; }
+      .gift-cost-label { font-size: 0.76rem; color: var(--subtext); font-weight: 600; }
+      .gift-cost-value { font-size: 1rem; font-weight: 700; font-family: "DM Mono", monospace; color: var(--gold); }
+      .gift-divider { height: 1px; background: var(--glass-edge); margin: 0.9rem 0; }
+
+      /* ═══ MAILBOX OVERLAY ═══════════════════════════════════════ */
+      #mailbox-overlay { position: fixed; inset: 0; z-index: 800; background: rgba(11,10,18,0.97); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: opacity 0.35s var(--ease); }
+      #mailbox-overlay.open { opacity: 1; pointer-events: all; }
+      .mailbox-header { height: 60px; flex-shrink: 0; display: flex; align-items: center; gap: 1rem; padding: 0 1.5rem; border-bottom: 1px solid var(--glass-edge); }
+      .mailbox-back { background: var(--surface-2); border: 1px solid var(--glass-edge); border-radius: var(--r-sm); padding: 0.45rem 0.9rem; font-size: 0.82rem; font-weight: 700; color: var(--text); cursor: pointer; display: flex; align-items: center; gap: 0.4rem; transition: background 0.2s; font-family: "Quicksand", sans-serif; }
+      .mailbox-back:hover { background: var(--surface-3); }
+      .mailbox-title { font-family: "Comfortaa", cursive; font-size: 1.2rem; font-weight: 700; color: var(--accent); flex: 1; }
+      .mailbox-refresh { background: none; border: none; color: var(--subtext); font-size: 1.1rem; cursor: pointer; transition: color 0.2s, transform 0.4s; }
+      .mailbox-refresh:hover { color: var(--text); transform: rotate(180deg); }
+      .mailbox-body { flex: 1; overflow-y: auto; padding: 1.5rem clamp(1rem,4vw,2rem) 4rem; }
+      .mailbox-body::-webkit-scrollbar { width: 4px; }
+      .mailbox-body::-webkit-scrollbar-thumb { background: var(--surface-4); border-radius: 99px; }
+      .mail-item { background: var(--surface); border: 1px solid var(--glass-edge); border-radius: var(--r-lg); padding: 1.2rem 1.4rem; margin-bottom: 0.85rem; display: flex; flex-direction: column; gap: 0.8rem; transition: border-color 0.2s; position: relative; overflow: hidden; animation: cardIn 0.35s var(--ease) both; }
+      .mail-item::before { content:""; position:absolute; top:0; left:0; right:0; height:2px; background: linear-gradient(90deg, var(--accent), var(--rose)); opacity: 0.5; }
+      .mail-item.collected { opacity: 0.55; }
+      .mail-item.collected::before { background: var(--surface-4); }
+      .mail-sender-row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; }
+      .mail-sender { font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 0.4rem; }
+      .mail-time { font-size: 0.66rem; color: var(--subtext); font-family: "DM Mono", monospace; }
+      .mail-expires { font-size: 0.62rem; color: var(--subtext); }
+      .mail-expires.soon { color: #ff9966; }
+      .mail-message { font-size: 0.82rem; color: var(--subtext); line-height: 1.55; font-style: italic; border-left: 2px solid var(--glass-hi); padding-left: 0.75rem; }
+      .mail-attachments { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+      .mail-att-chip { display: flex; align-items: center; gap: 0.35rem; background: var(--surface-2); border: 1px solid var(--glass-edge); border-radius: var(--r-sm); padding: 0.35rem 0.7rem; font-size: 0.76rem; font-weight: 700; }
+      .mail-att-chip.coins { color: var(--gold); border-color: rgba(238,192,96,0.3); }
+      .mail-att-chip.card { color: var(--accent); border-color: rgba(180,158,255,0.3); }
+      .mail-att-chip.pack { color: var(--rose); border-color: rgba(255,150,188,0.3); }
+      .mail-footer { display: flex; align-items: center; justify-content: flex-end; gap: 0.55rem; }
+      .mail-empty { text-align: center; padding: 5rem 1rem; color: var(--subtext); }
+      .mail-empty-icon { font-size: 3rem; margin-bottom: 1rem; display: block; }
+      .mail-login-warn { text-align: center; padding: 4rem 1rem; }
+
+      /* ═══ TOAST ═════════════════════════════════════════════════ */
+      #toast-wrap { position: fixed; bottom: 5rem; left: 50%; transform: translateX(-50%); z-index: 1050; display: flex; flex-direction: column; gap: 0.38rem; align-items: center; pointer-events: none; }
+      .toast { background: var(--surface-3); border: 1px solid var(--glass-hi); border-radius: var(--r-pill); padding: 0.52rem 1.1rem; font-size: 0.82rem; font-weight: 700; box-shadow: 0 8px 24px rgba(0,0,0,0.4); animation: toastIn 0.32s var(--ease-bounce) both, toastOut 0.28s 2.5s var(--ease-in) forwards; white-space: nowrap; }
+      .toast.toast-epic { background: var(--surface-3); border-color: rgba(186,124,255,0.5); padding: 0.65rem 1.3rem; font-size: 0.88rem; box-shadow: 0 10px 28px rgba(0,0,0,0.45), 0 0 16px rgba(186,124,255,0.15); }
+      @keyframes toastIn { from { opacity: 0; transform: translateY(10px) scale(0.9); } to { opacity: 1; transform: none; } }
+      @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-6px); } }
+
+      /* Luck animation */
+      @keyframes luckOvIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: scale(1); } }
+      @keyframes luckOvOut { to { opacity: 0; transform: scale(1.03); } }
+      @keyframes luckRowIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: none; } }
+
+      /* ═══ SHOP SPECIAL PACKS ════════════════════════════════════ */
+      .shop-special-pack { background: var(--surface-2); border: 1px solid var(--glass-edge); border-radius: var(--r-md); padding: 1rem 1.1rem; display: flex; align-items: center; gap: 0.9rem; margin-bottom: 0.65rem; transition: border-color 0.2s, transform 0.22s var(--ease-bounce); position: relative; overflow: hidden; }
+      .shop-special-pack::before { content:''; position:absolute; inset:0; background: linear-gradient(90deg, rgba(255,255,255,0.025) 0%, transparent 60%); pointer-events:none; }
+      .shop-special-pack:hover { border-color: var(--glass-hi); transform: translateY(-1px); }
+      .shop-special-pack.owned { opacity: 0.55; }
+      .shop-sp-icon { font-size: 1.6rem; flex-shrink: 0; }
+      .shop-sp-info { flex: 1; min-width: 0; }
+      .shop-sp-label { font-weight: 700; font-size: 0.88rem; margin-bottom: 0.12rem; }
+      .shop-sp-desc { font-size: 0.72rem; color: var(--subtext); line-height: 1.4; }
+      .shop-sp-price { font-size: 0.76rem; font-family: "DM Mono", monospace; color: var(--gold); font-weight: 700; white-space: nowrap; margin-top: 0.18rem; }
+
+      /* ═══ AUTH MODAL ════════════════════════════════════════════ */
+      #auth-modal .modal-box { max-width: 360px; }
+      .auth-tabs { display: flex; gap: 0.4rem; margin-bottom: 1rem; background: var(--surface-2); padding: 3px; border-radius: var(--r-sm); }
+      .auth-tab { flex: 1; padding: 0.48rem; font-size: 0.82rem; font-weight: 700; background: transparent; border: none; color: var(--subtext); border-radius: calc(var(--r-sm) - 3px); cursor: pointer; transition: all 0.2s; font-family: "Quicksand", sans-serif; }
+      .auth-tab.active { background: var(--surface-3); color: var(--accent); }
+      .auth-form { display: flex; flex-direction: column; gap: 0.65rem; }
+      .auth-status { display: flex; align-items: center; gap: 0.55rem; padding: 0.65rem 0.85rem; border-radius: var(--r-sm); background: var(--surface-2); border: 1px solid var(--glass-edge); margin-bottom: 0.9rem; font-size: 0.82rem; font-weight: 600; }
+      .auth-logged-in { display: flex; flex-direction: column; gap: 0.75rem; }
+      .auth-user-row { display: flex; align-items: center; gap: 0.55rem; font-size: 0.9rem; font-weight: 700; color: var(--accent); }
+
+      /* ═══ SETTINGS MODAL ════════════════════════════════════════ */
+      #settings-modal .modal-box { max-width: 340px; }
+      .settings-item { display: flex; align-items: center; gap: 0.9rem; padding: 0.8rem; background: var(--surface-2); border: 1px solid var(--glass-edge); border-radius: var(--r-md); cursor: pointer; transition: background 0.18s, border-color 0.18s, transform 0.18s var(--ease-bounce); margin-bottom: 0.6rem; }
+      .settings-item:hover { background: var(--surface-3); border-color: var(--glass-hi); transform: translateY(-1px); }
+      .settings-item-icon { font-size: 1.25rem; flex-shrink: 0; width: 34px; text-align: center; }
+      .settings-item-info { flex: 1; }
+      .settings-item-label { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.1rem; }
+      .settings-item-sub { font-size: 0.7rem; color: var(--subtext); }
+      .settings-item-arrow { color: var(--subtext); font-size: 0.8rem; }
+      .settings-item.danger { border-color: rgba(255,80,80,0.2); }
+      .settings-item.danger:hover { background: rgba(255,80,80,0.08); border-color: rgba(255,80,80,0.35); }
+      .settings-item.danger .settings-item-label { color: #ff7777; }
+
+      @media (max-width: 480px) {
+        .dock-btn { padding: 0.52rem 0.78rem; font-size: 0.76rem; }
+        .flip-wrap { width: 102px; height: 143px; }
+        .stats-grid { grid-template-columns: 1fr; }
+        .timed-grid { grid-template-columns: 1fr; }
+      }
+
+      /* ─── ENHANCED DARK GLASS REAUTH MODAL ─── */
+
+#reauth-modal.modal-overlay {
+  background: rgba(0, 0, 0, 0.8) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+#reauth-modal.modal-overlay.open {
+  display: flex;
+}
+
+/* Die Card mit Floating Animation */
+.reauth-card {
+  background: rgba(25, 20, 30, 0.9) !important;
+  color: #fff;
+  width: 90%;
+  max-width: 380px;
+  padding: 40px !important; /* Mehr Padding für Eleganz */
+  border-radius: 28px !important;
+  border: 1px solid rgba(171, 71, 188, 0.3) !important;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 
+              0 0 30px rgba(171, 71, 188, 0.1);
+  text-align: center !important;
+  position: relative;
+  overflow: hidden;
+  animation: modalFloatIn 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes modalFloatIn {
+  0% { opacity: 0; transform: translateY(30px) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Titel & Untertitel */
+.modal-title {
+  font-family: 'Quicksand', sans-serif;
+  font-size: 26px !important;
+  font-weight: 700 !important;
+  background: linear-gradient(to right, #e1bee7, #ce93d8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 12px !important;
+}
+
+.reauth-desc {
+  color: #999;
+  font-size: 14px;
+  margin-bottom: 35px !important; /* Mehr Abstand nach oben */
+}
+
+/* Input Bereich mit mehr Abstand */
+.input-group {
+  margin-bottom: 40px !important; /* HIER: Der gewünschte Abstand zum Button */
+  position: relative;
+}
+
+#reauth-password {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 2px solid rgba(171, 71, 188, 0.2) !important;
+  color: #fff !important;
+  padding: 16px 20px !important;
+  font-size: 16px !important;
+  border-radius: 18px !important;
+  outline: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+}
+
+#reauth-password:focus {
+  border-color: #ab47bc !important;
+  background: rgba(171, 71, 188, 0.05) !important;
+  box-shadow: 0 0 20px rgba(171, 71, 188, 0.2);
+  transform: scale(1.02);
+}
+
+/* Footer & Buttons */
+.modal-footer {
+  display: flex;
+  flex-direction: column; /* Buttons untereinander für modernen Look */
+  gap: 12px;
+  border: none !important;
+  padding: 0 !important;
+}
+
+.btn-danger-gradient {
+  background: linear-gradient(135deg, #8e24aa, #ab47bc) !important;
+  color: white !important;
+  border: none !important;
+  padding: 16px !important;
+  border-radius: 18px !important;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 20px rgba(142, 36, 170, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Schimmer-Effekt auf dem Button */
+.btn-danger-gradient::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+  transform: rotate(45deg);
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) rotate(45deg); }
+}
+
+.btn-danger-gradient:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 25px rgba(142, 36, 170, 0.5);
+  filter: brightness(1.2);
+}
+
+.btn-secondary {
+  background: transparent !important;
+  color: #666 !important;
+  border: none !important;
+  font-size: 14px;
+  padding: 10px !important;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.btn-secondary:hover {
+  color: #999 !important;
+}
+
+/* Icon Animation */
+.reauth-icon-circle {
+  animation: pulse 2s infinite;
+  margin-bottom: 20px !important;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.7; }
+  100% { transform: scale(1); opacity: 1; }
+}
+    </style>
+  </head>
+  <body>
+    <!-- FX layers -->
+    <canvas id="particle-canvas" style="display:none"></canvas>
+    <div id="sssr-flash" class="screen-flash"></div>
+    <div id="legend-flash" class="screen-flash"></div>
+    <div id="epic-flash" class="screen-flash"></div>
+    <div id="hidden-flash" class="screen-flash"></div>
+    <div id="shiny-flash" class="screen-flash"></div>
+    <div id="toast-wrap"></div>
+
+    <!-- Ambient background -->
+    <div class="bg-layer" aria-hidden="true">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+    </div>
+
+    <!-- ═══ ENTRY SCREEN ═════════════════════════════════════════ -->
+    <div id="entry">
+      <div class="entry-gem" aria-hidden="true"><div class="entry-gem-core">✦</div></div>
+      <h1 class="entry-logo f-display">Cozy TCG</h1>
+      <p class="entry-tag">Collector's Edition</p>
+      <div class="entry-card" id="entry-box">
+        <input type="password" id="einput" class="input-field" placeholder="Enter access code…" autocomplete="off" aria-label="Access code" />
+        <button class="btn btn-primary btn-full" id="ebtn">✦ Enter the Garden</button>
+        <p class="entry-hint">Default code: 0000</p>
+      </div>
+    </div>
+
+    <!-- ═══ APP SHELL ════════════════════════════════════════════ -->
+    <div id="app" aria-hidden="true">
+      <header class="header">
+        <div class="logo f-display">✦ Cozy TCG</div>
+        <div class="header-right">
+          <div class="stat-pill" title="Luck Bonus">🍀 <span id="luck-hdr">0.0</span>%</div>
+          <div class="stat-pill" title="Coins">🪙 <span id="coins-hdr">100</span></div>
+          <button class="mailbox-btn" onclick="openMailbox()" title="Inbox" id="mailbox-hdr-btn">
+            📬
+            <span class="mailbox-badge" id="mailbox-badge" style="display:none">!</span>
+          </button>
+        </div>
+      </header>
+
+      <div class="viewport">
+        <div class="track" id="track">
+
+          <!-- ── PANEL 0: COLLECTION ─────────────────── -->
+          <div class="panel" id="panel-collection">
+            <div class="section-hd">
+              <h2 class="section-title">Collection</h2>
+              <span class="section-pill" id="col-badge">0 cards</span>
+            </div>
+
+            <!-- Tab Switch -->
+            <div class="col-tab-switch">
+              <button class="col-tab active" id="col-tab-cards" onclick="switchCollectionTab('cards')">
+                🎴 Cards <span class="col-tab-badge" id="cards-tab-count">0</span>
+              </button>
+              <button class="col-tab" id="col-tab-packs" onclick="switchCollectionTab('packs')">
+                📦 Packs <span class="col-tab-badge" id="packs-tab-count">0</span>
+              </button>
+            </div>
+
+            <!-- Cards view -->
+            <div id="col-cards-view">
+              <div class="filter-bar">
+                <select id="rarity-filter" class="filter-select" aria-label="Filter rarity">
+                  <option value="all">All Rarities</option>
+                  <option value="Common">Common</option>
+                  <option value="Rare">Rare</option>
+                  <option value="Epic">Epic</option>
+                  <option value="Mythical">Mythical</option>
+                  <option value="Legendary">Legendary</option>
+                  <option value="SSSR">SSSR</option>
+                  <option value="Hidden">Hidden</option>
+                </select>
+                <select id="class-filter" class="filter-select" aria-label="Filter class">
+                  <option value="all">All Classes</option>
+                  <option value="Nature">🌿 Nature</option>
+                  <option value="Combat">⚔️ Combat</option>
+                  <option value="Arcane">✨ Arcane</option>
+                  <option value="Void">🌑 Void</option>
+                  <option value="Celestial">🌙 Celestial</option>
+                </select>
+                <select id="sort-filter" class="filter-select" aria-label="Sort by">
+                  <option value="rarity">By Rarity</option>
+                  <option value="name">By Name</option>
+                  <option value="count">By Count</option>
+                  <option value="value">By Value</option>
+                </select>
+                <select id="order-filter" class="filter-select" aria-label="Sort order">
+                  <option value="desc">↓</option>
+                  <option value="asc">↑</option>
+                </select>
+              </div>
+              <div class="col-meta" id="col-meta"></div>
+              <div class="card-grid" id="card-grid"></div>
+            </div>
+
+            <!-- Packs inventory view -->
+            <div id="col-packs-view" style="display:none">
+              <div class="col-meta" id="col-packs-meta" style="margin-bottom:1rem"></div>
+              <div class="pack-inv-grid" id="pack-inv-grid"></div>
+            </div>
+          </div>
+
+          <!-- ── PANEL 1: PACKS ──────────────────────── -->
+          <div class="panel" id="panel-packs">
+            <div class="section-hd">
+              <h2 class="section-title">Packs</h2>
+              <button class="info-btn" onclick="openOddsModal(null)" title="All drop rates">i</button>
+            </div>
+            <div class="timed-grid" id="timed-packs"><!-- JS --></div>
+            <div class="sub-label">Guaranteed Packs</div>
+            <div class="guar-grid" id="guar-grid"><!-- JS --></div>
+            <div class="divider" style="margin: 1.6rem 0;"></div>
+            <!-- Special Packs Section -->
+            <div class="special-section-hd">
+              <span class="section-title" style="font-size:1.05rem;">✦ Special Packs</span>
+              <span class="rotation-badge" id="rotation-badge">—</span>
+              <span class="rotation-time" id="rotation-time"></span>
+              <button class="btn btn-ghost btn-sm" onclick="shuffleSpecialPacks()" title="Shuffle display order">🔀</button>
+            </div>
+            <div class="timed-grid" id="special-packs-grid"><!-- JS --></div>
+          </div>
+
+          <!-- ── PANEL 2: SHOP ───────────────────────── -->
+          <div class="panel" id="panel-shop">
+            <div class="section-hd"><h2 class="section-title">Shop</h2></div>
+            <div class="shop-card">
+              <div class="shop-card-label">🍀 Luck Enhancer</div>
+              <div class="luck-row">
+                <div>
+                  <div class="luck-name">Pull Rate Boost</div>
+                  <div class="luck-desc">Raises non-Common pull weights permanently. Max 25%.</div>
+                </div>
+                <div class="luck-pct" id="luck-pct-disp">0.0%</div>
+              </div>
+              <div class="luck-track"><div class="luck-fill" id="luck-bar" style="width:0%"></div></div>
+              <div class="luck-foot">
+                <div class="luck-cost-txt" id="luck-cost-txt">Next: <b>—</b></div>
+                <button class="btn btn-primary btn-sm" id="luck-buy-btn" onclick="buyLuck()">Upgrade 🍀</button>
+              </div>
+            </div>
+            <div class="shop-card">
+              <div class="shop-card-label">📊 Base Drop Rates</div>
+              <div id="odds-chart"><!-- JS --></div>
+            </div>
+            <div class="shop-card">
+              <div class="shop-card-label">🎟️ Redeem Code</div>
+              <div class="code-row">
+                <input type="text" id="code-input" class="input-field" placeholder="ENTER-CODE" style="text-align:left" autocomplete="off" spellcheck="false" />
+                <button class="btn btn-ghost" onclick="redeemCode()">Redeem</button>
+              </div>
+            </div>
+            <div class="shop-card">
+              <div class="shop-card-label">✦ Special Packs</div>
+              <p style="font-size:0.74rem;color:var(--subtext);margin-bottom:1rem;line-height:1.5;">Purchase a pack once to unlock it permanently in the Packs tab.</p>
+              <div id="shop-special-packs"><!-- JS --></div>
+            </div>
+          </div>
+
+          <!-- ── PANEL 3: PROFILE ────────────────────── -->
+          <div class="panel" id="panel-profile">
+            <div class="section-hd">
+              <h2 class="section-title">Profile</h2>
+              <button class="info-btn" onclick="openModal('settings-modal')" title="Settings">⚙</button>
+            </div>
+
+            <!-- Hero / Identity -->
+            <div class="profile-card">
+              <div class="profile-hero">
+                <div class="avatar-wrap">
+                  <div class="avatar-circle" id="avatar-circle">🌸</div>
+                  <button class="avatar-edit" onclick="document.getElementById('avatar-upload').click()" title="Change avatar">✏</button>
+                  <input type="file" id="avatar-upload" accept="image/*" onchange="handleAvatarUpload(event)" />
+                </div>
+                <div class="profile-name">
+                  <span id="username-disp">Traveler</span>
+                  <button class="name-edit-btn" onclick="toggleNameEdit()" title="Edit username">✏️</button>
+                </div>
+                <div id="name-edit-row">
+                  <input type="text" id="username-input" class="input-field" style="text-align:left;font-size:0.84rem" placeholder="New username…" maxlength="24" />
+                  <button class="btn btn-primary btn-sm" onclick="saveUsername()">Save</button>
+                </div>
+                <div class="profile-joined" id="profile-joined">—</div>
+              </div>
+              <!-- Gift button in profile -->
+              <button class="btn btn-rose btn-full btn-sm" onclick="openGiftModal({})">🎁 Send a Gift</button>
+            </div>
+
+            <!-- Stats -->
+            <div class="profile-card">
+              <div class="profile-section-label">📊 Statistics</div>
+              <div class="stats-grid" id="stats-grid"><!-- JS --></div>
+            </div>
+
+            <!-- Cards by Rarity -->
+            <div class="profile-card">
+              <div class="profile-section-label">🎴 Cards by Rarity</div>
+              <div class="rarity-dist" id="rarity-dist"><!-- JS --></div>
+            </div>
+
+            <!-- ☁️ Cloud Status (compact) -->
+            <div class="profile-card" id="cloud-section">
+              <div class="profile-section-label">☁️ Cloud Account</div>
+              <div class="cloud-status" id="cloud-status-row">
+                <div class="cloud-dot" id="cloud-dot"></div>
+                <span id="cloud-status-txt">Not connected — guest mode</span>
+              </div>
+              <button class="btn btn-ghost btn-full btn-sm" onclick="openModal('auth-modal')">🔐 Login / Register</button>
+            </div>
+
+          </div><!-- .track -->
+      </div><!-- .viewport -->
+
+      <!-- Dock Nav -->
+      <nav class="dock-wrap" aria-label="Main navigation">
+        <div class="dock">
+          <button class="dock-btn active" data-panel="0">📚 <span class="dlbl">Collection</span></button>
+          <button class="dock-btn" data-panel="1">🎴 <span class="dlbl">Packs</span></button>
+          <button class="dock-btn" data-panel="2">🛒 <span class="dlbl">Shop</span></button>
+          <button class="dock-btn" data-panel="3">👤 <span class="dlbl">Profile</span></button>
+        </div>
+      </nav>
+    </div><!-- #app -->
+
+    <!-- ═══ PACK OPENING OVERLAY ════════════════════════════════ -->
+    <div id="pack-overlay">
+      <h2 class="pack-ov-title" id="pack-title">Opening Pack…</h2>
+      <div class="flip-grid" id="flip-grid"></div>
+      <div class="pack-actions">
+        <button class="btn btn-ghost" id="pack-back-btn">← Back</button>
+        <button class="btn btn-primary" id="pack-reveal-btn">✨ Flip All</button>
+        <button class="btn btn-gold" id="pack-collect-btn" style="display:none">✓ Collect Cards</button>
+      </div>
+    </div>
+
+    <!-- ═══ MAILBOX OVERLAY ════════════════════════════════════ -->
+    <div id="mailbox-overlay">
+      <div class="mailbox-header">
+        <button class="mailbox-back" onclick="closeMailbox()">← Back</button>
+        <div class="mailbox-title">📬 Inbox</div>
+        <button class="mailbox-refresh" onclick="loadMailbox()" title="Refresh">↺</button>
+      </div>
+      <div class="mailbox-body" id="mailbox-body">
+        <div class="mail-empty"><span class="mail-empty-icon">📭</span><p style="font-size:0.86rem;line-height:1.65">Loading inbox…</p></div>
+      </div>
+    </div>
+
+    <!-- ═══ MODALS ═══════════════════════════════════════════════ -->
+
+    <!-- Card Detail -->
+    <div class="modal-overlay" id="detail-modal" role="dialog" aria-modal="true">
+      <div class="modal-box" style="max-width:340px">
+        <button class="modal-close" onclick="closeModal('detail-modal')" aria-label="Close">×</button>
+        <div class="detail-art" id="detail-art"></div>
+        <div id="detail-name" class="detail-name"></div>
+        <div id="detail-rarity" class="detail-rarity"></div>
+        <div id="detail-cls-badge" style="text-align:center"></div>
+        <div id="detail-desc" class="detail-desc"></div>
+        <div id="detail-odds" class="detail-odds"></div>
+        <div class="divider"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;margin-bottom:0.7rem">
+          <span id="detail-sell-unit" style="color:var(--gold);font-weight:700;font-size:0.82rem"></span>
+          <div class="sell-row">
+            <label>Qty:</label>
+            <input type="number" id="sell-amount" class="sell-num" min="1" value="1" />
+            <button class="btn btn-ghost btn-sm" id="sell-max-btn">Max</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:0.55rem;">
+          <button class="btn btn-rose btn-sm" id="detail-gift-btn" style="flex:0 0 auto;" onclick="giftDetailCard()">🎁 Gift</button>
+          <button class="btn btn-gold btn-full" id="sell-btn">Sell</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Odds -->
+    <div class="modal-overlay" id="odds-modal" role="dialog" aria-modal="true">
+      <div class="modal-box">
+        <button class="modal-close" onclick="closeModal('odds-modal')" aria-label="Close">×</button>
+        <div class="modal-title" id="odds-title">Drop Rates</div>
+        <div id="odds-modal-body"></div>
+      </div>
+    </div>
+
+    <!-- Alert -->
+    <div class="modal-overlay" id="alert-modal" role="dialog" aria-modal="true">
+      <div class="modal-box" style="max-width:330px;text-align:center">
+        <div class="modal-title" id="alert-title">Notice</div>
+        <p class="modal-msg" id="alert-msg"></p>
+        <button class="btn btn-primary btn-full" onclick="closeModal('alert-modal')">Got it</button>
+      </div>
+    </div>
+
+    <!-- Congratulations (Legendary / SSSR / Hidden / Shiny) -->
+    <div class="modal-overlay" id="congrats-modal" role="dialog" aria-modal="true">
+      <div class="modal-box" style="max-width:340px">
+        <button class="modal-close" onclick="closeModal('congrats-modal')" aria-label="Close">×</button>
+        <div class="congrats-sparkles" id="congrats-sparkles">✨</div>
+        <div class="congrats-title" id="congrats-title">Legendary Pull!</div>
+        <div class="congrats-art" id="congrats-art"></div>
+        <div class="congrats-card-name" id="congrats-card-name"></div>
+        <div class="congrats-card-rarity" id="congrats-card-rarity"></div>
+        <div class="congrats-desc" id="congrats-desc"></div>
+        <button class="btn btn-primary btn-full" onclick="closeModal('congrats-modal')">✦ Amazing!</button>
+      </div>
+    </div>
+
+    <!-- Custom Confirm (account delete / local reset) -->
+    <div class="modal-overlay" id="confirm-modal" role="dialog" aria-modal="true">
+      <div class="modal-box">
+        <div class="confirm-icon" id="confirm-icon">⚠️</div>
+        <div class="confirm-title" id="confirm-title">Are you sure?</div>
+        <p class="confirm-msg" id="confirm-msg">This action cannot be undone.</p>
+        <div class="confirm-actions">
+          <button class="btn btn-ghost btn-full" onclick="closeModal('confirm-modal')">Cancel</button>
+          <button class="btn btn-danger btn-full" id="confirm-ok-btn">Delete</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pack Visibility Settings -->
+    <div class="modal-overlay" id="pack-visibility-modal" role="dialog" aria-modal="true">
+      <div class="modal-box" style="max-width:360px">
+        <button class="modal-close" onclick="closeModal('pack-visibility-modal')" aria-label="Close">×</button>
+        <div class="modal-title">📦 Pack Visibility</div>
+        <p class="modal-msg" style="margin-bottom:1rem">Toggle which of your owned packs appear in the Packs tab.</p>
+        <div id="pack-visibility-list"><!-- JS --></div>
+        <button class="btn btn-primary btn-full" style="margin-top:1rem" onclick="closeModal('pack-visibility-modal')">Done</button>
+      </div>
+    </div>
+
+    <!-- ═══ SETTINGS MODAL ══════════════════════════════════════ -->
+    <div class="modal-overlay" id="settings-modal" role="dialog" aria-modal="true">
+      <div class="modal-box" style="max-width:340px">
+        <button class="modal-close" onclick="closeModal('settings-modal')" aria-label="Close">×</button>
+        <div class="modal-title">⚙ Settings</div>
+
+        <div class="settings-item" onclick="openAuthModal()">
+          <div class="settings-item-icon">🔐</div>
+          <div class="settings-item-info">
+            <div class="settings-item-label" id="settings-auth-label">Login / Register</div>
+            <div class="settings-item-sub" id="settings-auth-sub">Connect your cloud account</div>
+          </div>
+          <div class="settings-item-arrow">›</div>
+        </div>
+
+        <div class="settings-item" onclick="closeModal('settings-modal'); openGiftModal({})">
+          <div class="settings-item-icon">🎁</div>
+          <div class="settings-item-info">
+            <div class="settings-item-label">Send a Gift</div>
+            <div class="settings-item-sub">Send cards, packs or coins to a friend</div>
+          </div>
+          <div class="settings-item-arrow">›</div>
+        </div>
+
+        <div class="settings-item" onclick="closeModal('settings-modal'); openMailbox()">
+          <div class="settings-item-icon">📬</div>
+          <div class="settings-item-info">
+            <div class="settings-item-label">Inbox</div>
+            <div class="settings-item-sub">View received gifts and messages</div>
+          </div>
+          <div class="settings-item-arrow">›</div>
+        </div>
+
+        <div class="settings-item" onclick="openPackVisFromSettings()">
+          <div class="settings-item-icon">📦</div>
+          <div class="settings-item-info">
+            <div class="settings-item-label">Pack Visibility</div>
+            <div class="settings-item-sub">Show / hide owned packs in the Packs tab</div>
+          </div>
+          <div class="settings-item-arrow">›</div>
+        </div>
+
+        <div class="settings-item danger" onclick="closeModal('settings-modal'); promptResetLocal()">
+          <div class="settings-item-icon">🗑</div>
+          <div class="settings-item-info">
+            <div class="settings-item-label">Reset All Local Data</div>
+            <div class="settings-item-sub">Permanently deletes all progress</div>
+          </div>
+          <div class="settings-item-arrow">›</div>
+        </div>
+
+        <div class="settings-item danger" id="settings-delete-acc" onclick="closeModal('settings-modal'); promptDeleteAccount()" style="display:none">
+          <div class="settings-item-icon">💀</div>
+          <div class="settings-item-info">
+            <div class="settings-item-label">Delete Account</div>
+            <div class="settings-item-sub">Removes Firestore data & auth account</div>
+          </div>
+          <div class="settings-item-arrow">›</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ AUTH MODAL ═══════════════════════════════════════════ -->
+    <div class="modal-overlay" id="auth-modal" role="dialog" aria-modal="true">
+      <div class="modal-box" style="max-width:360px">
+        <button class="modal-close" onclick="closeModal('auth-modal')" aria-label="Close">×</button>
+        <div class="modal-title">☁️ Cloud Account</div>
+
+        <!-- Not logged in -->
+        <div id="auth-guest-panel">
+          <div class="auth-tabs">
+            <button class="auth-tab active" id="tab-login" onclick="switchCloudTab('login')">Login</button>
+            <button class="auth-tab" id="tab-register" onclick="switchCloudTab('register')">Register</button>
+          </div>
+          <div id="cloud-login-form" class="auth-form">
+            <input type="text" id="cloud-login-user" class="cloud-input" placeholder="Email or username" autocomplete="off" />
+            <input type="password" id="cloud-login-pass" class="cloud-input" placeholder="Password" autocomplete="off" />
+            <button class="btn btn-primary btn-full" onclick="cloudLogin()">Login</button>
+          </div>
+          <div id="cloud-register-form" class="auth-form" style="display:none">
+            <input type="text" id="cloud-reg-username" class="cloud-input" placeholder="Choose a username" autocomplete="off" maxlength="24" />
+            <input type="email" id="cloud-reg-email" class="cloud-input" placeholder="Email address" autocomplete="off" />
+            <input type="password" id="cloud-reg-pass" class="cloud-input" placeholder="Password (min 6 chars)" autocomplete="off" />
+            <button class="btn btn-primary btn-full" onclick="cloudRegister()">Create Account</button>
+          </div>
+        </div>
+
+        <!-- Logged in -->
+        <div id="auth-logged-in-panel" class="auth-logged-in" style="display:none">
+          <div class="auth-status">
+            <div class="cloud-dot online"></div>
+            <div class="auth-user-row">
+              <span>☁️</span>
+              <span id="cloud-username-display"></span>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-full" onclick="syncToCloud()">💾 Save to Cloud</button>
+          <button class="btn btn-ghost btn-full btn-sm" onclick="cloudLogout(); closeModal('auth-modal')">Sign Out</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Twist Pack -->
+    <div class="modal-overlay" id="twist-modal" role="dialog" aria-modal="true">
+      <div class="modal-box">
+        <button class="modal-close" onclick="closeModal('twist-modal')" aria-label="Close">×</button>
+        <div class="modal-title">🌀 Twist Pack — Choose Wisely</div>
+        <p class="modal-msg" style="margin-bottom:0.75rem">Pick one card from each pair to keep.</p>
+        <div class="twist-pairs" id="twist-pairs"><!-- JS --></div>
+        <button class="btn btn-gold btn-full" id="twist-collect-btn" disabled onclick="collectTwistPack()">✓ Collect Selected (0/5)</button>
+      </div>
+    </div>
+
+    <!-- ═══ PACK PREVIEW MODAL ══════════════════════════════════ -->
+    <div class="modal-overlay" id="pack-preview-modal" role="dialog" aria-modal="true">
+      <div class="modal-box" style="max-width:340px;padding:0;overflow:hidden;">
+        <div id="pp-hero" class="pp-hero">
+          <button class="pp-close" onclick="closeModal('pack-preview-modal')">×</button>
+          <div class="pp-icon" id="pp-icon">📦</div>
+          <div class="pp-name" id="pp-name">Pack Name</div>
+          <div class="pp-desc" id="pp-desc">Pack description…</div>
+          <div class="pp-odds-chip" id="pp-odds">? odds</div>
+          <div class="pp-price" id="pp-price">🪙 0</div>
+        </div>
+        <div class="pp-actions">
+          <button class="btn btn-primary pp-actions" id="pp-open-btn" onclick="openInvPack()" style="flex:1;margin:0;">📦 OPEN</button>
+          <button class="btn btn-rose" id="pp-gift-btn" onclick="giftInvPack()" style="flex:1;">🎁 GIFT</button>
+          <button class="btn btn-gold" id="pp-sell-btn" onclick="sellInvPack()" style="flex:1;">🪙 SELL</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ GIFT MODAL ══════════════════════════════════════════ -->
+    <div class="modal-overlay" id="gift-modal" role="dialog" aria-modal="true">
+      <div class="modal-box" style="max-width:420px">
+        <button class="modal-close" onclick="closeModal('gift-modal')" aria-label="Close">×</button>
+        <div class="modal-title">🎁 Send a Gift</div>
+
+        <!-- Recipient -->
+        <div class="gift-field">
+          <div class="gift-field-label">👤 Recipient</div>
+          <div class="gift-recipient-row">
+            <input type="text" id="gift-recipient" class="gift-att-input" placeholder="@username" autocomplete="off" maxlength="32"
+              onkeydown="if(event.key==='Enter') checkGiftRecipient()" />
+            <button class="btn btn-ghost btn-sm" onclick="checkGiftRecipient()" style="flex-shrink:0">Check</button>
+          </div>
+          <div class="gift-recipient-status" id="gift-recipient-status"></div>
+        </div>
+
+        <!-- Message -->
+        <div class="gift-field">
+          <div class="gift-field-label">💬 Message <span class="opt">(optional)</span></div>
+          <textarea id="gift-message" class="gift-textarea" placeholder="Write something nice…" maxlength="280"></textarea>
+        </div>
+
+        <!-- Attachments -->
+        <div class="gift-field">
+          <div class="gift-field-label">📎 Attachments</div>
+          <div class="gift-attachment-block">
+            <div class="gift-att-row">
+              <div class="gift-att-label">🪙 Coins</div>
+              <div class="gift-att-control">
+                <input type="number" id="gift-coins" class="gift-att-input" min="0" value="0" placeholder="0" oninput="updateGiftCost()" />
+              </div>
+            </div>
+            <div class="gift-att-row">
+              <div class="gift-att-label">🎴 Card</div>
+              <div class="gift-att-control">
+                <select id="gift-card" class="gift-att-select" onchange="updateGiftCost()">
+                  <option value="">None</option>
+                </select>
+              </div>
+            </div>
+            <div class="gift-att-row">
+              <div class="gift-att-label">📦 Pack</div>
+              <div class="gift-att-control">
+                <select id="gift-pack" class="gift-att-select" onchange="updateGiftCost()">
+                  <option value="">None</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cost preview -->
+        <div class="gift-cost-bar">
+          <div class="gift-cost-label">Sending cost</div>
+          <div class="gift-cost-value" id="gift-cost-display">🪙 0</div>
+        </div>
+        <p style="font-size:0.68rem;color:var(--subtext);margin:-0.5rem 0 0.9rem;line-height:1.5;">
+          Cards/Coins: 500 · Both: 1,000 · Packs: +2,500 · Max: 3,500
+        </p>
+
+        <button class="btn btn-primary btn-full" id="gift-send-btn" onclick="sendGift()">🎁 Send Gift</button>
+      </div>
+    </div>
+
+    <div id="reauth-modal" class="modal-overlay">
+  <div class="modal-content reauth-card">
+    <div class="modal-header">
+      <div class="reauth-icon-circle">🔒</div>
+      <h2 class="modal-title">Security Check</h2>
+    </div>
+    <p class="reauth-desc">To delete your account forever, please verify your password.</p>
+    
+    <div class="input-group">
+      <input type="password" id="reauth-password" placeholder="Enter your password" autocomplete="current-password">
+      <div class="input-line"></div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal('reauth-modal')">Cancel</button>
+      <button class="btn-danger-gradient" id="reauth-confirm-btn">Confirm & Delete</button>
+    </div>
+  </div>
+</div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+     MAIN SCRIPT
+    ═══════════════════════════════════════════════════════════ -->
+    <script>
+      "use strict";
+
+      /* ────────────────────────────────────────────────────────
+     SOUND SYSTEM PLACEHOLDERS
+    ──────────────────────────────────────────────────────── */
+      const SFX = {
+        _s: {
+          hover: null, click: null, flip: null, pull: null, rare: null,
+          sssr: null, collect: null, error: null, coin: null, redeem: null, sell: null,
+        },
+        play(name) {
+          const s = this._s[name];
+          if (s) { try { s.currentTime = 0; s.play(); } catch {} }
+        },
+      };
+
+      /* ────────────────────────────────────────────────────────
+     CONSTANTS
+    ──────────────────────────────────────────────────────── */
+      // SHA-256 hash of "Kaiser67" — entry screen
+      const CORRECT_HASH = "99c24478e762b27155cca9933195e84bea6a7571149e0f6f5246b14cf3e7d7e9";
+
+      const LS_KEY = {
+        COL:          'cztcg5_col',
+        COINS:        'cztcg5_coins',
+        LUCK:         'cztcg5_luck',
+        LUCK_LVL:     'cztcg5_luck_lvl',
+        PACKS:        'cztcg5_packs',
+        USER:         'cztcg5_user',
+        AVATAR:       'cztcg5_avatar',
+        JOINED:       'cztcg5_joined',
+        CODES:        'cztcg5_codes_v2',
+        PACK_VIS:     'cztcg5_pack_vis',
+        OWNED_SP:     'cztcg5_owned_special',
+        UNOPENED:     'cztcg5_unopened_packs',
+        CD: (k) => `cztcg5_cd_${k}`,
+      };
+
+      const MAX_LUCK    = 25.0;
+      const LUCK_STEP   = 0.1;
+      const LUCK_BASE   = 80;
+      const LUCK_MULT   = 1.55;
+
+      // ✦ Shiny chance — change this value to adjust how rare shinies are.
+      // 0.0045 ≈ 1-in-222 (Pokémon-style). Set to 0 to disable entirely.
+      const SHINY_CHANCE = 0.0045;
+
+      const RARITY_ORDER = ['Common','Rare','Epic','Mythical','Legendary','SSSR'];
+      const RARITY_ORDER_WITH_HIDDEN = [...RARITY_ORDER, 'Hidden'];
+
+      const RARITY_CFG = {
+        Common:    { color:'#8AACBC', baseWeight:700,  sellValue:5,     packCost:50,    revealFx:'common',    icon:'◦' },
+        Rare:      { color:'#6AB2FF', baseWeight:200,  sellValue:30,    packCost:220,   revealFx:'rare',      icon:'✦' },
+        Epic:      { color:'#BA7CFF', baseWeight:70,   sellValue:120,   packCost:600,   revealFx:'epic',      icon:'❋' },
+        Mythical:  { color:'#FF6E9E', baseWeight:20,   sellValue:450,   packCost:2000,  revealFx:'mythical',  icon:'✸' },
+        Legendary: { color:'#EEC060', baseWeight:8,    sellValue:1500,  packCost:5000,  revealFx:'legendary', icon:'★' },
+        SSSR:      { color:'#48EEB8', baseWeight:2,    sellValue:6000,  packCost:18000, revealFx:'sssr',      icon:'✺' },
+        Hidden:    { color:'#ff96bc', baseWeight:0,    sellValue:9999,  packCost:0,     revealFx:'hidden',    icon:'🌹' },
+      };
+
+      const CLASS_CFG = {
+        Nature:    { color:'#7AE08A', icon:'🌿' },
+        Combat:    { color:'#F0906A', icon:'⚔️' },
+        Arcane:    { color:'#78C8E8', icon:'✨' },
+        Void:      { color:'#D880C8', icon:'🌑' },
+        Celestial: { color:'#B8B0FF', icon:'🌙' },
+      };
+
+      const PACK_CFG = {
+        standard: {
+          label:'Standard Pack', icon:'📦', description:'5 cards · Classic odds · Free every minute',
+          timedCooldown:60, coinCost:0, cardCount:5, luckBonus:0, weightMod:{},
+          bg:'linear-gradient(145deg,#171526,#1E1C36)',
+        },
+        advanced: {
+          label:'Advanced Pack', icon:'💫', description:'5 cards · Enhanced odds · Free every 5 minutes',
+          timedCooldown:300, coinCost:0, cardCount:5, luckBonus:5,
+          weightMod:{ Common:0.82, Rare:1.12, Epic:1.18, Mythical:1.25, Legendary:1.38, SSSR:1.55 },
+          bg:'linear-gradient(145deg,#161426,#1E1838)',
+        },
+        premium: {
+          label:'Premium Pack', icon:'👑', description:'5 cards · Superior odds · Free every 10 minutes',
+          timedCooldown:600, coinCost:0, cardCount:5, luckBonus:7.5,
+          weightMod:{ Common:0.68, Rare:1.2, Epic:1.32, Mythical:1.5, Legendary:1.72, SSSR:2.1 },
+          bg:'linear-gradient(145deg,#141224,#1E1432)',
+        },
+      };
+
+      /* ────────────────────────────────────────────────────────
+     STATE
+    ──────────────────────────────────────────────────────── */
+      let collection      = [];
+      let coins           = 100;
+      let luckPercent     = 0.0;
+      let luckLevel       = 0;
+      let packsOpened     = 0;
+      let adminMode       = false;
+      let currentCards    = [];
+      let revealedCount   = 0;
+      let username        = 'Traveler';
+      let avatarUrl       = null;
+      let joinedDate      = null;
+      let usedCodes       = new Set();
+      let packVisibility  = {};
+      let fbUser          = null;
+      let _cloudLoadedOnce = false;
+      let _specialPackOrder = null;
+      let twistPairs      = [];
+      let twistSelections = [];
+      let ownedSpecialPacks = new Set();
+      let unopenedPacks   = [];   // [{packKey, name, icon, bg, sellValue, acquiredAt}]
+      let collectionTab   = 'cards';
+      let _previewPackIdx = -1;   // index into unopenedPacks for the preview modal
+      let _giftRecipientVerified = false;
+      let _giftPrefilledCard  = null;
+      let _giftPrefilledPack  = null;
+      let detailCard      = null;
+
+      /* ────────────────────────────────────────────────────────
+     FIREBASE AUTH CALLBACK
+    ──────────────────────────────────────────────────────── */
+      window.onFirebaseAuthChange = function(user) {
+        fbUser = user;
+        if (user && !_cloudLoadedOnce) {
+          _cloudLoadedOnce = true;
+          loadFromCloud(user.uid);
+        }
+        updateCloudUI();
+      };
+
+      /* ────────────────────────────────────────────────────────
+     PERSISTENCE
+    ──────────────────────────────────────────────────────── */
+      function loadData() {
+        try {
+          collection        = JSON.parse(localStorage.getItem(LS_KEY.COL))        || [];
+          coins             = parseFloat(localStorage.getItem(LS_KEY.COINS))       || 100;
+          luckPercent       = parseFloat(localStorage.getItem(LS_KEY.LUCK))        || 0;
+          luckLevel         = parseInt(localStorage.getItem(LS_KEY.LUCK_LVL))      || 0;
+          packsOpened       = parseInt(localStorage.getItem(LS_KEY.PACKS))         || 0;
+          username          = localStorage.getItem(LS_KEY.USER)                    || 'Traveler';
+          avatarUrl         = localStorage.getItem(LS_KEY.AVATAR)                  || null;
+          joinedDate        = localStorage.getItem(LS_KEY.JOINED)                  || new Date().toISOString().split('T')[0];
+          usedCodes         = new Set(JSON.parse(localStorage.getItem(LS_KEY.CODES) || '[]'));
+          packVisibility    = JSON.parse(localStorage.getItem(LS_KEY.PACK_VIS)     || '{}');
+          ownedSpecialPacks = new Set(JSON.parse(localStorage.getItem(LS_KEY.OWNED_SP) || '[]'));
+          unopenedPacks     = JSON.parse(localStorage.getItem(LS_KEY.UNOPENED)     || '[]');
+          if (!localStorage.getItem(LS_KEY.JOINED)) localStorage.setItem(LS_KEY.JOINED, joinedDate);
+          const allPackKeys = [...Object.keys(PACK_CFG), ...(typeof SPECIAL_PACK_CFG !== 'undefined' ? Object.keys(SPECIAL_PACK_CFG) : [])];
+          allPackKeys.forEach(k => { if (packVisibility[k] === undefined) packVisibility[k] = true; });
+        } catch {
+          collection = []; coins = 100; luckPercent = 0; luckLevel = 0;
+          packsOpened = 0; username = 'Traveler'; avatarUrl = null;
+          joinedDate = new Date().toISOString().split('T')[0];
+          usedCodes = new Set(); packVisibility = {}; unopenedPacks = [];
+        }
+      }
+
+      function saveData() {
+        localStorage.setItem(LS_KEY.COL,      JSON.stringify(collection));
+        localStorage.setItem(LS_KEY.COINS,    coins);
+        localStorage.setItem(LS_KEY.LUCK,     luckPercent.toFixed(2));
+        localStorage.setItem(LS_KEY.LUCK_LVL, luckLevel);
+        localStorage.setItem(LS_KEY.PACKS,    packsOpened);
+        localStorage.setItem(LS_KEY.USER,     username);
+        localStorage.setItem(LS_KEY.CODES,    JSON.stringify([...usedCodes]));
+        localStorage.setItem(LS_KEY.PACK_VIS, JSON.stringify(packVisibility));
+        localStorage.setItem(LS_KEY.OWNED_SP, JSON.stringify([...ownedSpecialPacks]));
+        localStorage.setItem(LS_KEY.UNOPENED, JSON.stringify(unopenedPacks));
+        if (avatarUrl) localStorage.setItem(LS_KEY.AVATAR, avatarUrl);
+        updateUI();
+      }
+
+      function getLocalDataForCloud() {
+        return {
+          collection, coins, luckPercent, luckLevel, packsOpened,
+          usedCodes: [...usedCodes],
+          username, joinedDate,
+          unopenedPacks,
+          syncedAt: new Date().toISOString(),
+        };
+      }
+
+      /* ────────────────────────────────────────────────────────
+     UTILITY
+    ──────────────────────────────────────────────────────── */
+      function clamp(v, mn, mx) { return Math.max(mn, Math.min(mx, v)); }
+      function luckCost() { return adminMode ? 0 : Math.round(LUCK_BASE * Math.pow(LUCK_MULT, luckLevel)); }
+
+      function rarityChances(packKey = null) {
+        const mod = packKey ? (PACK_CFG[packKey]?.weightMod || {}) : {};
+        const w = {};
+        RARITY_ORDER.forEach(r => { w[r] = (RARITY_CFG[r].baseWeight || 0) * (mod[r] !== undefined ? mod[r] : 1); });
+        const total = Object.values(w).reduce((s,v) => s+v, 0);
+        const out = {};
+        RARITY_ORDER.forEach(r => (out[r] = total > 0 ? w[r]/total : 0));
+        return out;
+      }
+
+      function cardOdds(card, packKey = null) {
+        if (card.rarity === 'Hidden') return null;
+        const ch = rarityChances(packKey);
+        const tc = ch[card.rarity] ?? 0;
+        if (tc <= 0) return null;
+        const pool = CARD_DATABASE.filter(c => c.rarity === card.rarity);
+        const tw   = pool.reduce((s,c) => s + c.pullWeight, 0);
+        const share= card.pullWeight / tw;
+        const comb = tc * share;
+        return comb > 0 ? Math.round(1/comb) : null;
+      }
+
+      function pctStr(pct) {
+        if (pct < 0.001) return pct.toFixed(5) + '%';
+        if (pct < 0.01)  return pct.toFixed(4) + '%';
+        if (pct < 1)     return pct.toFixed(3) + '%';
+        return pct.toFixed(2) + '%';
+      }
+
+      async function sha1hex(str) {
+        const buf  = new TextEncoder().encode(str);
+        const hash = await crypto.subtle.digest('SHA-1', buf);
+        return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+      }
+
+      function fmtRelTime(ms) {
+        const s = Math.floor(ms / 1000);
+        if (s < 60)   return `${s}s`;
+        if (s < 3600) return `${Math.floor(s/60)}m`;
+        if (s < 86400)return `${Math.floor(s/3600)}h`;
+        return `${Math.floor(s/86400)}d`;
+      }
+
+      /* ────────────────────────────────────────────────────────
+     PROCEDURAL ART
+    ──────────────────────────────────────────────────────── */
+      function mkRng(seed) {
+        let s = (seed * 2654435761) >>> 0;
+        return () => { s = (Math.imul(1664525,s) + 1013904223) >>> 0; return s / 4294967296; };
+      }
+
+      function makeArtSVG(id, hexColor) {
+        const rng = mkRng(id), style = id % 4, r = hexColor || '#888';
+        let sh = '';
+        if (style === 0) {
+          sh = `<circle cx="50" cy="45" r="${18+rng()*14}" fill="none" stroke="${r}" stroke-width="1.5" opacity=".5"/>
+            <circle cx="50" cy="45" r="${6+rng()*6}" fill="${r}" opacity=".35"/>
+            <circle cx="${30+rng()*40}" cy="${30+rng()*40}" r="${3+rng()*4}" fill="${r}" opacity=".2"/>`;
+        } else if (style === 1) {
+          const a = rng()*60;
+          sh = `<rect x="28" y="28" width="44" height="44" fill="none" stroke="${r}" stroke-width="1.5" transform="rotate(${a} 50 50)" opacity=".5"/>
+            <rect x="38" y="38" width="24" height="24" fill="${r}" opacity=".12" transform="rotate(${a+15} 50 50)"/>`;
+        } else if (style === 2) {
+          sh = `<polygon points="50,18 80,72 20,72" fill="none" stroke="${r}" stroke-width="1.5" opacity=".5"/>
+            <polygon points="50,30 68,62 32,62" fill="${r}" opacity=".1"/>`;
+        } else {
+          const pts = Array.from({length:6},(_,i) => {
+            const a = (i/6)*Math.PI*2, rad = 22+rng()*12;
+            return `${50+Math.cos(a)*rad},${50+Math.sin(a)*rad}`;
+          }).join(' ');
+          sh = `<polygon points="${pts}" fill="none" stroke="${r}" stroke-width="1.5" opacity=".5"/>`;
+        }
+        return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+          <rect width="100" height="100" fill="#18152A" rx="8"/>${sh}</svg>`;
+      }
+
+      function makeArtEl(card) {
+    const w = document.createElement('div');
+    // Wichtig: Wir geben dem Container eine Position, damit das Shiny-Overlay absolut darin liegen kann
+    w.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;';
+
+    if (card.imageUrl) {
+        const img = document.createElement('img');
+        img.src = card.imageUrl; 
+        img.alt = card.name;
+        img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+        w.appendChild(img);
+    } else {
+        w.innerHTML = makeArtSVG(card.id, RARITY_CFG[card.rarity]?.color);
+    }
+
+    // Hier kommt die Shiny-Logik rein (bevor die Funktion beendet wird!)
+    if (card.isShiny) {
+        const overlay = document.createElement('div');
+        overlay.className = 'shiny-overlay';
+        
+        const sparkles = document.createElement('div');
+        sparkles.className = 'shiny-sparkles';
+        
+        const badge = document.createElement('div');
+        badge.className = 'shiny-badge';
+        badge.textContent = '✦ SHINY';
+        
+        // Wir hängen alles an 'w' an (unseren Container)
+        w.appendChild(overlay);
+        w.appendChild(sparkles);
+        w.appendChild(badge);
+    }
+
+    return w;
+}
+      
+
+      /* ────────────────────────────────────────────────────────
+     UPDATE UI
+    ──────────────────────────────────────────────────────── */
+      function updateUI() {
+        document.getElementById('coins-hdr').textContent  = coins.toLocaleString();
+        document.getElementById('luck-hdr').textContent   = luckPercent.toFixed(1);
+        document.getElementById('luck-pct-disp').textContent = luckPercent.toFixed(1) + '%';
+        document.getElementById('luck-bar').style.width   = ((luckPercent/MAX_LUCK)*100).toFixed(1) + '%';
+        const maxed = luckPercent >= MAX_LUCK;
+        const cost  = luckCost();
+        document.getElementById('luck-cost-txt').innerHTML = maxed
+          ? 'Status: <b style="color:var(--mint)">MAXED ✓</b>'
+          : `Next: <b>🪙 ${cost.toLocaleString()}</b>`;
+        document.getElementById('luck-buy-btn').disabled = maxed;
+        // Update tab counts
+        const totalCards = collection.reduce((s,c) => s+c.count, 0);
+        document.getElementById('cards-tab-count').textContent = totalCards;
+        document.getElementById('packs-tab-count').textContent = unopenedPacks.length;
+        renderCollection();
+        renderPacksInventory();
+        renderStats();
+        renderOddsChart();
+        updateCooldowns();
+        renderPackVisibilityList();
+      }
+
+      /* ────────────────────────────────────────────────────────
+     LOGIN
+    ──────────────────────────────────────────────────────── */
+      async function checkLogin() {
+        const input = document.getElementById('einput');
+        const box   = document.getElementById('entry-box');
+        const val   = input.value.trim();
+        SFX.play('click');
+        if (val === '0000' || val === 'admin') {
+          if (val === 'admin') adminMode = true;
+          doLogin(); return;
+        }
+        try {
+          const buf  = new TextEncoder().encode(val);
+          const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', buf)))
+            .map(b => b.toString(16).padStart(2,'0')).join('');
+          if (hash === CORRECT_HASH) { doLogin(); return; }
+        } catch {}
+        SFX.play('error');
+        input.value = '';
+        box.classList.add('shake');
+        setTimeout(() => box.classList.remove('shake'), 450);
+      }
+
+      function doLogin() {
+        document.getElementById('entry').classList.add('exit');
+        const app = document.getElementById('app');
+        app.removeAttribute('aria-hidden');
+        app.classList.add('visible');
+      }
+
+      /* ────────────────────────────────────────────────────────
+     NAVIGATION
+    ──────────────────────────────────────────────────────── */
+      function initNav() {
+        document.querySelectorAll('.dock-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            SFX.play('click');
+            const idx = parseInt(btn.dataset.panel);
+            document.getElementById('track').style.transform = `translateX(-${idx * 25}%)`;
+            document.querySelectorAll('.dock-btn').forEach((b,j) => b.classList.toggle('active', j === idx));
+          });
+          btn.addEventListener('mouseenter', () => SFX.play('hover'));
+        });
+      }
+
+      /* ────────────────────────────────────────────────────────
+     PROFILE
+    ──────────────────────────────────────────────────────── */
+      function initProfile() {
+        document.getElementById('username-disp').textContent = username;
+        if (avatarUrl) document.getElementById('avatar-circle').innerHTML = `<img src="${avatarUrl}" alt="Avatar" />`;
+        const d = new Date(joinedDate);
+        document.getElementById('profile-joined').textContent =
+          `Joined ${d.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' })}`;
+      }
+
+      function handleAvatarUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+          avatarUrl = ev.target.result;
+          document.getElementById('avatar-circle').innerHTML = `<img src="${avatarUrl}" alt="Avatar" />`;
+          localStorage.setItem(LS_KEY.AVATAR, avatarUrl);
+          toast('🖼️ Avatar updated!');
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function toggleNameEdit() {
+        const row  = document.getElementById('name-edit-row');
+        const show = row.style.display === 'none' || row.style.display === '';
+        row.style.display = show ? 'flex' : 'none';
+        if (show) { document.getElementById('username-input').value = username; document.getElementById('username-input').focus(); }
+      }
+
+      function saveUsername() {
+        const val = document.getElementById('username-input').value.trim();
+        if (!val) { toast('❌ Username cannot be empty.'); return; }
+        username = val.slice(0, 24);
+        document.getElementById('username-disp').textContent = username;
+        document.getElementById('name-edit-row').style.display = 'none';
+        localStorage.setItem(LS_KEY.USER, username);
+        toast(`✅ Username set to "${username}"`);
+      }
+
+      /* ────────────────────────────────────────────────────────
+     PACK VISIBILITY
+    ──────────────────────────────────────────────────────── */
+      function renderPackVisibilityList() {
+        const container = document.getElementById('pack-visibility-list');
+        if (!container) return;
+        const allCfgs = [
+          ...Object.entries(PACK_CFG).map(([k,v]) => ({ key:k, label:v.label, icon:v.icon, section:'Regular' })),
+          ...(typeof SPECIAL_PACK_CFG !== 'undefined'
+            ? Object.entries(SPECIAL_PACK_CFG)
+                .filter(([k]) => adminMode || ownedSpecialPacks.has(k))
+                .map(([k,v]) => ({ key:k, label:v.label, icon:v.icon, section:'Special' }))
+            : []),
+        ];
+        if (!allCfgs.length) {
+          container.innerHTML = `<p style="font-size:0.8rem;color:var(--subtext);text-align:center;padding:1rem 0;">No packs to configure yet.<br>Purchase special packs in the Shop!</p>`;
+          return;
+        }
+        container.innerHTML = allCfgs.map(cfg => `
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">${cfg.icon} ${cfg.label}</div>
+              <div class="toggle-sub">${cfg.section}</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" ${packVisibility[cfg.key] !== false ? 'checked' : ''}
+                onchange="setPackVisibility('${cfg.key}', this.checked)" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>`).join('');
+      }
+
+      function setPackVisibility(key, visible) {
+        packVisibility[key] = visible;
+        localStorage.setItem(LS_KEY.PACK_VIS, JSON.stringify(packVisibility));
+        renderPacksPanel();
+        renderSpecialPacksPanel();
+      }
+
+      /* ────────────────────────────────────────────────────────
+     COLLECTION TAB SWITCH
+    ──────────────────────────────────────────────────────── */
+      function switchCollectionTab(tab) {
+        collectionTab = tab;
+        document.getElementById('col-tab-cards').classList.toggle('active', tab === 'cards');
+        document.getElementById('col-tab-packs').classList.toggle('active', tab === 'packs');
+        document.getElementById('col-cards-view').style.display = tab === 'cards' ? '' : 'none';
+        document.getElementById('col-packs-view').style.display = tab === 'packs' ? '' : 'none';
+        if (tab === 'packs') renderPacksInventory();
+      }
+
+      /* ────────────────────────────────────────────────────────
+     PACKS INVENTORY (Collection > Packs tab)
+    ──────────────────────────────────────────────────────── */
+      function renderPacksInventory() {
+        const grid    = document.getElementById('pack-inv-grid');
+        const metaEl  = document.getElementById('col-packs-meta');
+        const countEl = document.getElementById('packs-tab-count');
+        if (!grid) return;
+        const count = unopenedPacks.length;
+        if (countEl) countEl.textContent = count;
+        if (metaEl)  metaEl.textContent  = count === 0 ? 'No packs in inventory.' : `${count} unopened pack${count !== 1 ? 's' : ''} in inventory`;
+        grid.innerHTML = '';
+        if (!count) {
+          grid.innerHTML = `<div class="pack-inv-empty empty-state">
+            <span class="empty-icon">📦</span>
+            <p>Your pack inventory is empty.<br>Receive gifts from friends to collect packs!</p>
+          </div>`;
+          return;
+        }
+        unopenedPacks.forEach((pack, idx) => {
+          const el = document.createElement('div');
+          el.className = 'pack-inv-card';
+          el.style.background = pack.bg || 'var(--surface)';
+          el.style.animationDelay = `${idx * 0.03}s`;
+          const d = new Date(pack.acquiredAt);
+          const dateStr = d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+          el.innerHTML = `
+            <div class="pack-inv-icon">${pack.icon || '📦'}</div>
+            <div class="pack-inv-name">${pack.name || pack.packKey}</div>
+            <div class="pack-inv-date">Received ${dateStr}</div>`;
+          el.addEventListener('click', () => openPackPreviewModal(idx));
+          grid.appendChild(el);
+        });
+      }
+
+      /* ────────────────────────────────────────────────────────
+     PACK PREVIEW MODAL
+    ──────────────────────────────────────────────────────── */
+      function openPackPreviewModal(idx) {
+        _previewPackIdx = idx;
+        const pack = unopenedPacks[idx];
+        if (!pack) return;
+        const cfg  = typeof SPECIAL_PACK_CFG !== 'undefined' ? SPECIAL_PACK_CFG[pack.packKey] : null;
+        const hero  = document.getElementById('pp-hero');
+        if (hero) hero.style.background = pack.bg || 'var(--surface-2)';
+        document.getElementById('pp-icon').textContent  = pack.icon || '📦';
+        document.getElementById('pp-name').textContent  = pack.name || pack.packKey;
+        document.getElementById('pp-desc').textContent  = cfg?.description || 'A mysterious pack.';
+        document.getElementById('pp-odds').textContent  = cfg?.displayOdds || '—';
+        document.getElementById('pp-price').textContent = `Sell: 🪙 ${(pack.sellValue || cfg?.sellValue || 0).toLocaleString()}`;
+        openModal('pack-preview-modal');
+      }
+
+      function openInvPack() {
+        if (_previewPackIdx < 0 || _previewPackIdx >= unopenedPacks.length) return;
+        const pack = unopenedPacks[_previewPackIdx];
+        const cfg  = typeof SPECIAL_PACK_CFG !== 'undefined' ? SPECIAL_PACK_CFG[pack.packKey] : null;
+        if (!cfg) { toast('❌ Pack config not found.'); return; }
+        closeModal('pack-preview-modal');
+        // Remove from inventory
+        unopenedPacks.splice(_previewPackIdx, 1);
+        _previewPackIdx = -1;
+        // Open the pack
+        packsOpened++;
+        currentCards  = drawSpecialPackCards(pack.packKey, cfg);
+        revealedCount = 0;
+        saveData();
+        _mountPackOverlay(cfg.label || pack.name, currentCards);
+        SFX.play('pull');
+      }
+
+      function sellInvPack() {
+        if (_previewPackIdx < 0 || _previewPackIdx >= unopenedPacks.length) return;
+        const pack = unopenedPacks[_previewPackIdx];
+        const cfg  = typeof SPECIAL_PACK_CFG !== 'undefined' ? SPECIAL_PACK_CFG[pack.packKey] : null;
+        const sv   = pack.sellValue || cfg?.sellValue || 0;
+        closeModal('pack-preview-modal');
+        unopenedPacks.splice(_previewPackIdx, 1);
+        _previewPackIdx = -1;
+        coins += sv;
+        SFX.play('sell');
+        saveData();
+        toast(`🪙 Sold pack for 🪙 ${sv.toLocaleString()}!`);
+      }
+
+      function giftInvPack() {
+        if (_previewPackIdx < 0 || _previewPackIdx >= unopenedPacks.length) return;
+        const pack = unopenedPacks[_previewPackIdx];
+        closeModal('pack-preview-modal');
+        openGiftModal({ pack: { idx: _previewPackIdx, ...pack } });
+      }
+
+      /* ────────────────────────────────────────────────────────
+     COLLECTION RENDER
+    ──────────────────────────────────────────────────────── */
+      const SORT_MAP = Object.fromEntries(RARITY_ORDER_WITH_HIDDEN.map((r,i) => [r,i]));
+
+      function renderCollection() {
+        const grid = document.getElementById('card-grid');
+        const rf   = document.getElementById('rarity-filter').value;
+        const cf   = document.getElementById('class-filter').value;
+        const sf   = document.getElementById('sort-filter').value;
+        const of   = document.getElementById('order-filter').value;
+        let cards  = [...collection];
+        if (rf !== 'all') cards = cards.filter(c => c.rarity === rf);
+        if (cf !== 'all') cards = cards.filter(c => c.class === cf);
+        cards.sort((a, b) => {
+          let va, vb;
+          if      (sf === 'rarity') { va = SORT_MAP[a.rarity]; vb = SORT_MAP[b.rarity]; }
+          else if (sf === 'name')   { va = a.name.toLowerCase(); vb = b.name.toLowerCase(); }
+          else if (sf === 'count')  { va = a.count; vb = b.count; }
+          else { va = (a.sellValue ?? RARITY_CFG[a.rarity]?.sellValue ?? 0)*a.count; vb = (b.sellValue ?? RARITY_CFG[b.rarity]?.sellValue ?? 0)*b.count; }
+          return of === 'asc' ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
+        });
+        const total = collection.reduce((s,c) => s+c.count, 0);
+        document.getElementById('col-badge').textContent = `${total} card${total !== 1 ? 's' : ''}`;
+        document.getElementById('col-meta').textContent  = `Showing ${cards.length} of ${collection.length} unique card${collection.length !== 1 ? 's' : ''}`;
+        document.getElementById('cards-tab-count').textContent = total;
+        grid.innerHTML = '';
+        if (!cards.length) {
+          grid.innerHTML = `<div class="empty-state"><span class="empty-icon">🎴</span>
+            <p>${collection.length === 0 ? 'Your collection is empty.<br>Open some packs in the Packs tab!' : 'No cards match your current filters.'}</p></div>`;
+          return;
+        }
+        cards.forEach((card, idx) => {
+          const rcfg = RARITY_CFG[card.rarity] || {};
+          const ccfg = CLASS_CFG[card.class]   || {};
+          const el   = document.createElement('div');
+          el.className = 'ccard' + (card.isShiny ? ' shiny' : '');
+          el.style.cssText = `animation-delay:${idx*0.022}s;border-color:${card.isShiny ? '#eec06066' : (rcfg.color+'22')};`;
+          el.dataset.rarity = card.rarity;
+          const art = document.createElement('div');
+          art.className = 'ccard-art'; art.appendChild(makeArtEl(card));
+          el.innerHTML = `${card.count > 1 ? `<div class="ccard-count">×${card.count}</div>` : ''}
+            <div class="cls-mini" style="background:${ccfg.color||'#888'}18;color:${ccfg.color||'#888'};border:1px solid ${ccfg.color||'#888'}30;">${ccfg.icon||''} ${card.class}</div>`;
+          el.appendChild(art);
+          el.insertAdjacentHTML('beforeend', `
+            <div class="ccard-footer">
+              <div class="ccard-name">${card.isShiny ? '✨ ' : ''}${card.name}</div>
+              <div class="ccard-rarity" style="color:${rcfg.color||'#888'}">${rcfg.icon||''} ${card.rarity}</div>
+            </div>`);
+          if (card.isShiny) {
+            const badge = document.createElement('div');
+            badge.className = 'shiny-badge'; badge.textContent = '✦ SHINY';
+            el.appendChild(badge);
+          }
+          el.addEventListener('click', () => { SFX.play('click'); openDetailModal(card); });
+          el.addEventListener('mouseenter', () => SFX.play('hover'));
+          grid.appendChild(el);
+        });
+      }
+
+      /* ────────────────────────────────────────────────────────
+     ADD TO COLLECTION (handles shiny separation)
+    ──────────────────────────────────────────────────────── */
+      function addToCollection(card) {
+        const existing = collection.find(c => c.id === card.id && !!c.isShiny === !!card.isShiny);
+        if (existing) existing.count++;
+        else collection.push({...card, count: 1});
+      }
+
+      /* ────────────────────────────────────────────────────────
+     STATS
+    ──────────────────────────────────────────────────────── */
+      function renderStats() {
+        const total     = collection.reduce((s,c) => s+c.count, 0);
+        const unique    = collection.length;
+        const dbLen     = typeof CARD_DATABASE !== 'undefined' ? CARD_DATABASE.length : '?';
+        const netWorth  = collection.reduce((s,c) => { const sv = c.sellValue ?? RARITY_CFG[c.rarity]?.sellValue ?? 0; return s + sv*c.count; }, 0);
+        const sssr      = collection.filter(c => c.rarity === 'SSSR').reduce((s,c) => s+c.count, 0);
+        const legendary = collection.filter(c => c.rarity === 'Legendary').reduce((s,c) => s+c.count, 0);
+        const hidden    = collection.filter(c => c.rarity === 'Hidden').reduce((s,c) => s+c.count, 0);
+        const shinies   = collection.filter(c => c.isShiny).reduce((s,c) => s+c.count, 0);
+        const rows = [
+          { lbl:'Total Cards',     val: total.toLocaleString() },
+          { lbl:'Unique Cards',    val: `${unique} / ${dbLen}` },
+          { lbl:'Coins',           val: `🪙 ${coins.toLocaleString()}` },
+          { lbl:'Net Worth',       val: `🪙 ${netWorth.toLocaleString()}` },
+          { lbl:'Packs Opened',    val: packsOpened.toLocaleString() },
+          { lbl:'Luck Bonus',      val: luckPercent.toFixed(1) + '%' },
+          { lbl:'SSSR Owned',      val: sssr.toLocaleString() },
+          { lbl:'Legendary Owned', val: legendary.toLocaleString() },
+          ...(shinies > 0 ? [{ lbl:'✨ Shinies', val: shinies.toLocaleString() }] : []),
+          ...(hidden  > 0 ? [{ lbl:'Hidden Owned', val: hidden.toLocaleString() }] : []),
+        ];
+        document.getElementById('stats-grid').innerHTML = rows.map(r =>
+          `<div class="stat-box"><div class="stat-lbl">${r.lbl}</div><div class="stat-val f-mono">${r.val}</div></div>`
+        ).join('');
+
+        const maxCnt = Math.max(1, ...RARITY_ORDER_WITH_HIDDEN.map(r => collection.filter(c=>c.rarity===r).reduce((s,c)=>s+c.count,0)));
+        document.getElementById('rarity-dist').innerHTML = RARITY_ORDER_WITH_HIDDEN.map(r => {
+          const rcfg = RARITY_CFG[r];
+          const cnt  = collection.filter(c => c.rarity === r).reduce((s,c) => s+c.count, 0);
+          const w    = ((cnt/maxCnt)*100).toFixed(1);
+          return `<div class="rd-row">
+            <div class="rd-label" style="color:${rcfg.color}">${rcfg.icon} ${r}</div>
+            <div class="rd-track"><div class="rd-fill" style="width:${w}%;background:${rcfg.color};animation-delay:${RARITY_ORDER_WITH_HIDDEN.indexOf(r)*0.07}s;"></div></div>
+            <div class="rd-count">${cnt}</div></div>`;
+        }).join('');
+      }
+
+      /* ────────────────────────────────────────────────────────
+     PACKS PANEL RENDER
+    ──────────────────────────────────────────────────────── */
+      function renderPacksPanel() {
+        const grid = document.getElementById('timed-packs');
+        grid.innerHTML = '';
+        Object.entries(PACK_CFG).forEach(([key, pk]) => {
+          if (packVisibility[key] === false) return;
+          const box = document.createElement('div');
+          box.className = 'pack-box';
+          box.style.background = pk.bg;
+          box.innerHTML = `
+            <div class="pack-top">
+              <div class="pack-icon-bubble">${pk.icon}</div>
+              <div class="pack-info">
+                <div class="pack-label">${pk.label}
+                  <button class="info-btn" onclick="openOddsModal('${key}')" title="Drop rates">i</button>
+                </div>
+                <div class="pack-desc">${pk.description}</div>
+              </div>
+            </div>
+            <div class="pack-cd-row">
+              <div class="pack-cd-label waiting" id="cd-lbl-${key}">Checking…</div>
+              <div class="pack-cd-bar-track"><div class="pack-cd-bar-fill" id="cd-bar-${key}" style="width:0%;background:var(--accent);"></div></div>
+            </div>
+            <div class="pack-footer">
+              <div>${pk.luckBonus > 0 ? `<span class="pack-luck-badge">+${pk.luckBonus}% luck</span>` : ''}</div>
+              <button class="btn btn-primary btn-sm" onclick="openPack('${key}')">Open Pack</button>
+            </div>`;
+          grid.appendChild(box);
+        });
+
+        /* Guaranteed packs */
+        const gg = document.getElementById('guar-grid');
+        gg.innerHTML = '';
+        RARITY_ORDER.forEach(r => {
+          const rcfg = RARITY_CFG[r];
+          const cost = adminMode ? 0 : rcfg.packCost;
+          const el = document.createElement('div');
+          el.className = 'guar-box';
+          el.style.borderColor = rcfg.color + '33';
+          el.innerHTML = `
+            <div class="guar-icon">${rcfg.icon}</div>
+            <div class="guar-name" style="color:${rcfg.color}">${r}</div>
+            <div class="guar-cost">🪙 ${cost.toLocaleString()}</div>
+            <button class="btn btn-sm btn-full" style="margin-top:.2rem;background:${rcfg.color}18;color:${rcfg.color};border:1px solid ${rcfg.color}38;"
+              onclick="buyGuaranteed('${r}')">Buy</button>`;
+          gg.appendChild(el);
+        });
+
+        renderSpecialPacksPanel();
+      }
+
+      /* ────────────────────────────────────────────────────────
+     SPECIAL PACKS PANEL
+    ──────────────────────────────────────────────────────── */
+      function getSpecialPackSlot() { return new Date().getHours() < 12 ? 0 : 1; }
+
+      function getRotationNextChange() {
+        const h = new Date().getHours();
+        return h < 12 ? (12 - h) : (24 - h);
+      }
+
+      function isRarityPoolOwned(rarity) {
+        const pool = CARD_DATABASE.filter(c => c.rarity === rarity && c.pullWeight > 0);
+        return pool.length > 0 && pool.every(c => collection.some(cc => cc.id === c.id));
+      }
+
+      function isClassPoolOwned(cls) {
+        const pool = CARD_DATABASE.filter(c => c.class === cls && c.rarity !== 'Hidden' && c.pullWeight > 0);
+        return pool.length > 0 && pool.every(c => collection.some(cc => cc.id === c.id));
+      }
+
+      function renderSpecialPacksPanel() {
+        if (typeof SPECIAL_PACK_CFG === 'undefined') return;
+        const grid = document.getElementById('special-packs-grid');
+        if (!grid) return;
+        const slot      = getSpecialPackSlot();
+        const hoursLeft = getRotationNextChange();
+        const badge  = document.getElementById('rotation-badge');
+        const timeEl = document.getElementById('rotation-time');
+        if (badge)  badge.textContent  = `Slot ${slot + 1}/2`;
+        if (timeEl) timeEl.textContent = `Rotates in ~${hoursLeft}h`;
+
+        // Always packs + current slot packs
+        let slotPacks = Object.entries(SPECIAL_PACK_CFG).filter(([k, v]) =>
+          (v.rotation === 'always' || v.rotation === slot) && (adminMode || ownedSpecialPacks.has(k))
+        );
+
+        if (_specialPackOrder) {
+          slotPacks = slotPacks.sort((a,b) => {
+            const ia = _specialPackOrder.indexOf(a[0]);
+            const ib = _specialPackOrder.indexOf(b[0]);
+            return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+          });
+        }
+
+        const isOwned = key => {
+          const pk = SPECIAL_PACK_CFG[key];
+          if (pk.type === 'onlyRarity') return isRarityPoolOwned(pk.fixedRarity);
+          if (pk.type === 'classPack')  return ['Nature','Combat','Arcane','Void','Celestial'].every(isClassPoolOwned);
+          return false;
+        };
+        slotPacks.sort((a,b) => (isOwned(a[0]) ? 1 : 0) - (isOwned(b[0]) ? 1 : 0));
+
+        grid.innerHTML = '';
+
+        if (!slotPacks.length) {
+          grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:2rem 1rem;">
+            <div style="font-size:1.8rem;margin-bottom:0.6rem;">🛒</div>
+            <p style="font-size:0.82rem;color:var(--subtext);line-height:1.6;">No special packs unlocked yet.<br>Purchase them in the <b style="color:var(--accent)">Shop</b> tab!</p>
+          </div>`;
+          return;
+        }
+
+        slotPacks.forEach(([key, pk]) => {
+          if (packVisibility[key] === false) return;
+          const owned = isOwned(key);
+          const isAlways = pk.rotation === 'always';
+          const box = document.createElement('div');
+          box.className = 'pack-box' + (owned ? ' dimmed' : '');
+          box.style.background = pk.bg;
+          const ownedBadge   = owned ? `<span class="pack-owned-badge">All Owned ✓</span>` : '';
+          const rotationTag  = isAlways
+            ? `<span class="pack-rotation-tag" style="background:rgba(180,158,255,0.15);color:var(--accent);border-color:rgba(180,158,255,0.3);">Always</span>`
+            : `<span class="pack-rotation-tag">${slot === 0 ? '0:00 – 12:00' : '12:00 – 24:00'}</span>`;
+          box.innerHTML = `
+            ${rotationTag}
+            <div class="pack-top">
+              <div class="pack-icon-bubble">${pk.icon}</div>
+              <div class="pack-info">
+                <div class="pack-label">${pk.label}</div>
+                <div class="pack-desc">${pk.description}</div>
+              </div>
+            </div>
+            <div class="pack-cd-row">
+              <div class="pack-cd-label waiting" id="cd-lbl-${key}">Checking…</div>
+              <div class="pack-cd-bar-track"><div class="pack-cd-bar-fill" id="cd-bar-${key}" style="width:0%;background:var(--accent);"></div></div>
+            </div>
+            <div class="pack-footer">
+              <div>${ownedBadge}${pk.luckBonus > 0 ? `<span class="pack-luck-badge">+${pk.luckBonus}% luck</span>` : ''}</div>
+              <button class="btn btn-primary btn-sm" onclick="openSpecialPack('${key}')">Open</button>
+            </div>`;
+          grid.appendChild(box);
+        });
+
+        if (!grid.children.length) {
+          grid.innerHTML = `<p style="font-size:0.8rem;color:var(--subtext);padding:0.5rem 0;">All special packs are hidden. Enable them in ⚙ Settings.</p>`;
+        }
+      }
+
+      /* ────────────────────────────────────────────────────────
+     SHOP SPECIAL PACKS
+    ──────────────────────────────────────────────────────── */
+      function renderShopSpecialPacks() {
+        if (typeof SPECIAL_PACK_CFG === 'undefined') return;
+        const container = document.getElementById('shop-special-packs');
+        if (!container) return;
+        let entries = Object.entries(SPECIAL_PACK_CFG);
+        const notOwned = entries.filter(([k]) => !ownedSpecialPacks.has(k));
+        const owned    = entries.filter(([k]) =>  ownedSpecialPacks.has(k));
+        for (let i = notOwned.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [notOwned[i], notOwned[j]] = [notOwned[j], notOwned[i]];
+        }
+        const sorted = [...notOwned, ...owned];
+        container.innerHTML = sorted.map(([key, pk]) => {
+          const isOwned = ownedSpecialPacks.has(key);
+          const cost    = adminMode ? 0 : pk.coinCost;
+          return `
+            <div class="shop-special-pack${isOwned ? ' owned' : ''}">
+              <div class="shop-sp-icon">${pk.icon}</div>
+              <div class="shop-sp-info">
+                <div class="shop-sp-label">${pk.label}</div>
+                <div class="shop-sp-desc">${pk.description}</div>
+                <div class="shop-sp-price">${isOwned ? '✓ Unlocked' : `🪙 ${cost.toLocaleString()}`}</div>
+              </div>
+              ${isOwned
+                ? `<span class="pack-owned-badge" style="flex-shrink:0">Owned</span>`
+                : `<button class="btn btn-gold btn-sm" style="flex-shrink:0" onclick="buySpecialPack('${key}')">Buy</button>`}
+            </div>`;
+        }).join('');
+      }
+
+      function buySpecialPack(key) {
+        if (typeof SPECIAL_PACK_CFG === 'undefined') return;
+        SFX.play('click');
+        if (ownedSpecialPacks.has(key)) { toast('✅ Already unlocked!'); return; }
+        const pk   = SPECIAL_PACK_CFG[key];
+        const cost = adminMode ? 0 : pk.coinCost;
+        if (coins < cost) {
+          showAlert('🪙 Not Enough Coins', `You need 🪙 ${cost.toLocaleString()} to unlock the ${pk.label}.`);
+          return;
+        }
+        coins -= cost;
+        ownedSpecialPacks.add(key);
+        if (packVisibility[key] === undefined) packVisibility[key] = true;
+        saveData();
+        renderShopSpecialPacks();
+        renderSpecialPacksPanel();
+        renderPackVisibilityList();
+        toast(`${pk.icon} ${pk.label} unlocked!`);
+      }
+
+      function shuffleSpecialPacks() {
+        if (typeof SPECIAL_PACK_CFG === 'undefined') return;
+        SFX.play('click');
+        const slot = getSpecialPackSlot();
+        const keys = Object.entries(SPECIAL_PACK_CFG).filter(([,v]) => v.rotation === 'always' || v.rotation === slot).map(([k]) => k);
+        for (let i = keys.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i+1));
+          [keys[i], keys[j]] = [keys[j], keys[i]];
+        }
+        _specialPackOrder = keys;
+        renderSpecialPacksPanel();
+        toast('🔀 Shuffled special packs!');
+      }
+
+      /* ────────────────────────────────────────────────────────
+     ODDS CHART & MODAL
+    ──────────────────────────────────────────────────────── */
+      function renderOddsChart() {
+        const container = document.getElementById('odds-chart');
+        if (!container) return;
+        const ch = rarityChances();
+        container.innerHTML = RARITY_ORDER.map(r => {
+          const rcfg = RARITY_CFG[r];
+          const pct  = (ch[r] * 100);
+          const disp = pctStr(pct);
+          const w    = Math.min(100, pct * 1.5).toFixed(2);
+          return `<div class="odds-bar-row">
+            <div class="odds-bar-head">
+              <span style="color:${rcfg.color}">${rcfg.icon} ${r}</span>
+              <span class="odds-bar-pct">${disp}</span>
+            </div>
+            <div class="odds-track">
+              <div class="odds-fill" style="width:${w}%;background:${rcfg.color};animation-delay:${RARITY_ORDER.indexOf(r)*0.06}s;"></div>
+            </div>
+          </div>`;
+        }).join('');
+      }
+
+      function openOddsModal(packKey) {
+        const title = document.getElementById('odds-title');
+        const body  = document.getElementById('odds-modal-body');
+        const label = packKey
+          ? (PACK_CFG[packKey]?.label || SPECIAL_PACK_CFG?.[packKey]?.label || packKey)
+          : 'All Packs (Base Rates)';
+        title.textContent = `📊 Drop Rates — ${label}`;
+        const ch = rarityChances(packKey);
+        body.innerHTML = RARITY_ORDER.map(r => {
+          const rcfg = RARITY_CFG[r];
+          const pct  = ch[r] * 100;
+          const disp = pctStr(pct);
+          const w    = Math.min(100, pct * 1.5).toFixed(2);
+          const pool = CARD_DATABASE.filter(c => c.rarity === r && c.pullWeight > 0).length;
+          return `<div class="odds-bar-row">
+            <div class="odds-bar-head">
+              <span style="color:${rcfg.color}">${rcfg.icon} ${r}</span>
+              <span class="odds-bar-pct">${disp} · ${pool} card${pool!==1?'s':''}</span>
+            </div>
+            <div class="odds-track">
+              <div class="odds-fill" style="width:${w}%;background:${rcfg.color};animation-delay:${RARITY_ORDER.indexOf(r)*0.06}s;"></div>
+            </div>
+          </div>`;
+        }).join('');
+        if (packKey && SPECIAL_PACK_CFG?.[packKey]?.luckBonus) {
+          body.innerHTML += `<p style="font-size:0.72rem;color:var(--mint);margin-top:0.8rem;">+${SPECIAL_PACK_CFG[packKey].luckBonus}% luck bonus active for this pack.</p>`;
+        }
+        openModal('odds-modal');
+      }
+
+      /* ────────────────────────────────────────────────────────
+     COOLDOWNS
+    ──────────────────────────────────────────────────────── */
+      function getCooldownMs(key) {
+        const cfg = PACK_CFG[key] || SPECIAL_PACK_CFG?.[key];
+        if (!cfg) return 0;
+        return (cfg.timedCooldown || 0) * 1000;
+      }
+
+      function getLastOpened(key) {
+        const v = localStorage.getItem(LS_KEY.CD(key));
+        return v ? parseInt(v) : 0;
+      }
+
+      function setLastOpened(key) {
+        localStorage.setItem(LS_KEY.CD(key), Date.now());
+      }
+
+      function getRemainingMs(key) {
+        if (adminMode) return 0;
+        const elapsed = Date.now() - getLastOpened(key);
+        const cd = getCooldownMs(key);
+        return Math.max(0, cd - elapsed);
+      }
+
+      function updateCooldowns() {
+        const allKeys = [
+          ...Object.keys(PACK_CFG),
+          ...(typeof SPECIAL_PACK_CFG !== 'undefined' ? Object.keys(SPECIAL_PACK_CFG) : []),
+        ];
+        allKeys.forEach(key => {
+          const lbl  = document.getElementById(`cd-lbl-${key}`);
+          const bar  = document.getElementById(`cd-bar-${key}`);
+          if (!lbl || !bar) return;
+          const rem = getRemainingMs(key);
+          const cd  = getCooldownMs(key);
+          if (rem <= 0) {
+            lbl.textContent = 'Ready!';
+            lbl.className = 'pack-cd-label ready';
+            bar.style.width = '0%';
+          } else {
+            const pct = (1 - rem / cd) * 100;
+            lbl.textContent = `Ready in ${fmtRelTime(rem)}`;
+            lbl.className = 'pack-cd-label waiting';
+            bar.style.width = pct.toFixed(1) + '%';
+          }
+        });
+        setTimeout(updateCooldowns, 1000);
+      }
+
+      /* ────────────────────────────────────────────────────────
+     CARD DRAWING ENGINE
+    ──────────────────────────────────────────────────────── */
+      function weightedDraw(pool) {
+        const total = pool.reduce((s, c) => s + c.pullWeight, 0);
+        if (total <= 0) return pool[0] || null;
+        let r = Math.random() * total;
+        for (const c of pool) { r -= c.pullWeight; if (r <= 0) return c; }
+        return pool[pool.length - 1];
+      }
+
+      function applyLuck(weights) {
+        const out = { ...weights };
+        const boost = luckPercent / 100;
+        const reduce = (out.Common || 0) * boost * 0.7;
+        out.Common = Math.max(0, (out.Common || 0) - reduce);
+        ['Rare', 'Epic', 'Mythical', 'Legendary', 'SSSR'].forEach((r, i) => {
+          out[r] = (out[r] || 0) * (1 + boost * (0.3 + i * 0.15));
+        });
+        return out;
+      }
+
+      function drawOneCard(packKey, forceRarity) {
+        // Shiny check — separate from the normal draw
+        let pool;
+        if (forceRarity) {
+          pool = CARD_DATABASE.filter(c => c.rarity === forceRarity && c.pullWeight > 0 && !c.isShiny);
+          const drawn = weightedDraw(pool);
+          if (!drawn) return null;
+          // Check if a shiny version exists
+          const shinyVersion = CARD_DATABASE.find(c => c.isShiny && c.baseId === drawn.id);
+          if (shinyVersion && Math.random() < SHINY_CHANCE) return { ...shinyVersion };
+          return { ...drawn };
+        }
+
+        const cfg = PACK_CFG[packKey] || SPECIAL_PACK_CFG?.[packKey];
+        const mod = cfg?.weightMod || {};
+        const rawWeights = {};
+        RARITY_ORDER.forEach(r => {
+          rawWeights[r] = (RARITY_CFG[r].baseWeight || 0) * (mod[r] !== undefined ? mod[r] : 1);
+        });
+        const luckWeights = applyLuck(rawWeights);
+        const total = Object.values(luckWeights).reduce((s,v) => s+v, 0);
+        let r2 = Math.random() * total;
+        let chosenRarity = RARITY_ORDER[RARITY_ORDER.length - 1];
+        for (const rr of RARITY_ORDER) {
+          r2 -= luckWeights[rr] || 0;
+          if (r2 <= 0) { chosenRarity = rr; break; }
+        }
+
+        // Rosa Abdullah (pullWeight 0, Hidden) is never drawn from packs
+        pool = CARD_DATABASE.filter(c => c.rarity === chosenRarity && c.pullWeight > 0 && !c.isShiny);
+        if (!pool.length) pool = CARD_DATABASE.filter(c => c.rarity === 'Common' && !c.isShiny);
+        const drawn = weightedDraw(pool);
+        if (!drawn) return null;
+
+        // Shiny check
+        const shinyVer = CARD_DATABASE.find(c => c.isShiny && c.baseId === drawn.id);
+        if (shinyVer && Math.random() < SHINY_CHANCE) return { ...shinyVer };
+        return { ...drawn };
+      }
+
+      function drawCards(packKey, count) {
+        const cards = [];
+        for (let i = 0; i < count; i++) cards.push(drawOneCard(packKey));
+        return cards.filter(Boolean);
+      }
+
+      function drawSpecialPackCards(packKey, cfg) {
+        const type  = cfg.type;
+        const count = cfg.cardCount || 3;
+
+        if (type === 'onlyRarity') {
+          return Array.from({ length: count }, () => drawOneCard(null, cfg.fixedRarity)).filter(Boolean);
+        }
+        if (type === 'epicPlus') {
+          const rarities = ['Epic', 'Mythical', 'Legendary', 'SSSR'];
+          return Array.from({ length: count }, () => {
+            const r = rarities[Math.floor(Math.random() * rarities.length)];
+            return drawOneCard(null, r);
+          }).filter(Boolean);
+        }
+        if (type === 'mythicalPlus') {
+          const rarities = ['Mythical', 'Legendary', 'SSSR'];
+          return Array.from({ length: count }, () => {
+            const r = rarities[Math.floor(Math.random() * rarities.length)];
+            return drawOneCard(null, r);
+          }).filter(Boolean);
+        }
+        if (type === 'starterBooster') {
+          return [drawOneCard(null, 'Rare'), ...drawCards(packKey, count - 1)].filter(Boolean);
+        }
+        if (type === 'speedPack') {
+          return drawCards(packKey, count);
+        }
+        if (type === 'collectorsChoice') {
+          return drawCards(packKey, 1);
+        }
+        if (type === 'classPack') {
+          const classes = ['Nature', 'Combat', 'Arcane', 'Void', 'Celestial'];
+          const cls = classes[Math.floor(Math.random() * classes.length)];
+          toast(`🎭 Class drawn: ${cls}!`);
+          const pool = CARD_DATABASE.filter(c => c.class === cls && c.pullWeight > 0 && !c.isShiny);
+          return Array.from({ length: count }, () => {
+            const c = weightedDraw(pool);
+            const sv = CARD_DATABASE.find(s => s.isShiny && s.baseId === c?.id);
+            if (sv && Math.random() < SHINY_CHANCE) return { ...sv };
+            return c ? { ...c } : null;
+          }).filter(Boolean);
+        }
+        if (type === 'mysteryBox') {
+          // Open a random owned special pack
+          const owned = [...ownedSpecialPacks];
+          if (!owned.length) return drawCards(packKey, 3);
+          const randomKey = owned[Math.floor(Math.random() * owned.length)];
+          const randomCfg = SPECIAL_PACK_CFG[randomKey];
+          toast(`🎁 Mystery opened: ${randomCfg?.label || randomKey}!`);
+          return drawSpecialPackCards(randomKey, randomCfg);
+        }
+        if (type === 'twistPack') {
+          // Build pairs and open the twist modal
+          const pairCount = count;
+          const pairs = Array.from({ length: pairCount }, () => [
+            drawOneCard(packKey), drawOneCard(packKey),
+          ]);
+          twistPairs = pairs;
+          twistSelections = new Array(pairCount).fill(null);
+          renderTwistModal(pairs);
+          openModal('twist-modal');
+          return []; // result handled via collectTwistPack
+        }
+        // default: standard
+        return drawCards(packKey, count);
+      }
+
+      /* ────────────────────────────────────────────────────────
+     PACK OPENING OVERLAY
+    ──────────────────────────────────────────────────────── */
+      function _mountPackOverlay(title, cards) {
+        document.getElementById('pack-title').textContent = `Opening: ${title}`;
+        const grid = document.getElementById('flip-grid');
+        grid.innerHTML = '';
+        currentCards  = cards;
+        revealedCount = 0;
+
+        const revealBtn  = document.getElementById('pack-reveal-btn');
+        const collectBtn = document.getElementById('pack-collect-btn');
+        revealBtn.style.display  = '';
+        collectBtn.style.display = 'none';
+
+        cards.forEach((card, idx) => {
+          const rcfg = RARITY_CFG[card.rarity] || {};
+          const wrap = document.createElement('div');
+          wrap.className = 'flip-wrap';
+          wrap.dataset.idx = idx;
+          wrap.innerHTML = `
+            <div class="flip-inner">
+              <div class="flip-face flip-back"><span class="back-glyph">✦</span></div>
+              <div class="flip-face flip-front" style="border-color:${card.isShiny ? '#eec06066' : (rcfg.color+'33')}">
+                ${makeArtEl(card).outerHTML || ''}
+                <div style="text-align:center;padding:0 0.3rem;margin-top:0.3rem;">
+                  <div style="font-size:0.7rem;font-weight:700;color:${rcfg.color || '#fff'};margin-bottom:0.18rem;">${card.isShiny ? '✨ ' : ''}${card.name}</div>
+                  <div style="font-size:0.56rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:${rcfg.color || '#aaa'}">${rcfg.icon || ''} ${card.rarity}</div>
+                </div>
+              </div>
+            </div>`;
+          // Apply FX class
+          const fx = rcfg.revealFx || 'common';
+          if (card.isShiny) wrap.classList.add('fx-shiny');
+          else if (['epic','mythical','legendary','sssr','hidden'].includes(fx)) wrap.classList.add(`fx-${fx}`);
+
+          wrap.addEventListener('click', () => flipCard(wrap, card, idx));
+          grid.appendChild(wrap);
+        });
+
+        document.getElementById('pack-overlay').classList.add('open');
+      }
+
+      function flipCard(wrap, card, idx) {
+        if (wrap.classList.contains('flipped')) return;
+        SFX.play('flip');
+        wrap.classList.add('flipped');
+        revealedCount++;
+
+        const rcfg = RARITY_CFG[card.rarity] || {};
+        const fx   = rcfg.revealFx || 'common';
+
+        if (card.isShiny) {
+          document.getElementById('shiny-flash')?.classList.add('pop');
+          setTimeout(() => document.getElementById('shiny-flash')?.classList.remove('pop'), 1400);
+          SFX.play('sssr');
+          showCongratsModal(card, 'shiny');
+        } else if (fx === 'sssr') {
+          document.getElementById('sssr-flash')?.classList.add('pop');
+          setTimeout(() => document.getElementById('sssr-flash')?.classList.remove('pop'), 1400);
+          SFX.play('sssr');
+          showCongratsModal(card, 'sssr');
+        } else if (fx === 'legendary') {
+          document.getElementById('legend-flash')?.classList.add('pop');
+          setTimeout(() => document.getElementById('legend-flash')?.classList.remove('pop'), 1400);
+          SFX.play('rare');
+          showCongratsModal(card, 'legendary');
+        } else if (fx === 'hidden') {
+          document.getElementById('hidden-flash')?.classList.add('pop');
+          setTimeout(() => document.getElementById('hidden-flash')?.classList.remove('pop'), 1400);
+          showCongratsModal(card, 'hidden');
+        } else if (fx === 'epic') {
+          document.getElementById('epic-flash')?.classList.add('pop');
+          setTimeout(() => document.getElementById('epic-flash')?.classList.remove('pop'), 1400);
+          SFX.play('rare');
+        } else if (fx === 'rare') {
+          SFX.play('rare');
+        }
+
+        if (revealedCount >= currentCards.length) {
+          document.getElementById('pack-reveal-btn').style.display  = 'none';
+          document.getElementById('pack-collect-btn').style.display = '';
+        }
+      }
+
+      function revealAll() {
+        document.querySelectorAll('.flip-wrap:not(.flipped)').forEach((wrap, i) => {
+          setTimeout(() => {
+            const idx  = parseInt(wrap.dataset.idx);
+            const card = currentCards[idx];
+            if (card) flipCard(wrap, card, idx);
+          }, i * 120);
+        });
+      }
+
+      function collectPackCards() {
+        currentCards.forEach(card => addToCollection(card));
+        packsOpened++;
+        saveData();
+        document.getElementById('pack-overlay').classList.remove('open');
+        toast(`✓ ${currentCards.length} card${currentCards.length !== 1 ? 's' : ''} added to collection!`);
+        SFX.play('collect');
+        renderCollection();
+        renderStats();
+        currentCards  = [];
+        revealedCount = 0;
+      }
+
+      function showCongratsModal(card, mode) {
+        const rcfg = RARITY_CFG[card.rarity] || {};
+        const modal = document.getElementById('congrats-modal');
+        modal.className = `modal-overlay${mode === 'shiny' ? ' shiny-mode' : mode === 'sssr' ? ' sssr-mode' : mode === 'hidden' ? ' hidden-mode' : ''}`;
+        document.getElementById('congrats-sparkles').textContent =
+          mode === 'shiny' ? '✨✦✨' : mode === 'sssr' ? '💎✺💎' : mode === 'hidden' ? '🌹✦🌹' : '★✦★';
+        document.getElementById('congrats-title').textContent =
+          mode === 'shiny' ? '✨ Shiny Pull!' : mode === 'sssr' ? '✺ SSSR Pull!' : mode === 'hidden' ? '🌹 Hidden Card!' : '★ Legendary!';
+        document.getElementById('congrats-title').style.color =
+          mode === 'shiny' ? 'var(--gold)' : mode === 'sssr' ? 'var(--mint)' : mode === 'hidden' ? 'var(--rose)' : rcfg.color || 'var(--accent)';
+        const artEl = document.getElementById('congrats-art');
+        artEl.innerHTML = '';
+        artEl.appendChild(makeArtEl(card));
+        document.getElementById('congrats-card-name').textContent    = card.isShiny ? `✨ ${card.name}` : card.name;
+        document.getElementById('congrats-card-name').style.color    = rcfg.color || '';
+        document.getElementById('congrats-card-rarity').textContent  = `${rcfg.icon || ''} ${card.rarity}`;
+        document.getElementById('congrats-card-rarity').style.color  = rcfg.color || '';
+        document.getElementById('congrats-desc').textContent         = card.description || '';
+        setTimeout(() => openModal('congrats-modal'), 400);
+      }
+
+      /* ────────────────────────────────────────────────────────
+     OPEN PACK (standard)
+    ──────────────────────────────────────────────────────── */
+      function openPack(key) {
+        const cfg = PACK_CFG[key];
+        if (!cfg) return;
+        SFX.play('click');
+        const rem = getRemainingMs(key);
+        if (rem > 0) {
+          showAlert('⏳ Cooldown Active', `This pack is on cooldown for another ${fmtRelTime(rem)}.`);
+          return;
+        }
+        const cost = adminMode ? 0 : (cfg.coinCost || 0);
+        if (coins < cost) { showAlert('🪙 Not Enough Coins', `You need 🪙 ${cost.toLocaleString()} to open this pack.`); return; }
+        coins -= cost;
+        setLastOpened(key);
+
+        let cards;
+        if (cfg.type === 'twistPack') {
+          cards = drawSpecialPackCards(key, cfg);
+          if (!cards.length) { saveData(); return; }
+        } else {
+          cards = drawCards(key, cfg.cardCount || 5);
+        }
+        currentCards  = cards;
+        revealedCount = 0;
+        saveData();
+        _mountPackOverlay(cfg.label, cards);
+        SFX.play('pull');
+      }
+
+      /* ────────────────────────────────────────────────────────
+     OPEN SPECIAL PACK
+    ──────────────────────────────────────────────────────── */
+      function openSpecialPack(key) {
+        if (typeof SPECIAL_PACK_CFG === 'undefined') return;
+        const cfg = SPECIAL_PACK_CFG[key];
+        if (!cfg) return;
+        SFX.play('click');
+        if (!adminMode && !ownedSpecialPacks.has(key)) {
+          showAlert('🔒 Locked', `Purchase the ${cfg.label} in the Shop first!`);
+          return;
+        }
+        const rem = getRemainingMs(key);
+        if (rem > 0) {
+          showAlert('⏳ Cooldown Active', `Ready in ${fmtRelTime(rem)}.`);
+          return;
+        }
+        setLastOpened(key);
+
+        if (cfg.type === 'twistPack') {
+          drawSpecialPackCards(key, cfg);
+          saveData();
+          return;
+        }
+
+        const cards = drawSpecialPackCards(key, cfg);
+        currentCards  = cards;
+        revealedCount = 0;
+        saveData();
+        _mountPackOverlay(cfg.label, cards);
+        SFX.play('pull');
+      }
+
+      /* ────────────────────────────────────────────────────────
+     GUARANTEED PACKS (buy with coins)
+    ──────────────────────────────────────────────────────── */
+      function buyGuaranteedPack(rarity) {
+        const rcfg = RARITY_CFG[rarity];
+        if (!rcfg) return;
+        SFX.play('click');
+        const cost = adminMode ? 0 : rcfg.packCost;
+        if (coins < cost) {
+          showAlert('🪙 Not Enough Coins', `You need 🪙 ${cost.toLocaleString()} to buy a guaranteed ${rarity} card.`);
+          return;
+        }
+        coins -= cost;
+        const card = drawOneCard(null, rarity);
+        if (!card) { toast('❌ No cards available for this rarity.'); return; }
+        currentCards  = [card];
+        revealedCount = 0;
+        saveData();
+        _mountPackOverlay(`Guaranteed ${rarity}`, [card]);
+        SFX.play('pull');
+      }
+
+      function renderGuaranteedPacks() {
+        const gg = document.getElementById('guar-grid');
+        if (!gg) return;
+        gg.innerHTML = '';
+        RARITY_ORDER.forEach(r => {
+          const rcfg = RARITY_CFG[r];
+          const cost = RARITY_CFG[r].packCost;
+          const box  = document.createElement('div');
+          box.className = 'guar-box';
+          box.style.borderColor = rcfg.color + '44';
+          box.innerHTML = `
+            <div class="guar-icon">${rcfg.icon}</div>
+            <div class="guar-name" style="color:${rcfg.color}">${r}</div>
+            <div class="guar-cost">🪙 ${(adminMode ? 0 : cost).toLocaleString()}</div>
+            <button class="btn btn-sm" style="background:${rcfg.color}22;color:${rcfg.color};border:1px solid ${rcfg.color}44;margin-top:0.2rem;" onclick="buyGuaranteedPack('${r}')">Buy</button>`;
+          gg.appendChild(box);
+        });
+      }
+
+      /* ────────────────────────────────────────────────────────
+     TWIST PACK MODAL
+    ──────────────────────────────────────────────────────── */
+      function renderTwistModal(pairs) {
+        const container = document.getElementById('twist-pairs');
+        if (!container) return;
+        container.innerHTML = '';
+        pairs.forEach((pair, pIdx) => {
+          const row = document.createElement('div');
+          row.className = 'twist-pair';
+          pair.forEach((card, cIdx) => {
+            const rcfg = RARITY_CFG[card.rarity] || {};
+            const btn  = document.createElement('div');
+            btn.className = 'twist-card';
+            btn.dataset.pair = pIdx;
+            btn.dataset.card = cIdx;
+            const artWrap = document.createElement('div');
+            artWrap.className = 'twist-card-art';
+            artWrap.appendChild(makeArtEl(card));
+            btn.appendChild(artWrap);
+            btn.insertAdjacentHTML('beforeend', `
+              <div class="twist-card-name" style="color:${rcfg.color || '#fff'}">${card.isShiny ? '✨ ' : ''}${card.name}</div>
+              <div class="twist-card-rarity" style="color:${rcfg.color || '#aaa'}">${rcfg.icon || ''} ${card.rarity}</div>`);
+            btn.addEventListener('click', () => selectTwistCard(pIdx, cIdx));
+            row.appendChild(btn);
+            if (cIdx === 0) row.insertAdjacentHTML('beforeend', `<div class="twist-vs">VS</div>`);
+          });
+          container.appendChild(row);
+        });
+        updateTwistCollectBtn();
+      }
+
+      function selectTwistCard(pairIdx, cardIdx) {
+        SFX.play('click');
+        twistSelections[pairIdx] = cardIdx;
+        const allPairs = document.querySelectorAll('.twist-pair');
+        const row = allPairs[pairIdx];
+        if (!row) return;
+        row.querySelectorAll('.twist-card').forEach((el, i) => {
+          el.classList.toggle('selected', i === cardIdx);
+          el.classList.toggle('rejected', i !== cardIdx);
+        });
+        updateTwistCollectBtn();
+      }
+
+      function updateTwistCollectBtn() {
+        const btn     = document.getElementById('twist-collect-btn');
+        const done    = twistSelections.filter(v => v !== null).length;
+        const total   = twistPairs.length;
+        btn.disabled  = done < total;
+        btn.textContent = `✓ Collect Selected (${done}/${total})`;
+      }
+
+      function collectTwistPack() {
+        const selected = twistSelections.map((ci, pi) => ci !== null ? twistPairs[pi][ci] : null).filter(Boolean);
+        selected.forEach(card => addToCollection(card));
+        packsOpened++;
+        saveData();
+        closeModal('twist-modal');
+        toast(`✓ ${selected.length} card${selected.length !== 1 ? 's' : ''} added from Twist Pack!`);
+        SFX.play('collect');
+        renderCollection();
+        renderStats();
+        twistPairs = []; twistSelections = [];
+      }
+
+      /* ────────────────────────────────────────────────────────
+     DETAIL MODAL
+    ──────────────────────────────────────────────────────── */
+      function openDetailModal(card) {
+        detailCard = card;
+        const rcfg = RARITY_CFG[card.rarity] || {};
+        const ccfg = CLASS_CFG[card.class]   || {};
+
+        const artEl = document.getElementById('detail-art');
+        artEl.innerHTML = '';
+        artEl.style.borderColor = card.isShiny ? '#eec06066' : (rcfg.color + '44' || '');
+        const inner = makeArtEl(card);
+        artEl.appendChild(inner);
+        if (card.isShiny) {
+          const ov = document.createElement('div'); ov.className = 'shiny-overlay'; artEl.appendChild(ov);
+          const sp = document.createElement('div'); sp.className = 'shiny-sparkles'; artEl.appendChild(sp);
+        }
+
+        document.getElementById('detail-name').textContent      = card.isShiny ? `✨ ${card.name}` : card.name;
+        document.getElementById('detail-name').style.color      = rcfg.color || '';
+        document.getElementById('detail-rarity').textContent    = `${rcfg.icon || ''} ${card.rarity}`;
+        document.getElementById('detail-rarity').style.color    = rcfg.color || '';
+        const clsBadge = document.getElementById('detail-cls-badge');
+        clsBadge.innerHTML = `<span class="cls-mini" style="background:${ccfg.color||'#888'}18;color:${ccfg.color||'#888'};border:1px solid ${ccfg.color||'#888'}30;">${ccfg.icon||''} ${card.class}</span>`;
+        document.getElementById('detail-desc').textContent = card.description || '';
+
+        const odds = cardOdds(card);
+        const oddsEl = document.getElementById('detail-odds');
+        oddsEl.textContent = card.rarity === 'Hidden'
+          ? '🌹 Obtainable via special code only'
+          : (odds ? `~1 in ${odds.toLocaleString()} chance per card` : '');
+
+        const sv = card.sellValue ?? rcfg.sellValue ?? 0;
+        document.getElementById('detail-sell-unit').textContent = `🪙 ${sv.toLocaleString()} each`;
+        const amtInput = document.getElementById('sell-amount');
+        amtInput.max   = card.count || 1;
+        amtInput.value = 1;
+
+        document.getElementById('sell-max-btn').onclick = () => { amtInput.value = card.count || 1; };
+        document.getElementById('sell-btn').onclick = () => {
+          const qty = Math.min(parseInt(amtInput.value) || 1, card.count || 1);
+          if (qty < 1) return;
+          const earnings = sv * qty;
+          const entry    = collection.find(c => c.id === card.id && !!c.isShiny === !!card.isShiny);
+          if (!entry) return;
+          entry.count -= qty;
+          if (entry.count <= 0) collection.splice(collection.indexOf(entry), 1);
+          coins += earnings;
+          SFX.play('sell');
+          saveData();
+          closeModal('detail-modal');
+          toast(`🪙 Sold ${qty}× ${card.name} for 🪙 ${earnings.toLocaleString()}!`);
+          renderCollection();
+          renderStats();
+        };
+
+        openModal('detail-modal');
+      }
+
+      function giftDetailCard() {
+        if (!detailCard) return;
+        closeModal('detail-modal');
+        openGiftModal({ card: detailCard });
+      }
+
+      /* ────────────────────────────────────────────────────────
+     ROTATION HELPERS
+    ──────────────────────────────────────────────────────── */
+      function getSpecialPackSlot() {
+        return new Date().getHours() < 12 ? 0 : 1;
+      }
+
+      function getRotationNextChange() {
+        const h = new Date().getHours();
+        return h < 12 ? 12 - h : 24 - h;
+      }
+
+      function isRarityPoolOwned(rarity) {
+        const pool = CARD_DATABASE.filter(c => c.rarity === rarity && c.pullWeight > 0 && !c.isShiny);
+        return pool.every(c => collection.some(col => col.id === c.id));
+      }
+
+      function isClassPoolOwned(cls) {
+        const pool = CARD_DATABASE.filter(c => c.class === cls && c.pullWeight > 0 && !c.isShiny);
+        return pool.every(c => collection.some(col => col.id === c.id));
+      }
+
+      /* ────────────────────────────────────────────────────────
+     LUCK & CODES
+    ──────────────────────────────────────────────────────── */
+      function buyLuck() {
+        SFX.play('click');
+        if (luckPercent >= MAX_LUCK) { toast('✅ Luck is already maxed!'); return; }
+        const cost = luckCost();
+        if (coins < cost) { showAlert('🪙 Not Enough Coins', `You need 🪙 ${cost.toLocaleString()} to upgrade luck.`); return; }
+        coins      -= cost;
+        luckPercent = Math.min(MAX_LUCK, +(luckPercent + LUCK_STEP).toFixed(1));
+        luckLevel++;
+        SFX.play('coin');
+        saveData();
+        toast(`🍀 Luck upgraded to ${luckPercent.toFixed(1)}%!`);
+      }
+
+      async function redeemCode() {
+  const input = document.getElementById('code-input');
+  const raw = input.value.trim().toUpperCase();
+  if (!raw) { toast('❌ Enter a code first.'); return; }
+  
+  SFX.play('click');
+  const hash = await sha1hex(raw);
+  
+  // Prüfen, ob der Code bereits benutzt wurde
+  if (usedCodes.has(hash)) { 
+    toast('❌ Code already used.'); 
+    input.value = ''; 
+    return; 
+  }
+  
+  // Holt die Belohnung aus der codes.js (window.CODE_HASHES)
+  const reward = window.CODE_HASHES[hash];
+  
+  if (!reward) { 
+    toast('❌ Invalid code.'); 
+    SFX.play('error'); 
+    input.value = ''; 
+    return; 
+  }
+  
+  // Code als benutzt markieren
+  usedCodes.add(hash);
+
+  // --- BELOHNUNGS-TYPEN PRÜFEN ---
+  
+  if (reward.type === 'hidden') {
+    // Sucht die erste Karte mit Rarity 'Hidden'
+    const hiddenCard = CARD_DATABASE.find(c => c.rarity === 'Hidden');
+    if (hiddenCard) addToCollection(hiddenCard);
+  } 
+  else if (reward.type === 'id_reward') {
+    // NEU: Sucht Karte nach spezifischer ID (z.B. 6001)
+    const specialCard = CARD_DATABASE.find(c => c.id === reward.cardId);
+    if (specialCard) {
+      addToCollection(specialCard);
+    } else {
+      console.error("Card ID " + reward.cardId + " not found!");
+    }
+  }
+  else if (reward.type === 'admin') {
+    adminMode = true;
+  } 
+  else if (reward.type === 'godpack') {
+    const godCards = CARD_DATABASE.filter(c => ['Legendary','SSSR'].includes(c.rarity) && !c.isShiny);
+    godCards.forEach(c => addToCollection(c));
+  }
+
+  // Bonus Belohnungen (Coins oder Luck), falls im Code definiert
+  if (reward.coins) coins += reward.coins;
+  if (reward.luck)  { 
+    luckPercent = Math.min(MAX_LUCK, luckPercent + reward.luck); 
+    luckLevel++; 
+  }
+
+  // UI Aktualisieren
+  SFX.play('redeem');
+  saveData();
+  renderCollection();
+  renderStats();
+  toast(`✅ ${reward.msg}`);
+  input.value = '';
+}
+
+      /* ────────────────────────────────────────────────────────
+     GIFT MODAL
+    ──────────────────────────────────────────────────────── */
+      function openGiftModal({ card, pack } = {}) {
+        _giftRecipientVerified = false;
+        _giftPrefilledCard  = card  || null;
+        _giftPrefilledPack  = pack  || null;
+
+        document.getElementById('gift-recipient').value = '';
+        document.getElementById('gift-recipient-status').textContent = '';
+        document.getElementById('gift-recipient-status').className   = 'gift-recipient-status';
+        document.getElementById('gift-message').value  = '';
+        document.getElementById('gift-coins').value    = 0;
+
+        // Populate card select
+        const cardSel = document.getElementById('gift-card');
+        cardSel.innerHTML = '<option value="">None</option>';
+        collection.filter(c => c.count > 0).forEach(c => {
+          const opt  = document.createElement('option');
+          opt.value  = c.id + (c.isShiny ? '_shiny' : '');
+          opt.textContent = `${c.isShiny ? '✨ ' : ''}${c.name} (${c.rarity}) ×${c.count}`;
+          if (card && card.id === c.id && !!card.isShiny === !!c.isShiny) opt.selected = true;
+          cardSel.appendChild(opt);
+        });
+
+        // Populate pack select
+        const packSel = document.getElementById('gift-pack');
+        packSel.innerHTML = '<option value="">None</option>';
+        unopenedPacks.forEach((p, i) => {
+          const opt  = document.createElement('option');
+          opt.value  = i;
+          opt.textContent = `${p.icon || '📦'} ${p.name || p.packKey}`;
+          if (pack && pack.idx === i) opt.selected = true;
+          packSel.appendChild(opt);
+        });
+
+        updateGiftCost();
+        openModal('gift-modal');
+      }
+
+      function updateGiftCost() {
+        const coins_ = parseInt(document.getElementById('gift-coins').value) || 0;
+        const card_  = document.getElementById('gift-card').value;
+        const pack_  = document.getElementById('gift-pack').value;
+        let cost = 0;
+        const hasCard  = !!card_;
+        const hasCoins = coins_ > 0;
+        const hasPack  = !!pack_;
+        if (hasCard || hasCoins)        cost += 500;
+        if (hasCard && hasCoins)        cost += 500;  // both → 1000 total
+        if (hasPack)                    cost += 2500;
+        document.getElementById('gift-cost-display').textContent = `🪙 ${cost.toLocaleString()}`;
+      }
+
+      async function checkGiftRecipient() {
+        const val    = document.getElementById('gift-recipient').value.trim();
+        const status = document.getElementById('gift-recipient-status');
+        if (!val) { status.textContent = '⚠️ Enter a username.'; status.className = 'gift-recipient-status err'; return; }
+        if (!fbUser) { status.textContent = '⚠️ You must be logged in to send gifts.'; status.className = 'gift-recipient-status err'; return; }
+        status.textContent = '⏳ Checking…'; status.className = 'gift-recipient-status loading';
+        try {
+          const { doc, getDoc } = window.fbFuncs;
+          const snap = await getDoc(doc(window.fbDb, 'usernames', val));
+          if (snap.exists()) {
+            _giftRecipientVerified = true;
+            status.textContent = `✅ Found: @${val}`;
+            status.className   = 'gift-recipient-status ok';
+          } else {
+            _giftRecipientVerified = false;
+            status.textContent = `❌ User "@${val}" not found.`;
+            status.className   = 'gift-recipient-status err';
+          }
+        } catch (e) {
+          _giftRecipientVerified = false;
+          status.textContent = '❌ Error checking username.';
+          status.className   = 'gift-recipient-status err';
+        }
+      }
+
+      async function sendGift() {
+        if (!fbUser) { showAlert('🔐 Not Logged In', 'You must be logged in to send gifts.'); return; }
+        if (!_giftRecipientVerified) {
+          showAlert('👤 Check Recipient', 'Please verify the recipient username first (press "Check" or Enter).');
+          return;
+        }
+        const recipient = document.getElementById('gift-recipient').value.trim();
+        const message   = document.getElementById('gift-message').value.trim();
+        const coinAmt   = Math.max(0, parseInt(document.getElementById('gift-coins').value) || 0);
+        const cardVal   = document.getElementById('gift-card').value;
+        const packIdx   = document.getElementById('gift-pack').value;
+
+        const hasCard  = !!cardVal;
+        const hasCoins = coinAmt > 0;
+        const hasPack  = packIdx !== '';
+
+        let cost = 0;
+        if (hasCard || hasCoins) cost += 500;
+        if (hasCard && hasCoins) cost += 500;
+        if (hasPack)             cost += 2500;
+
+        if (!hasCard && !hasCoins && !hasPack && !message) {
+          showAlert('📭 Empty Gift', 'Add at least one attachment or message.'); return;
+        }
+        if (coins < cost) {
+          showAlert('🪙 Not Enough Coins', `Sending this gift costs 🪙 ${cost.toLocaleString()}.`); return;
+        }
+        if (coinAmt > coins - cost) {
+          showAlert('🪙 Not Enough Coins', `You can't send more coins than you have after the fee.`); return;
+        }
+
+        // Build attachments
+        const attachments = {};
+        if (hasCoins) attachments.coins = coinAmt;
+        if (hasCard) {
+          const [rawId, shinyFlag] = cardVal.split('_');
+          const isShiny = shinyFlag === 'shiny';
+          const entry   = collection.find(c => c.id === parseInt(rawId) && !!c.isShiny === isShiny);
+          if (!entry || entry.count < 1) { toast('❌ Card not found in collection.'); return; }
+          attachments.card = { id: entry.id, name: entry.name, rarity: entry.rarity, class: entry.class,
+            isShiny: !!entry.isShiny, sellValue: entry.sellValue, imageUrl: entry.imageUrl || null,
+            description: entry.description || '' };
+          entry.count--;
+          if (entry.count <= 0) collection.splice(collection.indexOf(entry), 1);
+        }
+        if (hasPack) {
+          const pi   = parseInt(packIdx);
+          const pack = unopenedPacks[pi];
+          if (!pack) { toast('❌ Pack not found.'); return; }
+          attachments.pack = { ...pack };
+          unopenedPacks.splice(pi, 1);
+        }
+
+        coins -= cost;
+        if (hasCoins) coins -= coinAmt;
+
+        try {
+          const { collection: col, addDoc, serverTimestamp } = window.fbFuncs;
+          await addDoc(col(window.fbDb, 'mailbox'), {
+            sender: username,
+            receiver: recipient,
+            message: message || '',
+            attachments,
+            timestamp: serverTimestamp(),
+            collected: false,
+          });
+          saveData();
+          closeModal('gift-modal');
+          toast(`🎁 Gift sent to @${recipient}!`);
+          SFX.play('coin');
+          renderCollection();
+          renderStats();
+          renderPacksInventory();
+        } catch (e) {
+          console.error(e);
+          toast('❌ Failed to send gift. Try again.');
+        }
+      }
+
+      /* ────────────────────────────────────────────────────────
+     MAILBOX
+    ──────────────────────────────────────────────────────── */
+      function openMailbox() {
+        document.getElementById('mailbox-overlay').classList.add('open');
+        loadMailbox();
+      }
+
+      function closeMailbox() {
+        document.getElementById('mailbox-overlay').classList.remove('open');
+      }
+
+      async function loadMailbox() {
+        const body = document.getElementById('mailbox-body');
+        if (!fbUser) {
+          body.innerHTML = `<div class="mail-login-warn"><p style="color:var(--subtext);font-size:0.86rem;">Log in to view your inbox 📬</p></div>`;
+          return;
+        }
+        body.innerHTML = `<div class="mail-empty"><span class="mail-empty-icon">⏳</span><p style="font-size:0.86rem;line-height:1.65">Loading…</p></div>`;
+        try {
+          const { collection: col, query, where, getDocs, orderBy, deleteDoc, doc } = window.fbFuncs;
+          const q    = query(col(window.fbDb, 'mailbox'), where('receiver', '==', username));
+          const snap = await getDocs(q);
+          const now  = Date.now();
+          const msgs = [];
+          const toDelete = [];
+
+          snap.forEach(d => {
+            const data = d.data();
+            const ts   = data.timestamp?.toMillis ? data.timestamp.toMillis() : (data.timestamp?.seconds * 1000 || now);
+            const age  = now - ts;
+            const maxAge = data.collected ? 24 * 3600 * 1000 : 7 * 24 * 3600 * 1000;
+            if (age > maxAge) { toDelete.push(d.id); return; }
+            msgs.push({ id: d.id, ...data, ts });
+          });
+
+          // Auto-cleanup expired messages
+          toDelete.forEach(id => deleteDoc(doc(window.fbDb, 'mailbox', id)).catch(() => {}));
+
+          if (!msgs.length) {
+            body.innerHTML = `<div class="mail-empty"><span class="mail-empty-icon">📭</span><p style="font-size:0.86rem;line-height:1.65">Your inbox is empty.<br>No gifts yet!</p></div>`;
+            document.getElementById('mailbox-badge').style.display = 'none';
+            return;
+          }
+
+          msgs.sort((a,b) => b.ts - a.ts);
+          const unread = msgs.filter(m => !m.collected).length;
+          const badge  = document.getElementById('mailbox-badge');
+          badge.style.display  = unread > 0 ? '' : 'none';
+          badge.textContent    = unread > 0 ? unread : '';
+
+          body.innerHTML = '';
+          msgs.forEach(msg => {
+            const att  = msg.attachments || {};
+            const ts   = new Date(msg.ts);
+            const timeStr = ts.toLocaleDateString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+            const age  = now - msg.ts;
+            const maxAge = msg.collected ? 24 * 3600 * 1000 : 7 * 24 * 3600 * 1000;
+            const remMs = maxAge - age;
+            const expStr = remMs < 3600000 ? `Expires in ${fmtRelTime(remMs)}` : `Expires ${fmtRelTime(remMs)}`;
+            const expSoon = remMs < 86400000;
+
+            const chips = [];
+            if (att.coins)  chips.push(`<div class="mail-att-chip coins">🪙 ${att.coins.toLocaleString()}</div>`);
+            if (att.card)   chips.push(`<div class="mail-att-chip card">🎴 ${att.card.isShiny ? '✨ ' : ''}${att.card.name} (${att.card.rarity})</div>`);
+            if (att.pack)   chips.push(`<div class="mail-att-chip pack">${att.pack.icon || '📦'} ${att.pack.name || att.pack.packKey}</div>`);
+
+            const item = document.createElement('div');
+            item.className = 'mail-item' + (msg.collected ? ' collected' : '');
+            item.innerHTML = `
+              <div class="mail-sender-row">
+                <div class="mail-sender">🎁 <span style="color:var(--accent)">@${msg.sender}</span></div>
+                <div class="mail-time">${timeStr}</div>
+              </div>
+              ${msg.message ? `<div class="mail-message">${msg.message}</div>` : ''}
+              ${chips.length ? `<div class="mail-attachments">${chips.join('')}</div>` : ''}
+              <div class="mail-sender-row">
+                <div class="mail-expires${expSoon ? ' soon' : ''}">${expStr}</div>
+                <div class="mail-footer">
+                  ${!msg.collected && chips.length
+                    ? `<button class="btn btn-primary btn-sm" onclick="collectMail('${msg.id}', this)">✓ Collect</button>`
+                    : `<span style="font-size:0.72rem;color:var(--mint)">Collected ✓</span>`
+                  }
+                  <button class="btn btn-ghost btn-sm" onclick="deleteMail('${msg.id}', this)">🗑</button>
+                </div>
+              </div>`;
+            body.appendChild(item);
+          });
+        } catch (e) {
+          console.error(e);
+          body.innerHTML = `<div class="mail-empty"><span class="mail-empty-icon">⚠️</span><p style="font-size:0.86rem;">Failed to load inbox.</p></div>`;
+        }
+      }
+
+      async function collectMail(msgId, btn) {
+        if (!fbUser) return;
+        btn.disabled = true;
+        try {
+          const { doc, getDoc, updateDoc, serverTimestamp } = window.fbFuncs;
+          const ref  = doc(window.fbDb, 'mailbox', msgId);
+          const snap = await getDoc(ref);
+          if (!snap.exists()) { toast('❌ Message not found.'); return; }
+          const data = snap.data();
+          const att  = data.attachments || {};
+          if (att.coins) coins += att.coins;
+          if (att.card)  addToCollection({ ...att.card, count: 1 });
+          if (att.pack)  unopenedPacks.push({ ...att.pack, acquiredAt: new Date().toISOString() });
+          await updateDoc(ref, { collected: true, collectedAt: serverTimestamp() });
+          saveData();
+          renderCollection();
+          renderStats();
+          renderPacksInventory();
+          toast(`✅ Gift collected! ${att.coins ? `+🪙${att.coins.toLocaleString()}` : ''} ${att.card ? `🎴 ${att.card.name}` : ''} ${att.pack ? `📦 ${att.pack.name}` : ''}`);
+          SFX.play('collect');
+          loadMailbox();
+        } catch (e) {
+          console.error(e);
+          btn.disabled = false;
+          toast('❌ Failed to collect. Try again.');
+        }
+      }
+
+      async function deleteMail(msgId, btn) {
+        if (!fbUser) return;
+        btn.disabled = true;
+        try {
+          const { doc, deleteDoc } = window.fbFuncs;
+          await deleteDoc(doc(window.fbDb, 'mailbox', msgId));
+          btn.closest('.mail-item').remove();
+          toast('🗑 Message deleted.');
+        } catch (e) {
+          btn.disabled = false;
+          toast('❌ Failed to delete message.');
+        }
+      }
+
+      /* ────────────────────────────────────────────────────────
+     FIREBASE CLOUD SYNC
+    ──────────────────────────────────────────────────────── */
+      function updateCloudUI() {
+        const isLoggedIn = !!fbUser;
+        const gPanel = document.getElementById('auth-guest-panel');
+        const lPanel = document.getElementById('auth-logged-in-panel');
+        const cloudSection = document.getElementById('cloud-section');
+
+        if (gPanel) gPanel.style.display = isLoggedIn ? 'none' : '';
+        if (lPanel) lPanel.style.display = isLoggedIn ? '' : 'none';
+
+        const dot = document.getElementById('cloud-dot');
+        const txt = document.getElementById('cloud-status-txt');
+        if (dot) dot.className = 'cloud-dot' + (isLoggedIn ? ' online' : '');
+        if (txt) txt.textContent = isLoggedIn ? `Connected as @${username}` : 'Not connected — guest mode';
+
+        const dispEl = document.getElementById('cloud-username-display');
+        if (dispEl) dispEl.textContent = username;
+
+        // Settings modal
+        const authLbl = document.getElementById('settings-auth-label');
+        const authSub = document.getElementById('settings-auth-sub');
+        if (authLbl) authLbl.textContent = isLoggedIn ? `@${username}` : 'Login / Register';
+        if (authSub) authSub.textContent = isLoggedIn ? '☁️ Cloud connected' : 'Connect your cloud account';
+
+        const delBtn = document.getElementById('settings-delete-acc');
+        if (delBtn) delBtn.style.display = isLoggedIn ? '' : 'none';
+
+        const cloudBtn = document.querySelector('#cloud-section .btn');
+        if (cloudBtn) cloudBtn.textContent = isLoggedIn ? '💾 Save to Cloud' : '🔐 Login / Register';
+      }
+
+      async function syncToCloud() {
+        if (!fbUser) { openAuthModal(); return; }
+        SFX.play('click');
+        try {
+          const { doc, setDoc } = window.fbFuncs;
+          await setDoc(doc(window.fbDb, 'users', fbUser.uid), getLocalDataForCloud());
+          toast('☁️ Saved to cloud!');
+        } catch (e) {
+          console.error(e);
+          toast('❌ Cloud save failed.');
+        }
+      }
+
+      async function loadFromCloud(uid) {
+        try {
+          const { doc, getDoc } = window.fbFuncs;
+          const snap = await getDoc(doc(window.fbDb, 'users', uid));
+          if (!snap.exists()) return;
+          const d = snap.data();
+          if (d.collection)     collection     = d.collection;
+          if (d.coins != null)  coins          = d.coins;
+          if (d.luckPercent != null) luckPercent = d.luckPercent;
+          if (d.luckLevel != null)   luckLevel   = d.luckLevel;
+          if (d.packsOpened != null) packsOpened = d.packsOpened;
+          if (d.username)       { username = d.username; localStorage.setItem(LS_KEY.USER, username); }
+          if (d.joinedDate)     joinedDate = d.joinedDate;
+          if (d.usedCodes)      usedCodes  = new Set(d.usedCodes);
+          if (d.unopenedPacks)  unopenedPacks = d.unopenedPacks;
+          saveData();
+          updateUI();
+          initProfile();
+          toast('☁️ Data loaded from cloud!');
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      async function cloudLogin() {
+        const userInput = document.getElementById('cloud-login-user').value.trim();
+        const pass      = document.getElementById('cloud-login-pass').value;
+        if (!userInput || !pass) { toast('❌ Fill in all fields.'); return; }
+        SFX.play('click');
+        try {
+          const { signInWithEmailAndPassword } = window.fbFuncs;
+          let email = userInput;
+          if (!userInput.includes('@')) {
+            // Resolve username → email
+            const { doc, getDoc } = window.fbFuncs;
+            const snap = await getDoc(doc(window.fbDb, 'usernames', userInput));
+            if (!snap.exists()) { toast('❌ Username not found.'); return; }
+            email = snap.data().email;
+          }
+          await signInWithEmailAndPassword(window.fbAuth, email, pass);
+          closeModal('auth-modal');
+          toast('✅ Logged in!');
+        } catch (e) {
+          toast(`❌ ${e.message}`);
+        }
+      }
+
+      async function cloudRegister() {
+        const uname = document.getElementById('cloud-reg-username').value.trim();
+        const email = document.getElementById('cloud-reg-email').value.trim();
+        const pass  = document.getElementById('cloud-reg-pass').value;
+        if (!uname || !email || !pass) { toast('❌ Fill in all fields.'); return; }
+        SFX.play('click');
+        try {
+          const { createUserWithEmailAndPassword, doc, setDoc, getDoc } = window.fbFuncs;
+          // Check username availability
+          const unameSnap = await getDoc(doc(window.fbDb, 'usernames', uname));
+          if (unameSnap.exists()) { toast('❌ Username already taken.'); return; }
+          const cred = await createUserWithEmailAndPassword(window.fbAuth, email, pass);
+          await setDoc(doc(window.fbDb, 'usernames', uname), { uid: cred.user.uid, email });
+          username = uname;
+          localStorage.setItem(LS_KEY.USER, username);
+          await syncToCloud();
+          closeModal('auth-modal');
+          toast(`✅ Account created! Welcome, @${username}!`);
+        } catch (e) {
+          toast(`❌ ${e.message}`);
+        }
+      }
+
+      async function cloudLogout() {
+        try {
+          await window.fbFuncs.signOut(window.fbAuth);
+          fbUser = null;
+          _cloudLoadedOnce = false;
+          updateCloudUI();
+          toast('👋 Signed out.');
+        } catch (e) {
+          toast(`❌ ${e.message}`);
+        }
+      }
+
+      function openAuthModal() {
+        updateCloudUI();
+        openModal('auth-modal');
+      }
+
+      function switchCloudTab(tab) {
+        document.getElementById('cloud-login-form').style.display    = tab === 'login'    ? '' : 'none';
+        document.getElementById('cloud-register-form').style.display = tab === 'register' ? '' : 'none';
+        document.getElementById('tab-login').classList.toggle('active',    tab === 'login');
+        document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+      }
+
+      /* ────────────────────────────────────────────────────────
+     CONFIRM / RESET / DELETE
+    ──────────────────────────────────────────────────────── */
+      function promptResetLocal() {
+        document.getElementById('confirm-icon').textContent  = '🗑';
+        document.getElementById('confirm-title').textContent = 'Reset All Local Data?';
+        document.getElementById('confirm-msg').textContent   = 'This permanently deletes all your local progress. Cloud data is unaffected.';
+        document.getElementById('confirm-ok-btn').textContent = 'Yes, Reset';
+        document.getElementById('confirm-ok-btn').onclick = () => {
+          Object.values(LS_KEY).forEach(k => { if (typeof k === 'string') localStorage.removeItem(k); });
+          ['cztcg5_col','cztcg5_coins','cztcg5_luck','cztcg5_luck_lvl','cztcg5_packs','cztcg5_user',
+           'cztcg5_avatar','cztcg5_joined','cztcg5_codes_v2','cztcg5_pack_vis','cztcg5_owned_special','cztcg5_unopened_packs']
+            .forEach(k => localStorage.removeItem(k));
+          location.reload();
+        };
+        openModal('confirm-modal');
+      }
+
+      function promptDeleteAccount() {
+        // Reset Confirmation Modal Inhalte
+        document.getElementById('confirm-icon').textContent  = '💀';
+        document.getElementById('confirm-title').textContent = 'Delete Account?';
+        document.getElementById('confirm-msg').textContent   = 'All your cards and progress will be lost forever.';
+        document.getElementById('confirm-ok-btn').textContent = 'Next';
+
+        document.getElementById('confirm-ok-btn').onclick = () => {
+          closeModal('confirm-modal');
+          openModal('reauth-modal');
+          
+          // Passwort-Feld leeren und Fokus setzen
+          const passInput = document.getElementById('reauth-password');
+          passInput.value = '';
+          setTimeout(() => passInput.focus(), 200);
+
+          // Der finale Lösch-Vorgang
+          document.getElementById('reauth-confirm-btn').onclick = async () => {
+            const password = passInput.value;
+            if (!password) { toast("❌ Password required"); return; }
+
+            try {
+              const { doc, deleteDoc, deleteUser, EmailAuthProvider, reauthenticateWithCredential } = window.fbFuncs;
+              
+              // 1. Re-Auth (Sicherheits-Check)
+              const credential = EmailAuthProvider.credential(fbUser.email, password);
+              await reauthenticateWithCredential(fbUser, credential);
+
+              // Button deaktivieren (Visual Feedback)
+              document.getElementById('reauth-confirm-btn').innerText = "Deleting...";
+              document.getElementById('reauth-confirm-btn').disabled = true;
+
+              // 2. Cloud-Daten löschen (Firestore)
+              await deleteDoc(doc(window.fbDb, 'users', fbUser.uid));
+              if (window.currentUsername) {
+                await deleteDoc(doc(window.fbDb, "usernames", window.currentUsername));
+              }
+
+              // 3. Auth-User löschen
+              await deleteUser(fbUser);
+
+              // 4. LocalStorage komplett reinigen
+              localStorage.clear(); 
+              
+              // 5. Sofortiger Refresh (Keine weiteren Klicks nötig)
+              location.reload(); 
+
+            } catch (e) {
+              console.error(e);
+              if (e.code === 'auth/wrong-password') {
+                toast("❌ Incorrect password.");
+                passInput.style.borderColor = "red";
+              } else {
+                toast(`❌ ${e.message}`);
+              }
+              document.getElementById('reauth-confirm-btn').disabled = false;
+              document.getElementById('reauth-confirm-btn').innerText = "Confirm & Delete";
+            }
+          };
+        };
+        openModal('confirm-modal');
+      }
+
+      function openPackVisFromSettings() {
+        closeModal('settings-modal');
+        renderPackVisibilityList();
+        openModal('pack-visibility-modal');
+      }
+
+      /* ────────────────────────────────────────────────────────
+     MODAL HELPERS
+    ──────────────────────────────────────────────────────── */
+      function openModal(id) {
+        document.getElementById(id)?.classList.add('open');
+      }
+
+      function closeModal(id) {
+        document.getElementById(id)?.classList.remove('open');
+      }
+
+      /* ────────────────────────────────────────────────────────
+     TOAST & ALERT
+    ──────────────────────────────────────────────────────── */
+      function toast(msg, epic = false) {
+        const wrap = document.getElementById('toast-wrap');
+        const el   = document.createElement('div');
+        el.className = 'toast' + (epic ? ' toast-epic' : '');
+        el.textContent = msg;
+        wrap.appendChild(el);
+        setTimeout(() => el.remove(), 2900);
+      }
+
+      function showAlert(title, msg) {
+        document.getElementById('alert-title').textContent = title;
+        document.getElementById('alert-msg').textContent   = msg;
+        openModal('alert-modal');
+      }
+
+      /* ────────────────────────────────────────────────────────
+     BACK BUTTON (pack overlay)
+    ──────────────────────────────────────────────────────── */
+      function closePack() {
+        // If cards haven't been collected yet, add them anyway
+        if (currentCards.length > 0) {
+          currentCards.forEach(c => addToCollection(c));
+          packsOpened++;
+          saveData();
+          renderCollection();
+          renderStats();
+          currentCards  = [];
+          revealedCount = 0;
+        }
+        document.getElementById('pack-overlay').classList.remove('open');
+      }
+
+      /* ────────────────────────────────────────────────────────
+     INIT
+    ──────────────────────────────────────────────────────── */
+      function init() {
+        loadData();
+        updateUI();
+        initNav();
+        initProfile();
+        renderOddsChart();
+        renderPacksPanel();
+        renderGuaranteedPacks();
+        renderSpecialPacksPanel();
+        renderShopSpecialPacks();
+        renderCollection();
+        renderPacksInventory();
+        renderStats();
+        renderPackVisibilityList();
+        updateCooldowns();
+
+        // Entry screen
+        const ebtn   = document.getElementById('ebtn');
+        const einput = document.getElementById('einput');
+        if (ebtn)   ebtn.addEventListener('click', checkLogin);
+        if (einput) einput.addEventListener('keydown', e => { if (e.key === 'Enter') checkLogin(); });
+
+        // Pack overlay buttons
+        document.getElementById('pack-back-btn')?.addEventListener('click', closePack);
+        document.getElementById('pack-reveal-btn')?.addEventListener('click', revealAll);
+        document.getElementById('pack-collect-btn')?.addEventListener('click', collectPackCards);
+
+        // Close modals on backdrop click
+        document.querySelectorAll('.modal-overlay').forEach(el => {
+          el.addEventListener('click', e => {
+            if (e.target === el) closeModal(el.id);
+          });
+        });
+
+        // Filter listeners for collection
+        ['rarity-filter','class-filter','sort-filter','order-filter'].forEach(id => {
+          document.getElementById(id)?.addEventListener('change', renderCollection);
+        });
+
+        // Gift coins max cap
+        document.getElementById('gift-coins')?.addEventListener('input', function() {
+          if (parseInt(this.value) > coins) this.value = coins;
+          updateGiftCost();
+        });
+      }
+
+      document.addEventListener('DOMContentLoaded', init);
+
+    </script>
+  </body>
+</html>
