@@ -3,13 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cozy TCG ✦</title>
+    <title>Plangtun.gg ✦</title>
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Comfortaa:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <script src="cards.js"></script>
     <script src="packs.js"></script>
     <script src="codes.js"></script>
+    <script src="quests.js"></script>
 
     <!-- ═══ FIREBASE (module) ═══════════════════════════════════════ -->
 <script type="module">
@@ -777,6 +779,114 @@
   50% { transform: scale(1.1); opacity: 0.7; }
   100% { transform: scale(1); opacity: 1; }
 }
+
+/* ═══ QUEST FAB (floating action button im Profile-Header) ═══ */
+.quest-fab {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--surface-3); border: 1px solid var(--glass-hi);
+  color: var(--rose); font-size: 0.82rem; font-weight: 700;
+  cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+  transition: all 0.2s var(--ease-bounce); position: relative;
+  animation: questFloat 3s ease-in-out infinite;
+}
+.quest-fab:hover { background: var(--surface-4); transform: translateY(-2px) scale(1.08); box-shadow: 0 0 12px rgba(255,150,188,0.3); }
+@keyframes questFloat {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-3px); }
+}
+.quest-fab-badge {
+  position: absolute; top: -3px; right: -3px;
+  width: 10px; height: 10px; background: var(--rose); border-radius: 50%;
+  border: 1.5px solid var(--bg); display: none;
+  animation: pulseBadge 1.8s ease-in-out infinite;
+}
+.quest-fab-badge.visible { display: block; }
+
+/* ═══ QUESTS MODAL Erweiterungen ═══ */
+#quests-modal .modal-box { max-width: 420px; }
+
+.quest-sync-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 0.9rem; padding: 0.6rem 0.85rem;
+  background: var(--surface-2); border: 1px solid var(--glass-edge);
+  border-radius: var(--r-sm); gap: 0.6rem;
+}
+.quest-sync-label { font-size: 0.74rem; color: var(--subtext); font-weight: 600; }
+.quest-sync-btn {
+  background: none; border: 1px solid var(--glass-hi); border-radius: var(--r-xs);
+  color: var(--subtext); font-size: 0.72rem; font-weight: 700; padding: 0.3rem 0.65rem;
+  cursor: pointer; font-family: "Quicksand", sans-serif; transition: all 0.2s;
+  display: flex; align-items: center; gap: 0.35rem;
+}
+.quest-sync-btn:hover { color: var(--text); border-color: var(--accent); }
+.quest-sync-btn.syncing { opacity: 0.55; pointer-events: none; }
+
+.quest-tabs {
+  display: flex; gap: 3px; background: var(--surface-2);
+  border: 1px solid var(--glass-edge); border-radius: var(--r-md);
+  padding: 3px; margin-bottom: 1rem;
+}
+.quest-tab {
+  flex: 1; padding: 0.5rem; font-size: 0.8rem; font-weight: 700;
+  background: transparent; border: none; color: var(--subtext);
+  border-radius: calc(var(--r-md) - 3px); cursor: pointer;
+  transition: 0.2s; font-family: 'Quicksand', sans-serif;
+}
+.quest-tab.active { background: var(--surface-3); color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+
+.quest-list {
+  max-height: 48vh; overflow-y: auto; display: flex;
+  flex-direction: column; gap: 0.85rem; padding-right: 4px;
+}
+.quest-list::-webkit-scrollbar { width: 3px; }
+.quest-list::-webkit-scrollbar-thumb { background: var(--surface-4); border-radius: 99px; }
+
+.quest-card {
+  background: var(--surface-2); border: 1px solid var(--glass-edge);
+  border-radius: var(--r-md); padding: 1.1rem 1.2rem; position: relative;
+  transition: border-color 0.25s; animation: cardIn 0.32s var(--ease) both;
+}
+.quest-card.completed { border-color: rgba(88,240,192,0.4); background: rgba(88,240,192,0.04); }
+.quest-card.claimed   { opacity: 0.5; border-color: var(--glass-edge); }
+
+.quest-card-header { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem; }
+.quest-icon { font-size: 1.3rem; flex-shrink: 0; }
+.quest-name { font-size: 0.92rem; font-weight: 700; color: var(--text); flex: 1; }
+.quest-status-badge {
+  font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+  border-radius: var(--r-pill); padding: 0.2rem 0.55rem; flex-shrink: 0;
+}
+.quest-status-badge.ongoing   { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(180,158,255,0.25); }
+.quest-status-badge.completed { background: rgba(88,240,192,0.12); color: var(--mint); border: 1px solid rgba(88,240,192,0.3); }
+.quest-status-badge.claimed   { background: var(--muted); color: var(--subtext); border: 1px solid var(--glass-edge); }
+
+.quest-desc { font-size: 0.76rem; color: var(--subtext); margin-bottom: 0.85rem; line-height: 1.45; }
+
+.quest-track { height: 7px; background: rgba(0,0,0,0.25); border-radius: 10px; overflow: hidden; margin-bottom: 0.5rem; border: 1px solid var(--glass-edge); }
+.quest-fill {
+  height: 100%; background: linear-gradient(90deg, var(--accent), var(--rose));
+  border-radius: 10px; transition: width 0.7s cubic-bezier(0.34,1.56,0.64,1);
+  min-width: 2px;
+}
+.quest-card.completed .quest-fill { background: var(--mint); }
+.quest-card.claimed   .quest-fill { background: var(--surface-4); }
+
+.quest-footer { display: flex; justify-content: space-between; align-items: center; }
+.quest-progress-txt { font-size: 0.72rem; font-weight: 700; color: var(--subtext); font-family: "DM Mono", monospace; }
+.quest-card.completed:not(.claimed) .quest-progress-txt { color: var(--mint); }
+.quest-reward-label { font-size: 0.72rem; font-weight: 700; color: var(--accent); display: flex; align-items: center; gap: 3px; }
+.quest-card.claimed .quest-reward-label { color: var(--subtext); }
+
+.quest-claim-btn {
+  font-size: 0.74rem; padding: 0.38rem 0.85rem;
+  background: linear-gradient(135deg, var(--mint), #2ed8a8);
+  color: #0b0a12; border: none; border-radius: var(--r-sm);
+  font-family: "Quicksand", sans-serif; font-weight: 700;
+  cursor: pointer; transition: all 0.2s var(--ease-bounce);
+  box-shadow: 0 0 12px rgba(88,240,192,0.25);
+}
+.quest-claim-btn:hover { transform: translateY(-1px) scale(1.04); box-shadow: 0 4px 16px rgba(88,240,192,0.4); }
+.quest-empty { text-align: center; padding: 3rem 1rem; color: var(--subtext); font-size: 0.84rem; }
     </style>
   </head>
   <body>
@@ -798,20 +908,20 @@
 
     <!-- ═══ ENTRY SCREEN ═════════════════════════════════════════ -->
     <div id="entry">
-      <div class="entry-gem" aria-hidden="true"><div class="entry-gem-core">✦</div></div>
-      <h1 class="entry-logo f-display">Cozy TCG</h1>
-      <p class="entry-tag">Collector's Edition</p>
+      <div class="entry-gem" aria-hidden="true"><div class="entry-gem-core">🤑</div></div>
+      <h1 class="entry-logo f-display">67 TCG</h1>
+      <p class="entry-tag">Skibidi Edition</p>
       <div class="entry-card" id="entry-box">
         <input type="password" id="einput" class="input-field" placeholder="Enter access code…" autocomplete="off" aria-label="Access code" />
-        <button class="btn btn-primary btn-full" id="ebtn">✦ Enter the Garden</button>
-        <p class="entry-hint">Default code: 0000</p>
+        <button class="btn btn-primary btn-full" id="ebtn">✦ Enter the basement</button>
+        <p class="entry-hint">"Nothing happened" ~ Zoro</p>
       </div>
     </div>
 
     <!-- ═══ APP SHELL ════════════════════════════════════════════ -->
     <div id="app" aria-hidden="true">
       <header class="header">
-        <div class="logo f-display">✦ Cozy TCG</div>
+        <div class="logo f-display">✦ 67 TCG</div>
         <div class="header-right">
           <div class="stat-pill" title="Luck Bonus">🍀 <span id="luck-hdr">0.0</span>%</div>
           <div class="stat-pill" title="Coins">🪙 <span id="coins-hdr">100</span></div>
@@ -857,11 +967,19 @@
                 </select>
                 <select id="class-filter" class="filter-select" aria-label="Filter class">
                   <option value="all">All Classes</option>
-                  <option value="Nature">🌿 Nature</option>
-                  <option value="Combat">⚔️ Combat</option>
-                  <option value="Arcane">✨ Arcane</option>
-                  <option value="Void">🌑 Void</option>
-                  <option value="Celestial">🌙 Celestial</option>
+                  <option value="Skibidi">🚽 Skibidi</option>
+                  <option value="Gigachad">🗿 Gigachad</option>
+                  <option value="BabyOil">🍼 Baby Oil</option>
+                  <option value="Rizzlord">😏 Rizzlord</option>
+                  <option value="NPC">🤖 NPC</option>
+                  <option value="Yapper">🗣️ Yapper</option>
+                  <option value="Aura">✨ Aura</option>
+                  <option value="Delulu">😵‍💫 Delulu</option>
+                  <option value="Crashout">💥 Crashout</option>
+                  <option value="LetHimCook">👨‍🍳 Let Him Cook</option>
+                  <option value="Sus">🤨 Sus</option>
+                  <option value="NegativeAura">📉 Negative Aura</option>
+                  <option value="Legend">👑 Legend</option>
                 </select>
                 <select id="sort-filter" class="filter-select" aria-label="Sort by">
                   <option value="rarity">By Rarity</option>
@@ -945,7 +1063,9 @@
           <div class="panel" id="panel-profile">
             <div class="section-hd">
               <h2 class="section-title">Profile</h2>
-              <button class="info-btn" onclick="openModal('settings-modal')" title="Settings">⚙</button>
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <button class="info-btn" onclick="openModal('settings-modal')" title="Settings">⚙</button>
+              </div>
             </div>
 
             <!-- Hero / Identity -->
@@ -957,7 +1077,7 @@
                   <input type="file" id="avatar-upload" accept="image/*" onchange="handleAvatarUpload(event)" />
                 </div>
                 <div class="profile-name">
-                  <span id="username-disp">Traveler</span>
+                  <span id="username-disp">Patricks Linker Fuß</span>
                   <button class="name-edit-btn" onclick="toggleNameEdit()" title="Edit username">✏️</button>
                 </div>
                 <div id="name-edit-row">
@@ -1146,6 +1266,18 @@
           <div class="settings-item-arrow">›</div>
         </div>
 
+        <div class="settings-item" onclick="closeModal('settings-modal'); openQuestsModal()">
+          <div class="settings-item-icon">📜</div>
+          <div class="settings-item-info">
+            <div class="settings-item-label">
+              Quests
+              <span class="quest-fab-badge" id="quest-fab-badge" style="position:relative;top:-1px;right:auto;display:none;width:8px;height:8px;"></span>
+            </div>
+            <div class="settings-item-sub">Track your progress & claim rewards</div>
+          </div>
+          <div class="settings-item-arrow">›</div>
+        </div>
+
         <div class="settings-item" onclick="openPackVisFromSettings()">
           <div class="settings-item-icon">📦</div>
           <div class="settings-item-info">
@@ -1172,6 +1304,24 @@
           </div>
           <div class="settings-item-arrow">›</div>
         </div>
+      </div>
+    </div>
+
+    <!-- ═══ QUESTS MODAL ════════════════════════════════════════ -->
+    <div class="modal-overlay" id="quests-modal" role="dialog" aria-modal="true">
+      <div class="modal-box" style="max-width:400px">
+        <button class="modal-close" onclick="closeModal('quests-modal')" aria-label="Close">×</button>
+        <div class="modal-title">📜 Quests</div>
+        <div class="quest-sync-row">
+          <span class="quest-sync-label" id="quest-sync-label">☁️ Sync to save progress</span>
+          <button class="quest-sync-btn" id="quest-sync-btn" onclick="syncQuestsToCloud()">↺ Sync</button>
+        </div>
+        <div class="quest-tabs">
+          <button class="quest-tab active" id="q-tab-ongoing"   onclick="setQuestTab('ongoing')">Ongoing</button>
+          <button class="quest-tab"        id="q-tab-completed" onclick="setQuestTab('completed')">Completed</button>
+          <button class="quest-tab"        id="q-tab-all"       onclick="setQuestTab('all')">All</button>
+        </div>
+        <div class="quest-list" id="quest-list-container"></div>
       </div>
     </div>
 
@@ -1395,11 +1545,22 @@
       };
 
       const CLASS_CFG = {
-        Nature:    { color:'#7AE08A', icon:'🌿' },
-        Combat:    { color:'#F0906A', icon:'⚔️' },
-        Arcane:    { color:'#78C8E8', icon:'✨' },
-        Void:      { color:'#D880C8', icon:'🌑' },
-        Celestial: { color:'#B8B0FF', icon:'🌙' },
+          // Klassiker
+          Skibidi:      { color: '#2ECC71', icon: '🚽' }, // Giftiges Neon-Grün
+          Gigachad:     { color: '#F39C12', icon: '🗿' }, // Bronze / Kraftvolles Orange
+          BabyOil:      { color: '#00D2FF', icon: '🍼' }, // Softes Hellblau (Creme-Vibe)
+          NPC:          { color: '#BDC3C7', icon: '🤖' }, // Standard-Grau (Mainstream)
+          Rizzlord:     { color: '#BB86FC', icon: '😏' }, // Das edle Lila deines Spiels
+
+          // Neue Klassen
+          Yapper:       { color: '#F1C40F', icon: '🗣️' }, // Lautes, auffälliges Gelb
+          Aura:         { color: '#E0FFFF', icon: '✨' }, // Magisches, helles Cyan-Weiß
+          Delulu:       { color: '#FF66CC', icon: '😵‍💫' }, // Knalliges Bubblegum-Pink
+          Crashout:     { color: '#FF0000', icon: '💥' }, // Aggressives Warn-Rot
+          LetHimCook:   { color: '#E67E22', icon: '👨‍🍳' }, // Warmes Feuer-Orange
+          Sus:          { color: '#9B59B6', icon: '🤨' }, // Mysteriöses Dunkellila
+          NegativeAura: { color: '#8B0000', icon: '📉' },  // Tiefes Blutrot / Dunkel
+          Legend:       { color: '#FFD700', icon: '👑' }, // Strahlendes Gold für die Elite
       };
 
       const PACK_CFG = {
@@ -2101,7 +2262,7 @@
         const isOwned = key => {
           const pk = SPECIAL_PACK_CFG[key];
           if (pk.type === 'onlyRarity') return isRarityPoolOwned(pk.fixedRarity);
-          if (pk.type === 'classPack')  return ['Nature','Combat','Arcane','Void','Celestial'].every(isClassPoolOwned);
+          if (pk.type === 'classPack')  return ['Skibidi','Gigachad','BabyOil','NPC','Rizzlord','Yapper','Aura','Delulu','Crashout','LetHimCook','Sus','NegativeAura','Legend'].every(isClassPoolOwned);
           return false;
         };
         slotPacks.sort((a,b) => (isOwned(a[0]) ? 1 : 0) - (isOwned(b[0]) ? 1 : 0));
@@ -2422,7 +2583,7 @@
           return drawCards(packKey, 1);
         }
         if (type === 'classPack') {
-          const classes = ['Nature', 'Combat', 'Arcane', 'Void', 'Celestial'];
+          const classes = ['Skibidi', 'Gigachad', 'BabyOil', 'NPC', 'Rizzlord', 'Yapper', 'Aura', 'Delulu', 'Crashout', 'LetHimCook', 'Sus', 'NegativeAura', 'Legend'];
           const cls = classes[Math.floor(Math.random() * classes.length)];
           toast(`🎭 Class drawn: ${cls}!`);
           const pool = CARD_DATABASE.filter(c => c.class === cls && c.pullWeight > 0 && !c.isShiny);
@@ -2562,6 +2723,7 @@
         SFX.play('collect');
         renderCollection();
         renderStats();
+        checkQuestProgress(); // ← NEU
         currentCards  = [];
         revealedCount = 0;
       }
@@ -2863,7 +3025,7 @@
 
       async function redeemCode() {
   const input = document.getElementById('code-input');
-  const raw = input.value.trim().toUpperCase();
+  const raw = input.value.trim().toLowerCase();
   if (!raw) { toast('❌ Enter a code first.'); return; }
   
   SFX.play('click');
@@ -2890,34 +3052,61 @@
   usedCodes.add(hash);
 
   // --- BELOHNUNGS-TYPEN PRÜFEN ---
-  
+  let totalAdded = 0; // Initialisieren, damit der Toast am Ende funktioniert
+
   if (reward.type === 'hidden') {
-    // Sucht die erste Karte mit Rarity 'Hidden'
-    const hiddenCard = CARD_DATABASE.find(c => c.rarity === 'Hidden');
-    if (hiddenCard) addToCollection(hiddenCard);
+      // Sucht die erste Karte mit Rarity 'Hidden'
+      const hiddenCard = CARD_DATABASE.find(c => c.rarity === 'Hidden');
+      if (hiddenCard) addToCollection(hiddenCard);
   } 
   else if (reward.type === 'id_reward') {
-    // NEU: Sucht Karte nach spezifischer ID (z.B. 6001)
-    const specialCard = CARD_DATABASE.find(c => c.id === reward.cardId);
-    if (specialCard) {
-      addToCollection(specialCard);
-    } else {
-      console.error("Card ID " + reward.cardId + " not found!");
-    }
+      // NEU: Sucht Karte nach spezifischer ID (z.B. 6001)
+      const specialCard = CARD_DATABASE.find(c => c.id === reward.cardId);
+      if (specialCard) {
+          addToCollection(specialCard);
+      } else {
+          console.error("Card ID " + reward.cardId + " not found!");
+      }
   }
   else if (reward.type === 'admin') {
-    adminMode = true;
+      adminMode = true;
   } 
   else if (reward.type === 'godpack') {
-    const godCards = CARD_DATABASE.filter(c => ['Legendary','SSSR'].includes(c.rarity) && !c.isShiny);
-    godCards.forEach(c => addToCollection(c));
+      const godCards = CARD_DATABASE.filter(c => ['Legendary','SSSR'].includes(c.rarity) && !c.isShiny);
+      godCards.forEach(c => addToCollection(c));
+  } 
+  // --- NEUER ABSCHNITT FÜR PACKS ---
+  else if (reward.type === 'packs') {
+      reward.packs.forEach(({ packKey, count }) => {
+          const cfg = (typeof SPECIAL_PACK_CFG !== 'undefined' && SPECIAL_PACK_CFG[packKey])
+                      || PACK_CFG?.[packKey];
+          if (!cfg) return;
+
+          for (let i = 0; i < count; i++) {
+              unopenedPacks.push({
+                  packKey,
+                  name:       cfg.label || cfg.name,
+                  icon:       cfg.icon  || '📦',
+                  bg:         cfg.bg    || '',
+                  sellValue:  cfg.sellValue || 0,
+                  acquiredAt: new Date().toISOString(),
+              });
+              totalAdded++;
+          }
+      });
   }
+
+  // Gemeinsames Speichern und Benachrichtigen
+  saveData();
+
+  // Der Toast nutzt die reward.msg, falls vorhanden, sonst den Standard-Text
+  toast(reward.msg || `🎁 +${totalAdded} Packs added!`, true);
 
   // Bonus Belohnungen (Coins oder Luck), falls im Code definiert
   if (reward.coins) coins += reward.coins;
   if (reward.luck)  { 
-    luckPercent = Math.min(MAX_LUCK, luckPercent + reward.luck); 
-    luckLevel++; 
+      luckPercent = Math.min(MAX_LUCK, luckPercent + reward.luck); 
+      luckLevel++; 
   }
 
   // UI Aktualisieren
@@ -3501,6 +3690,7 @@
     ──────────────────────────────────────────────────────── */
       function init() {
         loadData();
+        loadQuestData();
         updateUI();
         initNav();
         initProfile();
@@ -3512,6 +3702,7 @@
         renderCollection();
         renderPacksInventory();
         renderStats();
+        updateQuestFabBadge();
         renderPackVisibilityList();
         updateCooldowns();
 
@@ -3543,6 +3734,238 @@
           if (parseInt(this.value) > coins) this.value = coins;
           updateGiftCost();
         });
+      }
+
+      /* ════════════════════════════════════════════════════════════
+        QUEST SYSTEM
+      ════════════════════════════════════════════════════════════ */
+
+      // ── State ──────────────────────────────────────────────────
+      // questClaimed: Set of quest IDs the player has already claimed
+      let questClaimed = new Set();
+      let _questTab = 'ongoing';
+
+      // ── LS Key ergänzen (am besten gleich nach der LS_KEY-Definition
+      //    einfügen — hier aber dynamisch damit es überall klappt) ──
+      LS_KEY.QUESTS = 'cztcg5_quests';
+
+      // ── Persist ────────────────────────────────────────────────
+      function loadQuestData() {
+        try {
+          const raw = JSON.parse(localStorage.getItem(LS_KEY.QUESTS) || '{}');
+          questClaimed = new Set(raw.claimed || []);
+        } catch { questClaimed = new Set(); }
+      }
+
+      function saveQuestData() {
+        localStorage.setItem(LS_KEY.QUESTS, JSON.stringify({ claimed: [...questClaimed] }));
+      }
+
+      // ── Progress computation (immer live aus collection/packsOpened) ──
+      function computeQuestProgress(quest) {
+        if (quest.type === 'collect_cards') {
+          const ids = quest.requiredCardIds || [];
+          const owned = ids.filter(id => collection.some(c => c.id === id && c.count > 0));
+          return { current: owned.length, total: ids.length };
+        }
+        if (quest.type === 'open_packs') {
+          const total = quest.requiredCount || 1;
+          return { current: Math.min(packsOpened, total), total };
+        }
+        if (quest.type === 'collect_rarity') {
+          const total = quest.requiredCount || 1;
+          const current = Math.min(
+            collection.filter(c => c.rarity === quest.rarity).reduce((s, c) => s + c.count, 0),
+            total
+          );
+          return { current, total };
+        }
+        return { current: 0, total: 1 };
+      }
+
+      // ── Check after each pack open ─────────────────────────────
+      function checkQuestProgress() {
+        let anyNewComplete = false;
+        (window.QUESTS_DATABASE || []).forEach(q => {
+          if (questClaimed.has(q.id)) return;
+          const { current, total } = computeQuestProgress(q);
+          if (current >= total) anyNewComplete = true;
+        });
+        updateQuestFabBadge();
+        if (anyNewComplete) {
+          toast('📜 Quest completed! Open Quests to claim your reward.', true);
+        }
+      }
+
+      function updateQuestFabBadge() {
+        const badge = document.getElementById('quest-fab-badge');
+        if (!badge) return;
+        const hasClaimable = (window.QUESTS_DATABASE || []).some(q => {
+          if (questClaimed.has(q.id)) return false;
+          const { current, total } = computeQuestProgress(q);
+          return current >= total;
+        });
+        badge.classList.toggle('visible', hasClaimable);
+      }
+
+      // ── Modal open / tab ───────────────────────────────────────
+      function openQuestsModal() {
+        loadQuestData();
+        renderQuestList();
+        openModal('quests-modal');
+      }
+
+      function setQuestTab(tab) {
+        _questTab = tab;
+        ['ongoing','completed','all'].forEach(t => {
+          document.getElementById(`q-tab-${t}`)?.classList.toggle('active', t === tab);
+        });
+        renderQuestList();
+      }
+
+      // ── Render ─────────────────────────────────────────────────
+      function renderQuestList() {
+        const container = document.getElementById('quest-list-container');
+        if (!container) return;
+
+        const db = window.QUESTS_DATABASE || [];
+        if (!db.length) {
+          container.innerHTML = '<div class="quest-empty">No quests available yet.</div>';
+          return;
+        }
+
+        // Compute progress for all quests, sort by progress desc
+        const items = db.map(q => {
+          const { current, total } = computeQuestProgress(q);
+          const pct = total > 0 ? current / total : 0;
+          const isDone    = current >= total;
+          const isClaimed = questClaimed.has(q.id);
+          return { q, current, total, pct, isDone, isClaimed };
+        });
+
+        // Filter by tab
+        const filtered = items.filter(({ isDone, isClaimed }) => {
+          if (_questTab === 'ongoing')   return !isDone;
+          if (_questTab === 'completed') return isDone;
+          return true; // 'all'
+        });
+
+        // Sort: completed-unclaimed first, then by progress desc, claimed last
+        filtered.sort((a, b) => {
+          if (a.isDone && !a.isClaimed && !(b.isDone && !b.isClaimed)) return -1;
+          if (b.isDone && !b.isClaimed && !(a.isDone && !a.isClaimed)) return  1;
+          if (a.isClaimed && !b.isClaimed) return  1;
+          if (b.isClaimed && !a.isClaimed) return -1;
+          return b.pct - a.pct;
+        });
+
+        if (!filtered.length) {
+          const msg = _questTab === 'ongoing' ? 'No ongoing quests — check Completed!' :
+                      _questTab === 'completed' ? 'Complete quests to see them here.' : 'No quests found.';
+          container.innerHTML = `<div class="quest-empty">${msg}</div>`;
+          return;
+        }
+
+        container.innerHTML = '';
+        filtered.forEach(({ q, current, total, pct, isDone, isClaimed }, i) => {
+          const statusLabel = isClaimed ? 'Claimed' : isDone ? 'Completed' : 'Ongoing';
+          const statusClass = isClaimed ? 'claimed' : isDone ? 'completed' : 'ongoing';
+          const cardClass   = isClaimed ? 'claimed' : isDone ? 'completed' : '';
+
+          const fillW = Math.min(100, pct * 100).toFixed(1);
+
+          const card = document.createElement('div');
+          card.className = `quest-card ${cardClass}`;
+          card.style.animationDelay = `${i * 0.05}s`;
+          card.innerHTML = `
+            <div class="quest-card-header">
+              <span class="quest-icon">${q.icon || '📜'}</span>
+              <span class="quest-name">${q.name}</span>
+              <span class="quest-status-badge ${statusClass}">${statusLabel}</span>
+            </div>
+            <div class="quest-desc">${q.description}</div>
+            <div class="quest-track">
+              <div class="quest-fill" style="width:${fillW}%"></div>
+            </div>
+            <div class="quest-footer">
+              <span class="quest-progress-txt">${current} / ${total}</span>
+              <span class="quest-reward-label">${isClaimed ? '✓ Claimed' : q.rewardText}</span>
+              ${isDone && !isClaimed
+                ? `<button class="quest-claim-btn" onclick="claimQuestReward('${q.id}')">✓ Claim</button>`
+                : ''}
+            </div>`;
+          container.appendChild(card);
+        });
+      }
+
+      // ── Claim Reward ───────────────────────────────────────────
+      function claimQuestReward(questId) {
+        const q = (window.QUESTS_DATABASE || []).find(x => x.id === questId);
+        if (!q) return;
+        if (questClaimed.has(questId)) { toast('✅ Already claimed!'); return; }
+
+        const { current, total } = computeQuestProgress(q);
+        if (current < total) { toast('❌ Quest not completed yet.'); return; }
+
+        questClaimed.add(questId);
+
+        if (q.rewardType === 'card' && q.rewardCardId) {
+          const rewardCard = (window.CARD_DATABASE || []).find(c => c.id === q.rewardCardId);
+          if (rewardCard) {
+            addToCollection(rewardCard);
+            saveData();
+            toast(`🌹 ${rewardCard.name} added to your collection!`, true);
+          } else {
+            toast('✅ Reward collected!');
+          }
+        } else if (q.rewardType === 'coins' && q.rewardCoins) {
+          coins += q.rewardCoins;
+          saveData();
+          toast(`🪙 +${q.rewardCoins.toLocaleString()} coins!`, true);
+        } else {
+          toast('✅ Reward collected!');
+        }
+
+        saveQuestData();
+        updateQuestFabBadge();
+        renderQuestList();
+      }
+
+      // ── Firestore Sync (manuell) ───────────────────────────────
+      async function syncQuestsToCloud() {
+        const btn   = document.getElementById('quest-sync-btn');
+        const label = document.getElementById('quest-sync-label');
+        if (!fbUser) { toast('❌ Login first to sync quests.'); openModal('auth-modal'); return; }
+
+        btn.classList.add('syncing');
+        btn.textContent = '↺ Syncing…';
+        try {
+          const { doc, setDoc, getDoc } = window.fbFuncs;
+          // ✅ Nutzt users/{uid} statt quests/{uid} — passt zu deinen Firebase Rules
+          const ref = doc(window.fbDb, 'users', fbUser.uid);
+
+          // Cloud-Stand laden (merge)
+          const snap = await getDoc(ref);
+          if (snap.exists()) {
+            const cloudClaimed = snap.data().questsClaimed || [];
+            cloudClaimed.forEach(id => questClaimed.add(id));
+          }
+
+          // Gemergten Stand zurückschreiben (merge:true schützt andere Felder)
+          await setDoc(ref, { questsClaimed: [...questClaimed] }, { merge: true });
+
+          saveQuestData();
+          updateQuestFabBadge();
+          renderQuestList();
+          label.textContent = '☁️ Synced just now';
+          toast('☁️ Quest progress synced!');
+        } catch (e) {
+          console.error(e);
+          toast('❌ Quest sync failed.');
+        } finally {
+          btn.classList.remove('syncing');
+          btn.textContent = '↺ Sync';
+        }
       }
 
       document.addEventListener('DOMContentLoaded', init);

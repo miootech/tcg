@@ -16,14 +16,14 @@
 
 window.CODE_HASHES = {
   // --- Spezial Karten & Packs ---
-  // ROSE
-  efd86c891eaa89b9112bd240919d276161405270: {
+  // rose
+  "7b7074fca36fc89fb3f1e3c46d74f6ffe2477a09": {
     type: "hidden",
     msg: "🌹 Hidden card added to collection!",
   },
 
-  // KINGRALI
-  bdd4802fd0f3febd5269cd8849d773c9ed4604b4: {
+  // kingrali
+  "21afa7da6832369bd557845af18d0ed2e327025e": {
     type: "godpack",
     msg: "👑 KingRali God Pack unlocked!",
   },
@@ -35,29 +35,56 @@ window.CODE_HASHES = {
     msg: "✨ Special Card added to collection!",
   },
 
+  //freeamo
+  "e6352908707142f7aa0448ff242882d592ca817e": {
+    type: "id_reward",
+    cardId: 5401,
+    msg: "✨ shiny Card added to collection!",
+  },
+
+  // freepacks
+  "87ae53d280b7ee1dff7a16ebe8fe8a4a86367a55": {
+    type: "packs",
+    packs: [
+      { packKey: "onlyRare",  count: 2 },
+      { packKey: "onlyEpic",  count: 1 },
+      { packKey: "bulkPack",  count: 1 },
+      { packKey: "speedPack", count: 1 },
+    ],
+    msg: "🎁 5 Packs added to your inventory!",
+  },
+
   // --- Admin & System ---
-  b521caa6e1db82e5a01c924a419870cb72b81635: {
+  // admin
+  "d033e22ae348aeb5660fc2140aec35850c4da997": {
     type: "admin",
     msg: "👑 Admin mode ON — no cooldowns, no costs.",
-  }, // ADMIN
+  },
 
   // --- Währung & Stats ---
-  "676cce6fa01eaa648ca2dda26255441fc4f37940": {
+  // welcome2026
+  "ca09e10726972578b98460d9b6b4e89d54486a0f": {
     coins: 500,
     msg: "🎉 Welcome gift! +500 coins.",
-  }, // WELCOME2025
-  d555e5f960520a978ee2aacf575af3ea3818acb7: {
-    coins: 100,
-    msg: "✨ +100 coins!",
-  }, // COZY100
-  "7c01ed33a0e31a4f9017cb80f0de5e53806c8514": {
+  },
+
+  //freecoins
+  "89a382df7d1987321fb34ce448eb4a06b4ee5d68": {
+    coins: 1000,
+    msg: "✨ +1000 coins!",
+  },
+
+  // luckboost
+  "d95bbef27f761a03fbfbcfefc53a5ae4ffd7698e": {
     luck: 1,
     msg: "🍀 +1% luck applied!",
-  }, // LUCKBOOST
-  "9602a145db69bfc51c19ad6995755788161c9551": {
-    coins: 2000,
-    msg: "💰 Jackpot! +2,000 coins.",
-  }, // RICHRICH
+  },
+
+  // richrich
+  "5b43a3793c7aa25c75ff70f1710cfab9ede0bc18": {
+    coins: 14000,
+    msg: "💰 Jackpot! +14,000 coins.",
+  },
 };
 
 // Separater Hash für den Admin-Check an anderen Stellen im Code
