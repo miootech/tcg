@@ -12,6 +12,8 @@
     <script src="packs.js"></script>
     <script src="codes.js"></script>
     <script src="quests.js"></script>
+    <script src="fight.js"></script>
+    <script src="admin.js"></script>
 
     <!-- ═══ FIREBASE (module) ═══════════════════════════════════════ -->
 <script type="module">
@@ -29,9 +31,10 @@
       
       import { 
         getFirestore, doc, setDoc, getDoc, deleteDoc, collection, query, where, 
-        getDocs, addDoc, updateDoc, serverTimestamp, Timestamp, writeBatch, orderBy 
+        getDocs, addDoc, updateDoc, serverTimestamp, Timestamp, writeBatch, orderBy,
+        onSnapshot, arrayUnion, arrayRemove
       } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
+            
       const firebaseConfig = {
         apiKey: "AIzaSyBhMnXR9WVMWON4kz5K2-m9rCaEmJYPmc8",
         authDomain: "tcggame-ef1c3.firebaseapp.com",
@@ -58,7 +61,7 @@
         EmailAuthProvider,           // NEU hinzugefügt
         reauthenticateWithCredential, // NEU hinzugefügt
         doc, setDoc, getDoc, deleteDoc, collection, query, where,
-        getDocs, addDoc, updateDoc, serverTimestamp, Timestamp, writeBatch, orderBy
+        getDocs, addDoc, updateDoc, serverTimestamp, Timestamp, writeBatch, orderBy, onSnapshot, arrayUnion, arrayRemove
       };
 
       onAuthStateChanged(auth, (user) => {
@@ -178,8 +181,8 @@
       .mailbox-badge { position: absolute; top: -4px; right: -4px; width: 14px; height: 14px; background: var(--rose); border-radius: 50%; font-size: 0.55rem; font-weight: 700; color: #0b0a12; display: flex; align-items: center; justify-content: center; animation: pulseBadge 2s ease-in-out infinite; }
       @keyframes pulseBadge { 0%,100%{transform:scale(1);}50%{transform:scale(1.2);} }
       .viewport { flex: 1; overflow: hidden; position: relative; }
-      .track { display: flex; width: 400%; height: 100%; transition: transform 0.52s var(--ease-inout); }
-      .panel { width: 25%; height: 100%; overflow-y: auto; overflow-x: hidden; padding: clamp(1.2rem,3vw,2rem) clamp(1rem,3vw,2rem) 8rem; scroll-behavior: smooth; }
+      .track { display: flex; width: 500%; height: 100%; transition: transform 0.52s var(--ease-inout); }
+      .panel { width: 20%; height: 100%; overflow-y: auto; overflow-x: hidden; padding: clamp(1.2rem,3vw,2rem) clamp(1rem,3vw,2rem) 8rem; scroll-behavior: smooth; }
       .panel::-webkit-scrollbar { width: 4px; }
       .panel::-webkit-scrollbar-track { background: transparent; }
       .panel::-webkit-scrollbar-thumb { background: var(--surface-4); border-radius: 99px; }
@@ -301,33 +304,43 @@
       .odds-fill, .rd-fill { transition: width 0.5s cubic-bezier(0.16,1,0.3,1) !important; }
       @keyframes barGrow { from { width: 0 !important; } }
 
-      /* ═══ PANEL 3 — PROFILE ═════════════════════════════════════ */
-      .profile-card { background: var(--surface); border: 1px solid var(--glass-edge); border-radius: var(--r-lg); padding: 1.4rem; margin-bottom: 1rem; }
-      .profile-hero { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.85rem; padding: 0.5rem 0 0.8rem; }
-      .avatar-wrap { position: relative; display: inline-block; }
-      .avatar-circle { width: 88px; height: 88px; border-radius: 50%; background: var(--surface-3); border: 2px solid var(--glass-hi); overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 2.4rem; }
-      .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
-      .avatar-edit { position: absolute; bottom: 2px; right: 2px; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); border: none; color: #0b0a12; font-size: 0.72rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s var(--ease-bounce); }
-      .avatar-edit:hover { transform: scale(1.12); }
-      #avatar-upload { display: none; }
-      .profile-name { font-family: "Comfortaa", cursive; font-size: 1.35rem; font-weight: 700; display: flex; align-items: center; gap: 0.4rem; }
-      .name-edit-btn { background: none; border: none; color: var(--subtext); font-size: 0.82rem; cursor: pointer; transition: color 0.2s; line-height: 1; }
-      .name-edit-btn:hover { color: var(--accent); }
-      #name-edit-row { display: none; flex-direction: row; gap: 0.5rem; margin-top: 0.3rem; width: 100%; max-width: 300px; }
-      .profile-joined { font-size: 0.72rem; color: var(--subtext); font-weight: 600; }
-      .profile-section-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--subtext); margin-bottom: 0.9rem; }
+      /* ═══ PANEL 3 — PROFILE REDESIGN ══════════════════════════ */
+      .prof-hero-banner {
+        display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.9rem;        background: var(--surface); border: 1px solid var(--glass-edge);
+        border-radius: var(--r-lg); padding: 1.4rem;
+        margin-bottom: 1rem; position: relative; overflow: hidden;
+      }
+      .prof-hero-banner::before {
+        content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+        background: linear-gradient(90deg, var(--accent), var(--rose), var(--mint));
+      }
+      .prof-hero-info { display: flex; flex-direction: column; align-items: center; gap: 0.1rem; }      .prof-section {
+        background: var(--surface); border: 1px solid var(--glass-edge);
+        border-radius: var(--r-lg); padding: 1.2rem 1.4rem; margin-bottom: 1rem;
+      }
+      .prof-section-title {
+        font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.09em; color: var(--subtext); margin-bottom: 1rem;
+        display: flex; align-items: center; gap: 0.4rem;
+      }
       .stats-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 0.65rem; }
-      .stat-box { background: var(--surface-2); border: 1px solid var(--glass-edge); border-radius: var(--r-md); padding: 0.9rem; text-align: center; }
+      .stat-box {
+        background: var(--surface-2); border: 1px solid var(--glass-edge);
+        border-radius: var(--r-md); padding: 0.9rem; text-align: center;
+        transition: border-color 0.2s, transform 0.2s var(--ease-bounce);
+      }
+      .stat-box:hover { border-color: var(--glass-hi); transform: translateY(-2px); }
       .stat-box.wide { grid-column: 1/-1; }
-      .stat-lbl { font-size: 0.65rem; color: var(--subtext); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.28rem; }
+      .stat-lbl { font-size: 0.63rem; color: var(--subtext); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem; }
       .stat-val { font-size: 1.1rem; font-weight: 700; font-family: "DM Mono", monospace; }
-      .rarity-dist { display: flex; flex-direction: column; gap: 0.55rem; }
+      .stat-box.stat-shiny .stat-val { background: linear-gradient(90deg,#eec060,#ffe090,#eec060); background-size:200%; -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; animation: shineBadgeShimmer 2s linear infinite; }
+      .rarity-dist { display: flex; flex-direction: column; gap: 0.6rem; }
       .rd-row { display: flex; align-items: center; gap: 0.75rem; }
-      .rd-label { font-size: 0.76rem; font-weight: 700; width: 72px; flex-shrink: 0; }
+      .rd-label { font-size: 0.76rem; font-weight: 700; width: 80px; flex-shrink: 0; }
       .rd-track { flex: 1; height: 5px; background: rgba(255,255,255,0.06); border-radius: 99px; overflow: hidden; }
       .rd-fill { height: 100%; border-radius: 99px; animation: barGrow 0.6s var(--ease) both; }
       .rd-count { font-size: 0.7rem; font-family: "DM Mono", monospace; color: var(--subtext); width: 24px; text-align: right; flex-shrink: 0; }
-
+      
       /* Toggle switches */
       .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 0.55rem 0; border-bottom: 1px solid var(--glass-edge); gap: 0.5rem; }
       .toggle-row:last-child { border-bottom: none; }
@@ -354,6 +367,16 @@
       .cloud-logged-in { display: flex; flex-direction: column; gap: 0.75rem; }
       .cloud-user-row { display: flex; align-items: center; gap: 0.55rem; font-size: 0.84rem; }
       .cloud-user-icon { font-size: 1.2rem; }
+      .profile-name { font-family: "Comfortaa", cursive; font-size: 1.35rem; font-weight: 700; display: flex; align-items: center; gap: 0.4rem; cursor: pointer; border-bottom: 1.5px dashed transparent; border-radius: 2px; transition: border-color 0.2s, color 0.2s; padding-bottom: 1px; }
+      .profile-name:hover { border-bottom-color: var(--accent); color: var(--accent); }
+      .name-edit-btn { display: none; }
+      .avatar-wrap { position: relative; display: inline-block; cursor: pointer; }
+      .avatar-circle { width: 96px; height: 96px; border-radius: 50%; background: var(--surface-3); border: 2.5px solid var(--glass-hi); overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 2.6rem; transition: border-color 0.2s, transform 0.2s var(--ease-bounce); }
+      .avatar-circle:hover { border-color: var(--accent); transform: scale(1.04); }
+      .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
+      .avatar-edit { position: absolute; bottom: 3px; right: 3px; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg); color: #0b0a12; font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s var(--ease-bounce); pointer-events: none; }
+      .avatar-wrap:hover .avatar-edit { transform: scale(1.15); }
+      #avatar-upload { display: none !important; visibility: hidden; position: absolute; width: 0; height: 0; opacity: 0; }
 
       /* ═══ DOCK NAV ══════════════════════════════════════════════ */
       .dock-wrap { position: fixed; bottom: 1.1rem; left: 50%; transform: translateX(-50%); z-index: 300; }
@@ -887,6 +910,245 @@
 }
 .quest-claim-btn:hover { transform: translateY(-1px) scale(1.04); box-shadow: 0 4px 16px rgba(88,240,192,0.4); }
 .quest-empty { text-align: center; padding: 3rem 1rem; color: var(--subtext); font-size: 0.84rem; }
+
+/* ═══ FIGHT PANEL ═══════════════════════════════════════════ */
+.fight-slot {
+  background: var(--surface-2); border: 1.5px dashed var(--glass-hi);
+  border-radius: var(--r-md); padding: 0.8rem 1rem;
+  font-size: 0.84rem; font-weight: 700; color: var(--subtext);
+  cursor: pointer; text-align: center;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+}
+.fight-slot:hover { border-color: var(--accent); color: var(--text); background: var(--accent-dim); }
+.fight-slot.filled { border-style: solid; border-color: var(--accent); color: var(--text); background: var(--surface-3); }
+.fight-slot-buff { border-color: rgba(88,240,192,0.4); color: var(--mint); }
+.fight-slot-buff.filled { border-color: var(--mint); background: rgba(88,240,192,0.07); }
+
+.fight-field { background: var(--surface-2); border: 1px solid var(--glass-edge); border-radius: var(--r-lg); padding: 1rem; margin-bottom: 0.7rem; text-align: center; }
+.fight-field-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--subtext); margin-bottom: 0.5rem; }
+.fight-active-card { font-size: 1rem; font-weight: 700; margin-bottom: 0.55rem; }
+.fight-hp-bar-wrap { height: 8px; background: rgba(0,0,0,0.3); border-radius: 99px; overflow: hidden; margin-bottom: 0.3rem; }
+.fight-hp-bar { height: 100%; background: linear-gradient(90deg, var(--rose), #ff4466); border-radius: 99px; transition: width 0.5s var(--ease); }
+.fight-hp-bar-player { background: linear-gradient(90deg, var(--mint), #2ed8a8); }
+.fight-hp-txt { font-size: 0.72rem; font-family: "DM Mono", monospace; color: var(--subtext); }
+.fight-log { max-height: 80px; overflow-y: auto; font-size: 0.74rem; color: var(--subtext); background: var(--surface); border: 1px solid var(--glass-edge); border-radius: var(--r-sm); padding: 0.5rem 0.7rem; margin-bottom: 0.7rem; line-height: 1.7; }
+
+.bench-card { width: 44px; height: 44px; border-radius: var(--r-sm); border: 1.5px solid var(--glass-edge); background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: 700; color: var(--subtext); text-align: center; overflow: hidden; }
+.bench-card.active-fighter { border-color: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
+.bench-card.defeated { opacity: 0.3; filter: grayscale(1); }
+
+/* ═══ CURRENCY ICON (Spongebob-Dollar) ══════════════════════
+═══════════════════════════════════════════════════════════ */
+:root {
+  --currency-icon: url('/assets/dollar.png');
+}
+.coin-icon {
+  display: inline-block;
+  width: 1.15em;
+  height: 1.15em;
+  background: var(--currency-icon) center / contain no-repeat;
+  vertical-align: middle;
+  margin-right: 1px;
+}
+/* Tipp: Ersetze 🪙 in stat-pills durch <span class="coin-icon"></span>
+   um das Custom-Icon zu nutzen. Alle anderen 🪙 bleiben unverändert. */
+
+/* ═══ ADMIN CROWN BUTTON ════════════════════════════════════ */
+#admin-crown-btn {
+  width: 34px; height: 34px;
+  border-radius: var(--r-sm);
+  background: linear-gradient(135deg, rgba(238,192,96,0.18), rgba(238,192,96,0.08));
+  border: 1px solid rgba(238,192,96,0.35);
+  color: var(--gold);
+  font-size: 1rem;
+  cursor: pointer;
+  display: none; /* wird via JS eingeblendet */
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s var(--ease-bounce);
+}
+#admin-crown-btn:hover {
+  background: rgba(238,192,96,0.28);
+  transform: translateY(-1px) scale(1.07);
+  box-shadow: 0 4px 14px rgba(238,192,96,0.3);
+}
+
+/* ═══ ADMIN PANEL MODAL ══════════════════════════════════════ */
+#admin-panel-modal .modal-box {
+  max-width: 520px;
+  border-color: rgba(238,192,96,0.3);
+  box-shadow: 0 24px 60px rgba(0,0,0,0.55), 0 0 40px rgba(238,192,96,0.1);
+}
+.adm-header {
+  display: flex; align-items: center; gap: 0.6rem;
+  margin-bottom: 1.4rem;
+}
+.adm-crown-big { font-size: 1.6rem; }
+.adm-title {
+  font-family: "Comfortaa", cursive;
+  font-size: 1.3rem; font-weight: 700;
+  background: linear-gradient(135deg, var(--gold), #f5d48a);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.adm-subtitle { font-size: 0.7rem; color: var(--subtext); margin-top: 0.1rem; }
+
+/* Target Mode Toggle */
+.adm-target-toggle {
+  width: 100%; padding: 0.62rem 1rem;
+  background: rgba(180,158,255,0.12);
+  border: 1px solid rgba(180,158,255,0.25);
+  border-radius: var(--r-sm);
+  color: var(--accent);
+  font-family: "Quicksand", sans-serif; font-weight: 700; font-size: 0.84rem;
+  cursor: pointer; text-align: left;
+  transition: all 0.2s var(--ease);
+  margin-bottom: 0.8rem;
+}
+.adm-everyone-badge {
+  display: none;
+  align-items: center; gap: 0.5rem;
+  padding: 0.55rem 0.9rem;
+  background: rgba(238,192,96,0.1);
+  border: 1px solid rgba(238,192,96,0.3);
+  border-radius: var(--r-sm);
+  font-size: 0.8rem; font-weight: 700; color: var(--gold);
+  margin-bottom: 0.8rem;
+}
+
+/* Individual targets */
+.adm-indiv-section { margin-bottom: 0.8rem; }
+.adm-indiv-label {
+  font-size: 0.72rem; font-weight: 700;
+  color: var(--subtext); text-transform: uppercase;
+  letter-spacing: 0.07em; margin-bottom: 0.38rem;
+}
+.adm-target-input {
+  width: 100%; padding: 0.68rem 0.9rem;
+  background: rgba(0,0,0,0.22);
+  border: 1.5px solid rgba(255,255,255,0.07);
+  border-radius: var(--r-sm);
+  color: var(--text); font-family: "Quicksand", sans-serif;
+  font-size: 0.86rem; font-weight: 500;
+  outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+}
+.adm-target-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(238,192,96,0.12);
+}
+.adm-hint {
+  font-size: 0.65rem; color: var(--subtext);
+  margin-top: 0.3rem; line-height: 1.4;
+}
+
+/* Section labels */
+.adm-section-label {
+  font-size: 0.72rem; font-weight: 700; color: var(--subtext);
+  text-transform: uppercase; letter-spacing: 0.07em;
+  margin-bottom: 0.5rem; margin-top: 0.9rem;
+}
+
+/* Coins + Pack row */
+.adm-row {
+  display: flex; gap: 0.6rem; align-items: center;
+  margin-bottom: 0.6rem;
+}
+.adm-row-label { font-size: 0.82rem; font-weight: 700; white-space: nowrap; min-width: 80px; }
+.adm-number-input {
+  flex: 1; padding: 0.55rem 0.75rem;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--r-sm); color: var(--text);
+  font-family: "DM Mono", monospace; font-size: 0.88rem;
+  outline: none; transition: border-color 0.2s;
+}
+.adm-number-input:focus { border-color: var(--gold); }
+.adm-select {
+  flex: 1; padding: 0.55rem 0.75rem;
+  background: var(--surface-3); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--r-sm); color: var(--text);
+  font-family: "Quicksand", sans-serif; font-size: 0.82rem;
+  font-weight: 600; outline: none; cursor: pointer;
+  transition: border-color 0.2s;
+}
+.adm-select:focus { border-color: var(--gold); }
+
+/* Message textarea */
+.adm-textarea {
+  width: 100%; min-height: 64px; padding: 0.65rem 0.9rem;
+  background: rgba(0,0,0,0.2);
+  border: 1.5px solid rgba(255,255,255,0.07);
+  border-radius: var(--r-sm); color: var(--text);
+  font-family: "Quicksand", sans-serif; font-size: 0.84rem;
+  outline: none; resize: vertical;
+  transition: border-color 0.2s;
+}
+.adm-textarea:focus { border-color: var(--gold); }
+
+/* Card multi-select */
+.adm-card-search-wrap { position: relative; margin-bottom: 0.5rem; }
+.adm-card-search {
+  width: 100%; padding: 0.52rem 0.8rem;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: var(--r-sm); color: var(--text);
+  font-family: "Quicksand", sans-serif; font-size: 0.82rem;
+  outline: none;
+}
+.adm-card-search:focus { border-color: var(--gold); }
+.adm-card-list {
+  max-height: 160px; overflow-y: auto;
+  background: rgba(0,0,0,0.15);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--r-sm);
+  padding: 0.35rem;
+}
+.adm-card-list::-webkit-scrollbar { width: 3px; }
+.adm-card-list::-webkit-scrollbar-thumb { background: var(--surface-4); border-radius: 99px; }
+.adm-card-item {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.32rem 0.5rem; border-radius: 6px;
+  cursor: pointer; transition: background 0.15s;
+}
+.adm-card-item:hover { background: rgba(238,192,96,0.06); }
+.adm-card-item input[type="checkbox"] { accent-color: var(--gold); cursor: pointer; }
+.adm-card-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.adm-card-name { flex: 1; font-size: 0.78rem; font-weight: 600; }
+.adm-card-rar { font-size: 0.64rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+
+/* Divider */
+.adm-divider { height: 1px; background: rgba(238,192,96,0.15); margin: 1rem 0; }
+
+/* Send button */
+.btn-admin-send {
+  width: 100%; padding: 0.88rem;
+  background: linear-gradient(135deg, #d4a843, #eec060);
+  color: #0b0a12; border: none; border-radius: var(--r-sm);
+  font-family: "Quicksand", sans-serif; font-weight: 700; font-size: 0.96rem;
+  cursor: pointer; transition: all 0.22s var(--ease-bounce);
+  box-shadow: 0 6px 20px rgba(238,192,96,0.3);
+  margin-top: 0.5rem;
+}
+.btn-admin-send:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(238,192,96,0.45);
+}
+.btn-admin-send:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Quick action buttons */
+.adm-quick-row {
+  display: flex; gap: 0.45rem; flex-wrap: wrap; margin-bottom: 0.5rem;
+}
+.btn-adm-quick {
+  flex: 1; min-width: 120px; padding: 0.5rem 0.7rem;
+  background: rgba(238,192,96,0.1); border: 1px solid rgba(238,192,96,0.25);
+  border-radius: var(--r-sm); color: var(--gold);
+  font-family: "Quicksand", sans-serif; font-weight: 700; font-size: 0.76rem;
+  cursor: pointer; transition: all 0.18s var(--ease-bounce);
+}
+.btn-adm-quick:hover { background: rgba(238,192,96,0.2); transform: translateY(-1px); }
+
+/* Admin ∞ card count (applied via body.is-admin) */
+body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold); }
     </style>
   </head>
   <body>
@@ -1064,66 +1326,157 @@
             <div class="section-hd">
               <h2 class="section-title">Profile</h2>
               <div style="display:flex;align-items:center;gap:0.5rem;">
+                <button id="admin-crown-btn" onclick="openAdminPanel()" title="Admin Panel"
+                        style="display:none;width:34px;height:34px;border-radius:var(--r-sm);
+                               background:linear-gradient(135deg,rgba(238,192,96,.18),rgba(238,192,96,.08));
+                               border:1px solid rgba(238,192,96,.35);color:var(--gold);font-size:1rem;
+                               cursor:pointer;align-items:center;justify-content:center;
+                               transition:all .2s var(--ease-bounce);">👑</button>
                 <button class="info-btn" onclick="openModal('settings-modal')" title="Settings">⚙</button>
               </div>
             </div>
 
-            <!-- Hero / Identity -->
-            <div class="profile-card">
-              <div class="profile-hero">
-                <div class="avatar-wrap">
-                  <div class="avatar-circle" id="avatar-circle">🌸</div>
-                  <button class="avatar-edit" onclick="document.getElementById('avatar-upload').click()" title="Change avatar">✏</button>
-                  <input type="file" id="avatar-upload" accept="image/*" onchange="handleAvatarUpload(event)" />
-                </div>
-                <div class="profile-name">
+            <!-- Hero Banner -->
+            <div class="prof-hero-banner">
+              <div class="avatar-wrap">
+                <div class="avatar-circle" id="avatar-circle">🌸</div>
+                <button class="avatar-edit" onclick="document.getElementById('avatar-upload').click()" title="Change avatar">✏</button>
+                <input type="file" id="avatar-upload" accept="image/*" onchange="handleAvatarUpload(event)" />
+              </div>
+              <div class="prof-hero-info">
+                <div class="profile-name" onclick="toggleNameEdit()" title="Klicken zum Bearbeiten">
                   <span id="username-disp">Patricks Linker Fuß</span>
-                  <button class="name-edit-btn" onclick="toggleNameEdit()" title="Edit username">✏️</button>
+                  <span style="font-size:0.75rem;color:var(--subtext);opacity:0.7">✏️</span>
                 </div>
-                <div id="name-edit-row">
+                <div id="name-edit-row" style="display:none;flex-direction:row;gap:0.5rem;margin-top:0.5rem;justify-content:center;">
                   <input type="text" id="username-input" class="input-field" style="text-align:left;font-size:0.84rem" placeholder="New username…" maxlength="24" />
                   <button class="btn btn-primary btn-sm" onclick="saveUsername()">Save</button>
                 </div>
-                <div class="profile-joined" id="profile-joined">—</div>
+                <div class="profile-joined" id="profile-joined" style="margin-top:0.25rem;">—</div>
+                <button class="btn btn-rose btn-sm" style="margin-top:0.75rem;" onclick="openGiftModal({})">🎁 Send a Gift</button>
               </div>
-              <!-- Gift button in profile -->
-              <button class="btn btn-rose btn-full btn-sm" onclick="openGiftModal({})">🎁 Send a Gift</button>
             </div>
 
-            <!-- Stats -->
-            <div class="profile-card">
-              <div class="profile-section-label">📊 Statistics</div>
-              <div class="stats-grid" id="stats-grid"><!-- JS --></div>
+            <!-- Statistics -->
+            <div class="prof-section">
+              <div class="prof-section-title">📊 Statistics</div>
+              <div class="stats-grid" id="stats-grid"></div>
             </div>
 
             <!-- Cards by Rarity -->
-            <div class="profile-card">
-              <div class="profile-section-label">🎴 Cards by Rarity</div>
-              <div class="rarity-dist" id="rarity-dist"><!-- JS --></div>
+            <div class="prof-section">
+              <div class="prof-section-title">🎴 Cards by Rarity</div>
+              <div class="rarity-dist" id="rarity-dist"></div>
             </div>
 
-            <!-- ☁️ Cloud Status (compact) -->
-            <div class="profile-card" id="cloud-section">
-              <div class="profile-section-label">☁️ Cloud Account</div>
+            <!-- Cloud Account -->
+            <div class="prof-section" id="cloud-section">
+              <div class="prof-section-title">☁️ Cloud Account</div>
               <div class="cloud-status" id="cloud-status-row">
                 <div class="cloud-dot" id="cloud-dot"></div>
                 <span id="cloud-status-txt">Not connected — guest mode</span>
               </div>
               <button class="btn btn-ghost btn-full btn-sm" onclick="openModal('auth-modal')">🔐 Login / Register</button>
             </div>
+          </div>
+          
+          <!-- ── PANEL 4: FIGHT ─────────────────────── -->
+            <div class="panel" id="panel-fight">
+              <div class="section-hd">
+                <h2 class="section-title">⚔️ Fight</h2>
+                <span class="section-pill" id="fight-status-pill">Offline</span>
+              </div>
 
-          </div><!-- .track -->
+              <!-- STATE: deck-builder -->
+              <div id="fight-deck-builder">
+                <p style="font-size:0.78rem;color:var(--subtext);margin-bottom:1rem;line-height:1.5">
+                  Choose 3 fighters and 1 buff card for your deck.
+                </p>
+
+                <!-- Fighter Slots -->
+                <div style="display:flex;flex-direction:column;gap:0.55rem;margin-bottom:1rem" id="fighter-slots">
+                  <div class="fight-slot" data-slot="0" onclick="openFighterPicker(0)">➕ Fighter 1</div>
+                  <div class="fight-slot" data-slot="1" onclick="openFighterPicker(1)">➕ Fighter 2</div>
+                  <div class="fight-slot" data-slot="2" onclick="openFighterPicker(2)">➕ Fighter 3</div>
+                </div>
+
+                <!-- Buff Slot -->
+                <div class="fight-slot fight-slot-buff" id="buff-slot" onclick="openBuffPicker()">
+                  🛡️ Select Buff
+                </div>
+
+                <div class="divider" style="margin:1.2rem 0"></div>
+
+                <!-- Room Code -->
+                <div style="display:flex;flex-direction:column;gap:0.55rem">
+                  <button class="btn btn-primary btn-full" onclick="createFightRoom()">⚔️ Create Room</button>
+                  <div style="display:flex;gap:0.5rem">
+                    <input type="text" id="join-code-input" class="input-field" placeholder="6-stelliger Code…"
+                          maxlength="6" style="text-transform:uppercase;letter-spacing:0.12em;text-align:left" />
+                    <button class="btn btn-ghost" onclick="joinFightRoom()">Join</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- STATE: waiting-room -->
+              <div id="fight-waiting" style="display:none;text-align:center;padding:2rem 0">
+                <div style="font-size:2.2rem;margin-bottom:0.8rem">⏳</div>
+                <div style="font-weight:700;margin-bottom:0.4rem">Waiting for opponent...</div>
+                <div style="font-size:0.78rem;color:var(--subtext);margin-bottom:1.2rem">
+                  Share this code:
+                </div>
+                <div style="font-family:'DM Mono',monospace;font-size:2rem;font-weight:700;
+                            color:var(--accent);letter-spacing:0.2em;margin-bottom:1.4rem"
+                    id="room-code-display">—</div>
+                <button class="btn btn-ghost btn-sm" onclick="cancelFightRoom()">✕ Cancel</button>
+              </div>
+
+              <!-- STATE: battle -->
+              <div id="fight-battle" style="display:none">
+                <!-- Enemy field -->
+                <div class="fight-field" id="fight-field-enemy">
+                  <div class="fight-field-label">Opp</div>
+                  <div class="fight-active-card" id="enemy-active-card">—</div>
+                  <div class="fight-hp-bar-wrap">
+                    <div class="fight-hp-bar" id="enemy-hp-bar" style="width:100%"></div>
+                  </div>
+                  <div class="fight-hp-txt" id="enemy-hp-txt">— HP</div>
+                </div>
+
+                <!-- Action log -->
+                <div class="fight-log" id="fight-log"></div>
+
+                <!-- Player field -->
+                <div class="fight-field" id="fight-field-player">
+                  <div class="fight-field-label">You</div>
+                  <div class="fight-active-card" id="player-active-card">—</div>
+                  <div class="fight-hp-bar-wrap">
+                    <div class="fight-hp-bar fight-hp-bar-player" id="player-hp-bar" style="width:100%"></div>
+                  </div>
+                  <div class="fight-hp-txt" id="player-hp-txt">— HP</div>
+                </div>
+
+                <!-- Attack button -->
+                <button class="btn btn-primary btn-full" id="attack-btn"
+                        onclick="doAttack()" disabled>⚡ Attack</button>
+
+                <!-- Deck overview (bench) -->
+                <div style="display:flex;gap:0.5rem;margin-top:0.9rem;justify-content:center" id="bench-row"></div>
+              </div>
+            </div>
+          <!-- .track -->
       </div><!-- .viewport -->
 
       <!-- Dock Nav -->
-      <nav class="dock-wrap" aria-label="Main navigation">
-        <div class="dock">
-          <button class="dock-btn active" data-panel="0">📚 <span class="dlbl">Collection</span></button>
-          <button class="dock-btn" data-panel="1">🎴 <span class="dlbl">Packs</span></button>
-          <button class="dock-btn" data-panel="2">🛒 <span class="dlbl">Shop</span></button>
-          <button class="dock-btn" data-panel="3">👤 <span class="dlbl">Profile</span></button>
-        </div>
-      </nav>
+        <nav class="dock-wrap" aria-label="Main navigation">
+          <div class="dock">
+            <button class="dock-btn active" data-panel="0">📚 <span class="dlbl">Collection</span></button>
+            <button class="dock-btn" data-panel="1">🎴 <span class="dlbl">Packs</span></button>
+            <button class="dock-btn" data-panel="2">🛒 <span class="dlbl">Shop</span></button>
+            <button class="dock-btn" data-panel="3">👤 <span class="dlbl">Profile</span></button>
+            <button class="dock-btn" data-panel="4">⚔️ <span class="dlbl">Fight</span></button>
+          </div>
+        </nav>
     </div><!-- #app -->
 
     <!-- ═══ PACK OPENING OVERLAY ════════════════════════════════ -->
@@ -1479,7 +1832,103 @@
     </div>
   </div>
 </div>
+<!-- ═══ ADMIN PANEL MODAL ══════════════════════════════════ -->
+<div class="modal-overlay" id="admin-panel-modal" role="dialog" aria-modal="true">
+  <div class="modal-box" style="max-width:520px;border-color:rgba(238,192,96,0.3);">
+    <button class="modal-close" onclick="closeModal('admin-panel-modal')" aria-label="Close">×</button>
 
+    <!-- Header -->
+    <div class="adm-header">
+      <span class="adm-crown-big">👑</span>
+      <div>
+        <div class="adm-title">Admin Panel</div>
+        <div class="adm-subtitle">alimalik67065@gmail.com · God Mode active</div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="adm-section-label">⚡ Quick Actions</div>
+    <div class="adm-quick-row">
+      <button class="btn-adm-quick" onclick="window._adminCoinsAdd && window._adminCoinsAdd(100000); toast('👑 +100k coins!')">💰 +100k Coins</button>
+      <button class="btn-adm-quick" onclick="adminUnlockAllPacks()">📦 Unlock All Packs</button>
+      <button class="btn-adm-quick" onclick="window._adminCoinsAdd && window._adminCoinsAdd(1000000); toast('👑 +1M coins!')">🏦 +1M Coins</button>
+    </div>
+
+    <div class="adm-divider"></div>
+
+    <!-- Mass Gift System -->
+    <div class="adm-section-label">🎁 Mass Gift System</div>
+
+    <!-- Target Mode Toggle -->
+    <button id="adm-target-toggle" class="adm-target-toggle" data-mode="individual"
+            onclick="toggleAdminTargetMode()">
+      👤 Individual — click to switch
+    </button>
+
+    <!-- Everyone Badge -->
+    <div id="adm-everyone-badge" class="adm-everyone-badge">
+      <span>🌍</span>
+      <span>Sending to <strong>ALL</strong> registered users in Firestore</span>
+    </div>
+
+    <!-- Individual: email/username inputs (CC system) -->
+    <div id="adm-indiv-section" class="adm-indiv-section">
+      <div class="adm-indiv-label">📧 Recipients (comma-separated — email or username)</div>
+      <input type="text" id="adm-target-input" class="adm-target-input"
+             placeholder="max@example.com, lisa@example.com, PlayerUsername, …"
+             autocomplete="off" />
+      <div class="adm-hint">Mehrere Ziele mit Komma trennen. Email oder @username beides funktioniert.</div>
+    </div>
+
+    <!-- Message -->
+    <div class="adm-section-label">💬 Nachricht</div>
+    <textarea id="adm-msg" class="adm-textarea"
+              placeholder="Schreibe eine Nachricht an die Empfänger…"
+              maxlength="500"></textarea>
+
+    <!-- Coins -->
+    <div class="adm-section-label">💰 Gold / Coins</div>
+    <div class="adm-row">
+      <span class="adm-row-label">🪙 Betrag</span>
+      <input type="number" id="adm-coins" class="adm-number-input" min="0" value="0" step="100" />
+    </div>
+
+    <!-- Pack selection -->
+    <div class="adm-section-label">📦 Pack</div>
+    <div class="adm-row">
+      <span class="adm-row-label">Pack</span>
+      <select id="adm-pack-select" class="adm-select"></select>
+      <input type="number" id="adm-pack-qty" class="adm-number-input" min="1" value="1"
+             style="max-width:70px;" title="Anzahl" />
+      <span style="font-size:0.72rem;color:var(--subtext);">×</span>
+    </div>
+
+    <!-- Card multi-select -->
+    <div class="adm-section-label" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>🎴 Karten (Multi-Select)</span>
+      <button id="adm-shiny-toggle" onclick="toggleAdminShinyView()"
+              style="font-size:0.72rem;font-weight:700;padding:0.25rem 0.65rem;
+                     border-radius:var(--r-pill);border:1px solid rgba(238,192,96,0.3);
+                     background:rgba(238,192,96,0.08);color:var(--gold);cursor:pointer;">
+        ✨ Shiny
+      </button>
+    </div>
+    <div class="adm-card-search-wrap">
+      <input type="text" id="adm-card-search" class="adm-card-search"
+             placeholder="🔍 Karte suchen…" oninput="filterAdminCards()" autocomplete="off" />
+    </div>
+    <div class="adm-card-list" id="adm-card-list">
+      <!-- Wird via JS befüllt -->
+    </div>
+
+    <div class="adm-divider"></div>
+
+    <!-- Send button -->
+    <button id="adm-send-btn" class="btn-admin-send" onclick="adminSendGift()">
+      👑 Send Gift
+    </button>
+  </div>
+</div>
     <!-- ═══════════════════════════════════════════════════════════
      MAIN SCRIPT
     ═══════════════════════════════════════════════════════════ -->
@@ -1541,7 +1990,7 @@
         Mythical:  { color:'#FF6E9E', baseWeight:20,   sellValue:450,   packCost:2000,  revealFx:'mythical',  icon:'✸' },
         Legendary: { color:'#EEC060', baseWeight:8,    sellValue:1500,  packCost:5000,  revealFx:'legendary', icon:'★' },
         SSSR:      { color:'#48EEB8', baseWeight:2,    sellValue:6000,  packCost:18000, revealFx:'sssr',      icon:'✺' },
-        Hidden:    { color:'#ff96bc', baseWeight:0,    sellValue:9999,  packCost:0,     revealFx:'hidden',    icon:'🌹' },
+        Hidden:    { color:'#ff96bc', baseWeight:0,    sellValue:9999,  packCost:0,     revealFx:'hidden',    icon:'✨' },
       };
 
       const CLASS_CFG = {
@@ -1613,17 +2062,47 @@
       let _giftPrefilledPack  = null;
       let detailCard      = null;
 
+      // ── Admin helper: bridge für admin.js da 'coins' let-scoped ist
+      window._adminCoinsAdd = function(amount) {
+        coins += amount;
+        saveData();
+      };
+
       /* ────────────────────────────────────────────────────────
      FIREBASE AUTH CALLBACK
     ──────────────────────────────────────────────────────── */
-      window.onFirebaseAuthChange = function(user) {
-        fbUser = user;
-        if (user && !_cloudLoadedOnce) {
-          _cloudLoadedOnce = true;
-          loadFromCloud(user.uid);
-        }
-        updateCloudUI();
-      };
+      // NACHHER — füge die 4 markierten Zeilen ein:
+window.onFirebaseAuthChange = function(user) {
+  fbUser = user;
+  window.fbUser = user;
+
+  adminMode = (typeof isUserAdmin === 'function' && isUserAdmin());
+  if (typeof updateAdminUI === 'function') updateAdminUI();
+  if (adminMode) document.dispatchEvent(new Event('adminModeChanged'));
+
+  // ── ADMIN GOD MODE ──────────────────────────────────
+  if (typeof isUserAdmin === 'function' && isUserAdmin()) {
+    adminMode = true;                        // ← Cooldowns + Kosten deaktiviert
+    document.dispatchEvent(new Event('adminModeChanged')); // ← ∞-View aktivieren
+  } else {
+    adminMode = false;
+  }
+  if (typeof updateAdminUI === 'function') updateAdminUI(); // ← Krone ein/ausblenden
+  // ────────────────────────────────────────────────────
+
+  if (user && !_cloudLoadedOnce) {
+    _cloudLoadedOnce = true;
+    loadFromCloud(user.uid);
+  }
+  updateCloudUI();
+  const pill = document.getElementById('fight-status-pill');
+  if (pill) {
+    pill.textContent = user ? 'Online ✦' : 'Offline';
+    pill.style.background = user ? 'rgba(88,240,192,0.15)' : '';
+    pill.style.color = user ? 'var(--mint)' : '';
+    pill.style.borderColor = user ? 'rgba(88,240,192,0.3)' : '';
+  }
+};
 
       /* ────────────────────────────────────────────────────────
      PERSISTENCE
@@ -1862,8 +2341,12 @@
           btn.addEventListener('click', () => {
             SFX.play('click');
             const idx = parseInt(btn.dataset.panel);
-            document.getElementById('track').style.transform = `translateX(-${idx * 25}%)`;
-            document.querySelectorAll('.dock-btn').forEach((b,j) => b.classList.toggle('active', j === idx));
+            
+            // KORREKTUR: Bei 5 Panels (500% Track) muss jeder Schritt 20% sein (100 / 5)
+            document.getElementById('track').style.transform = `translateX(-${idx * 20}%)`;
+            
+            // Aktiven Button markieren
+            document.querySelectorAll('.dock-btn').forEach((b, j) => b.classList.toggle('active', j === idx));
           });
           btn.addEventListener('mouseenter', () => SFX.play('hover'));
         });
@@ -2100,6 +2583,12 @@
           el.insertAdjacentHTML('beforeend', `
             <div class="ccard-footer">
               <div class="ccard-name">${card.isShiny ? '✨ ' : ''}${card.name}</div>
+              
+              <div class="ccard-stats" style="display:flex; justify-content:center; gap:10px; margin: 4px 0; font-family:'DM Mono',monospace; font-size:0.7rem; font-weight:700;">
+                <span style="color:#ff4d6d">HP ${card.hp || 100}</span>
+                <span style="color:#4dabff">ATK ${card.attackDamage || 10}</span>
+              </div>
+
               <div class="ccard-rarity" style="color:${rcfg.color||'#888'}">${rcfg.icon||''} ${card.rarity}</div>
             </div>`);
           if (card.isShiny) {
@@ -2132,7 +2621,8 @@
         const netWorth  = collection.reduce((s,c) => { const sv = c.sellValue ?? RARITY_CFG[c.rarity]?.sellValue ?? 0; return s + sv*c.count; }, 0);
         const sssr      = collection.filter(c => c.rarity === 'SSSR').reduce((s,c) => s+c.count, 0);
         const legendary = collection.filter(c => c.rarity === 'Legendary').reduce((s,c) => s+c.count, 0);
-        const hidden    = collection.filter(c => c.rarity === 'Hidden').reduce((s,c) => s+c.count, 0);
+        const hidden      = collection.filter(c => c.rarity === 'Hidden').reduce((s,c) => s+c.count, 0);
+        const hiddenTotal = typeof CARD_DATABASE !== 'undefined' ? CARD_DATABASE.filter(c => c.rarity === 'Hidden').length : '?';
         const shinies   = collection.filter(c => c.isShiny).reduce((s,c) => s+c.count, 0);
         const rows = [
           { lbl:'Total Cards',     val: total.toLocaleString() },
@@ -2143,11 +2633,11 @@
           { lbl:'Luck Bonus',      val: luckPercent.toFixed(1) + '%' },
           { lbl:'SSSR Owned',      val: sssr.toLocaleString() },
           { lbl:'Legendary Owned', val: legendary.toLocaleString() },
-          ...(shinies > 0 ? [{ lbl:'✨ Shinies', val: shinies.toLocaleString() }] : []),
-          ...(hidden  > 0 ? [{ lbl:'Hidden Owned', val: hidden.toLocaleString() }] : []),
+          { lbl:'✨ Shiny Collected', val: shinies.toLocaleString(), shiny: true },
+          { lbl:'Hidden Cards', val: `${hidden} / ${hiddenTotal}` },
         ];
         document.getElementById('stats-grid').innerHTML = rows.map(r =>
-          `<div class="stat-box"><div class="stat-lbl">${r.lbl}</div><div class="stat-val f-mono">${r.val}</div></div>`
+          `<div class="stat-box${r.shiny ? ' stat-shiny' : ''}"><div class="stat-lbl">${r.lbl}</div><div class="stat-val f-mono">${r.val}</div></div>`
         ).join('');
 
         const maxCnt = Math.max(1, ...RARITY_ORDER_WITH_HIDDEN.map(r => collection.filter(c=>c.rarity===r).reduce((s,c)=>s+c.count,0)));
@@ -2601,6 +3091,17 @@
           const randomKey = owned[Math.floor(Math.random() * owned.length)];
           const randomCfg = SPECIAL_PACK_CFG[randomKey];
           toast(`🎁 Mystery opened: ${randomCfg?.label || randomKey}!`);
+          if (type === 'shinyPack') {
+          // 1 guaranteed shiny + rest standard
+          const basePool = CARD_DATABASE.filter(c => !c.isShiny && c.pullWeight > 0);
+          const drawn    = drawOneCard(packKey); // standard draw for the base card
+          const shinyVer = drawn
+            ? CARD_DATABASE.find(s => s.isShiny && s.baseId === drawn.id)
+            : null;
+          const guaranteed = shinyVer ? { ...shinyVer } : (drawn ? { ...drawn, isShiny: true } : null);
+          const rest = drawCards(packKey, count - 1);
+          return [guaranteed, ...rest].filter(Boolean);
+        }
           return drawSpecialPackCards(randomKey, randomCfg);
         }
         if (type === 'twistPack') {
@@ -2733,9 +3234,9 @@
         const modal = document.getElementById('congrats-modal');
         modal.className = `modal-overlay${mode === 'shiny' ? ' shiny-mode' : mode === 'sssr' ? ' sssr-mode' : mode === 'hidden' ? ' hidden-mode' : ''}`;
         document.getElementById('congrats-sparkles').textContent =
-          mode === 'shiny' ? '✨✦✨' : mode === 'sssr' ? '💎✺💎' : mode === 'hidden' ? '🌹✦🌹' : '★✦★';
+          mode === 'shiny' ? '✨✦✨' : mode === 'sssr' ? '💎✺💎' : mode === 'hidden' ? '✧✦✧' : '★✦★';
         document.getElementById('congrats-title').textContent =
-          mode === 'shiny' ? '✨ Shiny Pull!' : mode === 'sssr' ? '✺ SSSR Pull!' : mode === 'hidden' ? '🌹 Hidden Card!' : '★ Legendary!';
+          mode === 'shiny' ? '✨ Shiny Pull!' : mode === 'sssr' ? '✺ SSSR Pull!' : mode === 'hidden' ? '✧ Hidden Card!' : '★ Legendary!';
         document.getElementById('congrats-title').style.color =
           mode === 'shiny' ? 'var(--gold)' : mode === 'sssr' ? 'var(--mint)' : mode === 'hidden' ? 'var(--rose)' : rcfg.color || 'var(--accent)';
         const artEl = document.getElementById('congrats-art');
@@ -2949,7 +3450,7 @@
         const odds = cardOdds(card);
         const oddsEl = document.getElementById('detail-odds');
         oddsEl.textContent = card.rarity === 'Hidden'
-          ? '🌹 Obtainable via special code only'
+          ? '✨ Obtainable via special code only'
           : (odds ? `~1 in ${odds.toLocaleString()} chance per card` : '');
 
         const sv = card.sellValue ?? rcfg.sellValue ?? 0;
@@ -3340,9 +3841,17 @@
 
             const chips = [];
             if (att.coins)  chips.push(`<div class="mail-att-chip coins">🪙 ${att.coins.toLocaleString()}</div>`);
-            if (att.card)   chips.push(`<div class="mail-att-chip card">🎴 ${att.card.isShiny ? '✨ ' : ''}${att.card.name} (${att.card.rarity})</div>`);
-            if (att.pack)   chips.push(`<div class="mail-att-chip pack">${att.pack.icon || '📦'} ${att.pack.name || att.pack.packKey}</div>`);
-
+            // Admin: mehrere Karten (cards[]) oder eine Karte (card)
+            if (att.cards && att.cards.length) {
+              att.cards.forEach(c => chips.push(`<div class="mail-att-chip card">🎴 ${c.isShiny?'✨ ':''}${c.name} (${c.rarity})</div>`));
+            } else if (att.card) {
+              chips.push(`<div class="mail-att-chip card">🎴 ${att.card.isShiny?'✨ ':''}${att.card.name} (${att.card.rarity})</div>`);
+            }
+            // Pack mit optionaler Mengenangabe
+            if (att.pack) {
+              const qty = att.pack.qty > 1 ? ` ×${att.pack.qty}` : '';
+              chips.push(`<div class="mail-att-chip pack">${att.pack.icon||'📦'} ${att.pack.name||att.pack.packKey}${qty}</div>`);
+            }
             const item = document.createElement('div');
             item.className = 'mail-item' + (msg.collected ? ' collected' : '');
             item.innerHTML = `
@@ -3381,14 +3890,28 @@
           const data = snap.data();
           const att  = data.attachments || {};
           if (att.coins) coins += att.coins;
-          if (att.card)  addToCollection({ ...att.card, count: 1 });
-          if (att.pack)  unopenedPacks.push({ ...att.pack, acquiredAt: new Date().toISOString() });
+          // Admin: mehrere Karten (cards[]) oder eine Karte (card)
+          if (att.cards && att.cards.length) {
+            att.cards.forEach(c => addToCollection({ ...c, count: 1 }));
+          } else if (att.card) {
+            addToCollection({ ...att.card, count: 1 });
+          }
+          // Pack mit Mengenangabe (qty), Default: 1
+          if (att.pack) {
+            const qty = att.pack.qty || 1;
+            for (let i = 0; i < qty; i++) {
+              unopenedPacks.push({ ...att.pack, acquiredAt: new Date().toISOString() });
+            }
+          }
           await updateDoc(ref, { collected: true, collectedAt: serverTimestamp() });
           saveData();
           renderCollection();
           renderStats();
           renderPacksInventory();
-          toast(`✅ Gift collected! ${att.coins ? `+🪙${att.coins.toLocaleString()}` : ''} ${att.card ? `🎴 ${att.card.name}` : ''} ${att.pack ? `📦 ${att.pack.name}` : ''}`);
+          const cardNames = att.cards?.length
+           ? att.cards.map(c=>c.name).join(', ')
+           : (att.card?.name || '');
+          toast(`✅ Collected! ${att.coins?`+🪙${att.coins.toLocaleString()} `:''}${cardNames?`🎴 ${cardNames} `:''}${att.pack?`📦 ${att.pack.name}`:''}`.trim());
           SFX.play('collect');
           loadMailbox();
         } catch (e) {
@@ -3910,7 +4433,7 @@
         questClaimed.add(questId);
 
         if (q.rewardType === 'card' && q.rewardCardId) {
-          const rewardCard = (window.CARD_DATABASE || []).find(c => c.id === q.rewardCardId);
+          const rewardCard = (typeof CARD_DATABASE !== 'undefined' ? CARD_DATABASE : []).find(c => c.id === q.rewardCardId);
           if (rewardCard) {
             addToCollection(rewardCard);
             saveData();
