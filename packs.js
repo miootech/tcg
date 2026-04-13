@@ -291,4 +291,22 @@ const SPECIAL_PACK_CFG = {
     type: "shinyPack",
     bg: "linear-gradient(145deg,#1a1208,#2a1e08)",
   },
+  prismaticVault: {
+    id: "prismaticVault",
+    name: "Prismatic Vault",
+    label: "Prismatic Vault",
+    icon: "🌈",
+    description:
+      "A bulk of 10 cards and a chance of a prismatic card.",
+    displayOdds: "0.05% Prismatic · 10 Cards · +10% Luck",
+    cardCount: 10,
+    timedCooldown: 120 * 60,
+    coinCost: 999999,
+    price: 999999,
+    sellValue: 99999,
+    luckBonus: 10,
+    rotation: "always",
+    type: "prismaticPack",
+    bg: "linear-gradient(145deg,#0d0020,#001a2e)",
+  },
 };

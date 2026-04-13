@@ -1197,7 +1197,7 @@ const _BASE_CARDS = [
     description:
         "On a rainy monday...",
     pullWeight: 0,
-    imageUrl: "assets/cards/hidden",
+    imageUrl: "assets/cards/hidden/5.png",
     sellValue: 60000,
     isShiny: false,
     baseId: 1005,
@@ -1206,6 +1206,23 @@ const _BASE_CARDS = [
     attackDamage: 280,
     effect: null,
   },
+
+  {
+  id: 1101,           
+  name: "Rainbow",
+  rarity: "Prismatic",
+  class: "Legend",
+  description: "Er existiert zwischen den Farben.",
+  pullWeight: 1,
+  gifUrl: "assets/cards/prismatic/1.gif", 
+  sellValue: 90000,      
+  isShiny: false,
+  type: "fighter",
+  baseId: 1101,
+  hp: 450,
+  attackDamage: 390,
+  effect: null,
+},
 
 ];
 

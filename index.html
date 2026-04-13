@@ -102,6 +102,7 @@
         --c-legendary: #eec060;
         --c-sssr: #48eeb8;
         --c-hidden: #ff96bc;
+        --c-prismatic: #d966ff;
         --r-xs: 6px; --r-sm: 12px; --r-md: 18px; --r-lg: 24px; --r-xl: 36px; --r-pill: 9999px;
         --ease: cubic-bezier(0.16,1,0.3,1);
         --ease-bounce: cubic-bezier(0.34,1.56,0.64,1);
@@ -120,12 +121,22 @@
 
       /* ═══ BACKGROUND ORBS ═══════════════════════════════════════ */
       .bg-layer { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
-      .orb { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.08; animation: orbDrift 20s ease-in-out infinite alternate; }
-      .orb-1 { width: 640px; height: 640px; background: var(--accent); top: -220px; right: -120px; }
-      .orb-2 { width: 500px; height: 500px; background: var(--rose); bottom: -100px; left: -80px; animation-delay: -7s; }
-      .orb-3 { width: 320px; height: 320px; background: var(--mint); top: 38%; left: 34%; animation-delay: -13s; opacity: 0.045; }
-      @keyframes orbDrift { from { transform: translateY(0) scale(1); } to { transform: translateY(-55px) scale(1.1); } }
+      .orb { position: absolute; border-radius: 50%; opacity: 0.08; animation: orbDrift 20s ease-in-out infinite alternate; will-change: transform; filter: blur(80px); }
+      .orb-1 { width: 500px; height: 500px; background: var(--accent); top: -180px; right: -100px; }
+      .orb-2 { width: 400px; height: 400px; background: var(--rose); bottom: -80px; left: -60px; animation-delay: -7s; }
+      .orb-3 { width: 260px; height: 260px; background: var(--mint); top: 38%; left: 34%; animation-delay: -13s; opacity: 0.035; }
+      @keyframes orbDrift { from { transform: translateY(0) scale(1); } to { transform: translateY(-40px) scale(1.08); } }
 
+      /* Mobile: Orbs stark reduzieren */
+      @media (max-width: 768px) {
+        .orb { filter: blur(50px); animation: none; }
+        .orb-3 { display: none; }
+        .modal-overlay  { backdrop-filter: none; -webkit-backdrop-filter: none; }
+        .dock           { backdrop-filter: none; -webkit-backdrop-filter: none; }
+        #pack-overlay   { backdrop-filter: none; -webkit-backdrop-filter: none; }
+        #mailbox-overlay{ backdrop-filter: none; -webkit-backdrop-filter: none; }
+        .header         { backdrop-filter: blur(8px) saturate(120%); -webkit-backdrop-filter: blur(8px) saturate(120%); }
+      }
       /* ═══ TYPE HELPERS ══════════════════════════════════════════ */
       .f-display { font-family: "Comfortaa", cursive; }
       .f-mono { font-family: "DM Mono", monospace; }
@@ -334,6 +345,61 @@
       .stat-lbl { font-size: 0.63rem; color: var(--subtext); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem; }
       .stat-val { font-size: 1.1rem; font-weight: 700; font-family: "DM Mono", monospace; }
       .stat-box.stat-shiny .stat-val { background: linear-gradient(90deg,#eec060,#ffe090,#eec060); background-size:200%; -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; animation: shineBadgeShimmer 2s linear infinite; }
+      /* Shiny stat box — Goldener Glow-Rahmen */
+.stat-box.stat-shiny {
+  border-color: rgba(238,192,96,0.38);
+  position: relative;
+  overflow: hidden;
+  animation: shinyBoxPulse 2.5s ease-in-out infinite;
+}
+.stat-sparkles {
+  position: absolute; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+}
+.stat-sparkles::before, .stat-sparkles::after {
+  content: "✦"; position: absolute; font-size: 0.65rem;
+  color: rgba(255,220,100,0.85);
+  animation: statSparklePop 2.4s ease-in-out infinite;
+  text-shadow: 0 0 6px rgba(255,200,60,0.9);
+}
+.stat-sparkles::before { top: 14%; left: 10%; animation-delay: 0s; }
+.stat-sparkles::after  { top: 55%; right: 10%; animation-delay: 1.2s; }
+@keyframes statSparklePop {
+  0%,100% { opacity: 0; transform: scale(0.3) rotate(0deg); }
+  50%     { opacity: 1; transform: scale(1.3) rotate(30deg); }
+}
+@keyframes shinyBoxPulse {
+  0%,100% { box-shadow: 0 0 8px rgba(238,192,96,0.12), inset 0 0 14px rgba(238,192,96,0.04); }
+  50%     { box-shadow: 0 0 20px rgba(238,192,96,0.28), inset 0 0 24px rgba(238,192,96,0.09); }
+}
+
+/* Hidden stat box — Pinker Shimmer-Effekt */
+.stat-box.stat-hidden {
+  border-color: rgba(255,150,188,0.38);
+  position: relative;
+  overflow: hidden;
+  animation: hiddenBoxPulse 3s ease-in-out infinite;
+}
+.stat-box.stat-hidden .stat-val {
+  background: linear-gradient(90deg, #ff96bc, #ffcce0, #b49eff, #ff96bc);
+  background-size: 250%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shineBadgeShimmer 2.2s linear infinite;
+}
+.stat-hidden-glow {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 80%, rgba(255,150,188,0.14) 0%, transparent 70%);
+  animation: hiddenGlowPulse 3s ease-in-out infinite;
+}
+@keyframes hiddenBoxPulse {
+  0%,100% { box-shadow: 0 0 8px rgba(255,150,188,0.1), inset 0 0 12px rgba(255,150,188,0.04); }
+  50%     { box-shadow: 0 0 18px rgba(255,150,188,0.25), inset 0 0 22px rgba(255,150,188,0.09); }
+}
+@keyframes hiddenGlowPulse {
+  0%,100% { opacity: 0.5; }
+  50%     { opacity: 1; }
+}
       .rarity-dist { display: flex; flex-direction: column; gap: 0.6rem; }
       .rd-row { display: flex; align-items: center; gap: 0.75rem; }
       .rd-label { font-size: 0.76rem; font-weight: 700; width: 80px; flex-shrink: 0; }
@@ -1149,6 +1215,134 @@
 
 /* Admin ∞ card count (applied via body.is-admin) */
 body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold); }
+    /* ═══ PRISMATIC CARDS ═══════════════════════════════════════ */
+.ccard.prismatic {
+  box-shadow: 0 0 18px rgba(217,102,255,0.35);
+}
+.ccard.prismatic::before {
+  content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none;
+  background: linear-gradient(135deg,
+    rgba(255,0,128,0) 0%,
+    rgba(255,0,128,0.12) 20%,
+    rgba(0,200,255,0.12) 40%,
+    rgba(128,255,0,0.08) 60%,
+    rgba(255,200,0,0.12) 80%,
+    rgba(255,0,128,0) 100%
+  );
+  background-size: 300% 300%;
+  animation: prismaticShimmer 3s ease-in-out infinite;
+  border-radius: inherit;
+}
+@keyframes prismaticShimmer {
+  0%   { background-position: 0% 0%;   opacity: 0.7; }
+  50%  { background-position: 100% 100%; opacity: 1;   }
+  100% { background-position: 0% 0%;   opacity: 0.7; }
+}
+.prismatic-badge {
+  position: absolute; bottom: 0.42rem; left: 0.42rem;
+  font-size: 0.5rem; font-weight: 700;
+  background: linear-gradient(90deg, #d966ff, #66cfff, #66ff99, #ffdd44, #d966ff);
+  background-size: 300%;
+  animation: prismaticBadgeAnim 2.2s linear infinite;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 0.04em; text-transform: uppercase; z-index: 4;
+}
+@keyframes prismaticBadgeAnim { 0%{background-position:0%} 100%{background-position:300%} }
+.flip-wrap.fx-prismatic .flip-inner { filter: drop-shadow(0 0 18px rgba(217,102,255,0.9)); }
+.flip-wrap.fx-prismatic .flip-front { animation: prismaticFlipGlow 1.2s ease-in-out infinite alternate; }
+@keyframes prismaticFlipGlow {
+  from { filter: brightness(1) hue-rotate(0deg); }
+  to   { filter: brightness(1.35) hue-rotate(30deg) saturate(1.5); }
+}
+
+/* ═══ SELL ALL / MULTI-SELECT SYSTEM ═══════════════════════ */
+.sell-action-row {
+  display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.9rem;
+}
+.btn-sell-all {
+  flex: 1; min-width: 120px; padding: 0.52rem 0.9rem;
+  background: rgba(255,100,100,0.12); border: 1px solid rgba(255,100,100,0.28);
+  border-radius: var(--r-sm); color: #ff8888;
+  font-family: "Quicksand", sans-serif; font-weight: 700; font-size: 0.8rem;
+  cursor: pointer; transition: all 0.18s var(--ease-bounce);
+}
+.btn-sell-all:hover { background: rgba(255,100,100,0.22); transform: translateY(-1px); }
+.btn-multiselect {
+  padding: 0.52rem 0.9rem;
+  background: rgba(180,158,255,0.1); border: 1px solid rgba(180,158,255,0.22);
+  border-radius: var(--r-sm); color: var(--accent);
+  font-family: "Quicksand", sans-serif; font-weight: 700; font-size: 0.8rem;
+  cursor: pointer; transition: all 0.18s var(--ease-bounce);
+}
+.btn-multiselect.active { background: rgba(180,158,255,0.25); border-color: rgba(180,158,255,0.5); }
+.btn-multiselect:hover { background: rgba(180,158,255,0.18); }
+
+/* Multi-select overlay on cards */
+.multiselect-mode .ccard { cursor: pointer; }
+.multiselect-mode .ccard::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit;
+  border: 2px solid transparent; transition: border-color 0.18s, background 0.18s;
+  pointer-events: none; z-index: 5;
+}
+.multiselect-mode .ccard.selected::after {
+  border-color: var(--accent);
+  background: rgba(180,158,255,0.15);
+}
+.multiselect-mode .ccard.selected { transform: scale(0.97); }
+.ms-checkmark {
+  position: absolute; top: 0.38rem; left: 0.38rem;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--accent); display: none; align-items: center;
+  justify-content: center; font-size: 0.65rem; z-index: 6;
+  box-shadow: 0 2px 6px rgba(180,158,255,0.5);
+}
+.multiselect-mode .ccard.selected .ms-checkmark { display: flex; }
+
+/* Floating sell bar */
+.ms-sell-bar {
+  position: fixed; bottom: 5.5rem; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--surface); border: 1px solid var(--glass-hi);
+  border-radius: var(--r-pill); padding: 0.7rem 1.2rem;
+  display: flex; align-items: center; gap: 0.9rem;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.5); z-index: 500;
+  transition: transform 0.3s var(--ease-bounce), opacity 0.3s;
+  opacity: 0; pointer-events: none; white-space: nowrap;
+}
+.ms-sell-bar.visible { transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: all; }
+.ms-sell-bar-info { font-size: 0.82rem; font-weight: 700; color: var(--subtext); }
+.ms-sell-bar-info b { color: var(--text); }
+.ms-sell-bar-coins { font-family: "DM Mono", monospace; font-size: 0.82rem; color: var(--mint); font-weight: 700; }
+
+/* Sell-All Confirm Modal */
+.sell-confirm-modal .modal-box { border-color: rgba(255,100,100,0.3); }
+.sell-confirm-summary {
+  background: rgba(255,100,100,0.08); border: 1px solid rgba(255,100,100,0.2);
+  border-radius: var(--r-md); padding: 1rem 1.2rem; margin-bottom: 1.2rem;
+  font-size: 0.84rem; line-height: 1.8;
+}
+.sell-confirm-summary b { color: var(--text); font-weight: 700; }
+.sell-confirm-summary .sc-coins { color: var(--mint); font-family: "DM Mono", monospace; font-weight: 700; font-size: 0.95rem; }
+.sell-confirm-opts {
+  display: flex; flex-direction: column; gap: 0.55rem; margin-bottom: 1.2rem;
+}
+.sell-confirm-opt {
+  display: flex; align-items: flex-start; gap: 0.7rem;
+  background: var(--surface-2); border: 1.5px solid var(--glass-edge);
+  border-radius: var(--r-md); padding: 0.85rem 1rem;
+  cursor: pointer; transition: all 0.18s var(--ease);
+}
+.sell-confirm-opt:hover { border-color: rgba(255,100,100,0.4); background: rgba(255,100,100,0.07); }
+.sell-confirm-opt.active { border-color: rgba(255,100,100,0.6); background: rgba(255,100,100,0.12); }
+.sco-radio { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,100,100,0.4); flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; transition: all 0.18s; }
+.sell-confirm-opt.active .sco-radio { border-color: #ff6666; background: #ff6666; }
+.sell-confirm-opt.active .sco-radio::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #fff; }
+.sco-text b { display: block; font-size: 0.86rem; font-weight: 700; margin-bottom: 0.15rem; }
+.sco-text span { font-size: 0.74rem; color: var(--subtext); }
+
+/* Admin ∞ card count (applied via body.is-admin) */
+body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold); }
+    
     </style>
   </head>
   <body>
@@ -1159,6 +1353,51 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
     <div id="epic-flash" class="screen-flash"></div>
     <div id="hidden-flash" class="screen-flash"></div>
     <div id="shiny-flash" class="screen-flash"></div>
+    <div id="prismatic-flash" class="screen-flash" style="background:radial-gradient(ellipse,rgba(217,102,255,0.6) 0%,rgba(0,200,255,0.3) 50%,transparent 70%);"></div>
+
+    <!-- Floating multi-select sell bar -->
+    <div class="ms-sell-bar" id="ms-sell-bar">
+      <span class="ms-sell-bar-info"><b id="ms-count">0</b> ausgewählt</span>
+      <span class="ms-sell-bar-coins" id="ms-coins-preview">🪙 0</span>
+      <button class="btn btn-danger btn-sm" onclick="sellSelectedCards()">Verkaufen</button>
+      <button class="btn btn-ghost btn-sm" onclick="clearMultiSelect()">✕</button>
+    </div>
+
+    <!-- Sell-All Confirm Modal (Cards) -->
+    <div class="modal-overlay sell-confirm-modal" id="sell-all-cards-modal">
+      <div class="modal-box">
+        <button class="modal-close" onclick="closeModal('sell-all-cards-modal')">✕</button>
+        <div class="modal-title">🗑️ Karten verkaufen</div>
+        <div class="sell-confirm-summary" id="sac-summary"></div>
+        <div class="sell-confirm-opts">
+          <div class="sell-confirm-opt active" id="sac-opt-all" onclick="selectSellOpt('all')">
+            <div class="sco-radio"></div>
+            <div class="sco-text"><b>Alle Karten verkaufen</b><span>Deine komplette Sammlung wird geleert.</span></div>
+          </div>
+          <div class="sell-confirm-opt" id="sac-opt-dupes" onclick="selectSellOpt('dupes')">
+            <div class="sco-radio"></div>
+            <div class="sco-text"><b>Nur Duplikate verkaufen</b><span>Von jeder Karte bleibt 1 Exemplar übrig.</span></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:0.7rem;">
+          <button class="btn btn-ghost btn-full" onclick="closeModal('sell-all-cards-modal')">Abbrechen</button>
+          <button class="btn btn-danger btn-full" id="sac-confirm-btn" onclick="executeSellAllCards()">🗑️ Verkaufen</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sell-All Confirm Modal (Packs) -->
+    <div class="modal-overlay sell-confirm-modal" id="sell-all-packs-modal">
+      <div class="modal-box">
+        <button class="modal-close" onclick="closeModal('sell-all-packs-modal')">✕</button>
+        <div class="modal-title">📦 Packs verkaufen</div>
+        <div class="sell-confirm-summary" id="sap-summary"></div>
+        <div style="display:flex;gap:0.7rem;margin-top:1rem;">
+          <button class="btn btn-ghost btn-full" onclick="closeModal('sell-all-packs-modal')">Abbrechen</button>
+          <button class="btn btn-danger btn-full" onclick="executeSellAllPacks()">🗑️ Alle Packs verkaufen</button>
+        </div>
+      </div>
+    </div>
     <div id="toast-wrap"></div>
 
     <!-- Ambient background -->
@@ -1216,6 +1455,10 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
 
             <!-- Cards view -->
             <div id="col-cards-view">
+              <div class="sell-action-row">
+                <button class="btn-sell-all" onclick="openSellAllCardsModal()">🗑️ Sell All Cards</button>
+                <button class="btn-multiselect" id="ms-toggle-btn" onclick="toggleMultiSelect()">☑ Multi-Select</button>
+              </div>
               <div class="filter-bar">
                 <select id="rarity-filter" class="filter-select" aria-label="Filter rarity">
                   <option value="all">All Rarities</option>
@@ -1226,6 +1469,7 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
                   <option value="Legendary">Legendary</option>
                   <option value="SSSR">SSSR</option>
                   <option value="Hidden">Hidden</option>
+                  <option value="Prismatic">🌈 Prismatic</option>
                 </select>
                 <select id="class-filter" class="filter-select" aria-label="Filter class">
                   <option value="all">All Classes</option>
@@ -1260,6 +1504,9 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
 
             <!-- Packs inventory view -->
             <div id="col-packs-view" style="display:none">
+              <div class="sell-action-row" style="margin-bottom:0.7rem;">
+                <button class="btn-sell-all" onclick="openSellAllPacksModal()">🗑️ Sell All Packs</button>
+              </div>
               <div class="col-meta" id="col-packs-meta" style="margin-bottom:1rem"></div>
               <div class="pack-inv-grid" id="pack-inv-grid"></div>
             </div>
@@ -1376,8 +1623,11 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
                 <div class="cloud-dot" id="cloud-dot"></div>
                 <span id="cloud-status-txt">Not connected — guest mode</span>
               </div>
-              <button class="btn btn-ghost btn-full btn-sm" onclick="openModal('auth-modal')">🔐 Login / Register</button>
-            </div>
+            <button class="btn btn-ghost btn-full btn-sm" onclick="openModal('auth-modal')">🔐 Login / Register</button>
+              <div style="display:flex;gap:0.5rem;margin-top:0.5rem;">
+                <button class="btn btn-ghost btn-sm" style="flex:1" onclick="syncToCloud()">💾 Save to Cloud</button>
+                <button class="btn btn-ghost btn-sm" style="flex:1" onclick="loadFullGameStateFromCloud()">☁️ Load from Cloud</button>
+              </div>            </div>
           </div>
           
           <!-- ── PANEL 4: FIGHT ─────────────────────── -->
@@ -1968,7 +2218,9 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
         PACK_VIS:     'cztcg5_pack_vis',
         OWNED_SP:     'cztcg5_owned_special',
         UNOPENED:     'cztcg5_unopened_packs',
-        CD: (k) => `cztcg5_cd_${k}`,
+        CD:       (k) => `cztcg5_cd_${k}`,
+        FIGHTS:   'cztcg5_fights',
+        FIGHTS_W: 'cztcg5_fights_won',
       };
 
       const MAX_LUCK    = 25.0;
@@ -1981,7 +2233,7 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
       const SHINY_CHANCE = 0.0045;
 
       const RARITY_ORDER = ['Common','Rare','Epic','Mythical','Legendary','SSSR'];
-      const RARITY_ORDER_WITH_HIDDEN = [...RARITY_ORDER, 'Hidden'];
+      const RARITY_ORDER_WITH_HIDDEN = [...RARITY_ORDER, 'Hidden', 'Prismatic'];
 
       const RARITY_CFG = {
         Common:    { color:'#8AACBC', baseWeight:700,  sellValue:5,     packCost:50,    revealFx:'common',    icon:'◦' },
@@ -1991,6 +2243,7 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
         Legendary: { color:'#EEC060', baseWeight:8,    sellValue:1500,  packCost:5000,  revealFx:'legendary', icon:'★' },
         SSSR:      { color:'#48EEB8', baseWeight:2,    sellValue:6000,  packCost:18000, revealFx:'sssr',      icon:'✺' },
         Hidden:    { color:'#ff96bc', baseWeight:0,    sellValue:9999,  packCost:0,     revealFx:'hidden',    icon:'✨' },
+        Prismatic: { color:'#d966ff', baseWeight:0,    sellValue:50000, packCost:0,     revealFx:'prismatic', icon:'🌈' },
       };
 
       const CLASS_CFG = {
@@ -2030,6 +2283,12 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
           weightMod:{ Common:0.68, Rare:1.2, Epic:1.32, Mythical:1.5, Legendary:1.72, SSSR:2.1 },
           bg:'linear-gradient(145deg,#141224,#1E1432)',
         },
+        prismaticFree: {
+          label:'Prismatic Pack', icon:'🌈', description:'2 Karten · 6h Cooldown · Eine davon garantiert Prismatic',
+          timedCooldown: 6 * 60 * 60, coinCost:0, cardCount:2, luckBonus:0, weightMod:{},
+          type:'prismaticPack',
+          bg:'linear-gradient(145deg,#0d0020,#001a2e)',
+        },
       };
 
       /* ────────────────────────────────────────────────────────
@@ -2040,6 +2299,8 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
       let luckPercent     = 0.0;
       let luckLevel       = 0;
       let packsOpened     = 0;
+      let fightsPlayed    = 0;
+      let fightsWon       = 0;
       let adminMode       = false;
       let currentCards    = [];
       let revealedCount   = 0;
@@ -2091,9 +2352,19 @@ window.onFirebaseAuthChange = function(user) {
   // ────────────────────────────────────────────────────
 
   if (user && !_cloudLoadedOnce) {
-    _cloudLoadedOnce = true;
+  _cloudLoadedOnce = true;
+  document.getElementById('confirm-icon').textContent  = '☁️';
+  document.getElementById('confirm-title').textContent = 'Cloud-Daten laden?';
+  document.getElementById('confirm-title').style.color = 'var(--accent)';
+  document.getElementById('confirm-msg').textContent   = 'Möchtest du deinen Spielstand aus der Cloud laden? Deine lokalen Daten werden dabei überschrieben.';
+  document.getElementById('confirm-ok-btn').textContent = '☁️ Jetzt laden';
+  document.getElementById('confirm-ok-btn').className  = 'btn btn-primary btn-full';
+  document.getElementById('confirm-ok-btn').onclick = () => {
+    closeModal('confirm-modal');
     loadFromCloud(user.uid);
-  }
+  };
+  openModal('confirm-modal');
+}
   updateCloudUI();
   const pill = document.getElementById('fight-status-pill');
   if (pill) {
@@ -2114,6 +2385,8 @@ window.onFirebaseAuthChange = function(user) {
           luckPercent       = parseFloat(localStorage.getItem(LS_KEY.LUCK))        || 0;
           luckLevel         = parseInt(localStorage.getItem(LS_KEY.LUCK_LVL))      || 0;
           packsOpened       = parseInt(localStorage.getItem(LS_KEY.PACKS))         || 0;
+          fightsPlayed      = parseInt(localStorage.getItem(LS_KEY.FIGHTS))        || 0;
+          fightsWon         = parseInt(localStorage.getItem(LS_KEY.FIGHTS_W))      || 0;
           username          = localStorage.getItem(LS_KEY.USER)                    || 'Traveler';
           avatarUrl         = localStorage.getItem(LS_KEY.AVATAR)                  || null;
           joinedDate        = localStorage.getItem(LS_KEY.JOINED)                  || new Date().toISOString().split('T')[0];
@@ -2138,6 +2411,8 @@ window.onFirebaseAuthChange = function(user) {
         localStorage.setItem(LS_KEY.LUCK,     luckPercent.toFixed(2));
         localStorage.setItem(LS_KEY.LUCK_LVL, luckLevel);
         localStorage.setItem(LS_KEY.PACKS,    packsOpened);
+        localStorage.setItem(LS_KEY.FIGHTS,   fightsPlayed);
+        localStorage.setItem(LS_KEY.FIGHTS_W, fightsWon);
         localStorage.setItem(LS_KEY.USER,     username);
         localStorage.setItem(LS_KEY.CODES,    JSON.stringify([...usedCodes]));
         localStorage.setItem(LS_KEY.PACK_VIS, JSON.stringify(packVisibility));
@@ -2153,6 +2428,9 @@ window.onFirebaseAuthChange = function(user) {
           usedCodes: [...usedCodes],
           username, joinedDate,
           unopenedPacks,
+          ownedSpecialPacks: [...ownedSpecialPacks],
+          questsClaimed: [...questClaimed],
+          fightsPlayed, fightsWon,
           syncedAt: new Date().toISOString(),
         };
       }
@@ -2240,39 +2518,26 @@ window.onFirebaseAuthChange = function(user) {
       }
 
       function makeArtEl(card) {
-    const w = document.createElement('div');
-    // Wichtig: Wir geben dem Container eine Position, damit das Shiny-Overlay absolut darin liegen kann
-    w.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;';
+  const w = document.createElement('div');
+  w.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;';
 
-    if (card.imageUrl) {
-        const img = document.createElement('img');
-        img.src = card.imageUrl; 
-        img.alt = card.name;
-        img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
-        w.appendChild(img);
-    } else {
-        w.innerHTML = makeArtSVG(card.id, RARITY_CFG[card.rarity]?.color);
-    }
+  if (card.imageUrl) {
+    const img = document.createElement('img');
+    img.src = card.imageUrl;
+    img.alt = card.name;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+    w.appendChild(img);
+  } else {
+    w.innerHTML = makeArtSVG(card.id, RARITY_CFG[card.rarity]?.color);
+  }
 
-    // Hier kommt die Shiny-Logik rein (bevor die Funktion beendet wird!)
-    if (card.isShiny) {
-        const overlay = document.createElement('div');
-        overlay.className = 'shiny-overlay';
-        
-        const sparkles = document.createElement('div');
-        sparkles.className = 'shiny-sparkles';
-        
-        const badge = document.createElement('div');
-        badge.className = 'shiny-badge';
-        badge.textContent = '✦ SHINY';
-        
-        // Wir hängen alles an 'w' an (unseren Container)
-        w.appendChild(overlay);
-        w.appendChild(sparkles);
-        w.appendChild(badge);
-    }
-
-    return w;
+  if (card.isShiny) {
+    const overlay  = document.createElement('div'); overlay.className  = 'shiny-overlay';
+    const sparkles = document.createElement('div'); sparkles.className = 'shiny-sparkles';
+    const badge    = document.createElement('div'); badge.className    = 'shiny-badge'; badge.textContent = '✦ SHINY';
+    w.appendChild(overlay); w.appendChild(sparkles); w.appendChild(badge);
+  }
+  return w;
 }
       
 
@@ -2348,7 +2613,6 @@ window.onFirebaseAuthChange = function(user) {
             // Aktiven Button markieren
             document.querySelectorAll('.dock-btn').forEach((b, j) => b.classList.toggle('active', j === idx));
           });
-          btn.addEventListener('mouseenter', () => SFX.play('hover'));
         });
       }
 
@@ -2572,7 +2836,8 @@ window.onFirebaseAuthChange = function(user) {
           const rcfg = RARITY_CFG[card.rarity] || {};
           const ccfg = CLASS_CFG[card.class]   || {};
           const el   = document.createElement('div');
-          el.className = 'ccard' + (card.isShiny ? ' shiny' : '');
+          const isPrismatic = card.rarity === 'Prismatic';
+          el.className = 'ccard' + (card.isShiny ? ' shiny' : '') + (isPrismatic ? ' prismatic' : '');
           el.style.cssText = `animation-delay:${idx*0.022}s;border-color:${card.isShiny ? '#eec06066' : (rcfg.color+'22')};`;
           el.dataset.rarity = card.rarity;
           const art = document.createElement('div');
@@ -2596,8 +2861,19 @@ window.onFirebaseAuthChange = function(user) {
             badge.className = 'shiny-badge'; badge.textContent = '✦ SHINY';
             el.appendChild(badge);
           }
-          el.addEventListener('click', () => { SFX.play('click'); openDetailModal(card); });
-          el.addEventListener('mouseenter', () => SFX.play('hover'));
+          if (isPrismatic) {
+            const pb = document.createElement('div');
+            pb.className = 'prismatic-badge'; pb.textContent = '🌈 PRISMATIC';
+            el.appendChild(pb);
+          }
+          el.addEventListener('click', () => {
+            if (_multiSelectMode) { toggleCardSelection(el, card); return; }
+            SFX.play('click'); openDetailModal(card);
+          });
+          // Checkmark für Multi-Select
+          const msCheck = document.createElement('div');
+          msCheck.className = 'ms-checkmark'; msCheck.textContent = '✓';
+          el.appendChild(msCheck);
           grid.appendChild(el);
         });
       }
@@ -2634,10 +2910,16 @@ window.onFirebaseAuthChange = function(user) {
           { lbl:'SSSR Owned',      val: sssr.toLocaleString() },
           { lbl:'Legendary Owned', val: legendary.toLocaleString() },
           { lbl:'✨ Shiny Collected', val: shinies.toLocaleString(), shiny: true },
-          { lbl:'Hidden Cards', val: `${hidden} / ${hiddenTotal}` },
+{ lbl:'🌸 Hidden Owned',    val: hidden.toLocaleString(), hidden: true },          { lbl:'⚔️ Fights',          val: fightsPlayed.toLocaleString() },
+          { lbl:'🏆 Fights Won',      val: fightsWon.toLocaleString() },
         ];
         document.getElementById('stats-grid').innerHTML = rows.map(r =>
-          `<div class="stat-box${r.shiny ? ' stat-shiny' : ''}"><div class="stat-lbl">${r.lbl}</div><div class="stat-val f-mono">${r.val}</div></div>`
+          `<div class="stat-box${r.shiny ? ' stat-shiny' : ''}${r.hidden ? ' stat-hidden' : ''}">
+            ${r.shiny ? '<div class="stat-sparkles"></div>' : ''}
+            ${r.hidden ? '<div class="stat-hidden-glow"></div>' : ''}
+            <div class="stat-lbl">${r.lbl}</div>
+            <div class="stat-val f-mono">${r.val}</div>
+          </div>`
         ).join('');
 
         const maxCnt = Math.max(1, ...RARITY_ORDER_WITH_HIDDEN.map(r => collection.filter(c=>c.rarity===r).reduce((s,c)=>s+c.count,0)));
@@ -3084,28 +3366,55 @@ window.onFirebaseAuthChange = function(user) {
             return c ? { ...c } : null;
           }).filter(Boolean);
         }
+        if (type === 'shinyPack') {
+          // 1 guaranteed shiny + rest standard
+          const drawn    = drawOneCard(packKey);
+          const shinyVer = drawn
+            ? CARD_DATABASE.find(s => s.isShiny && s.baseId === drawn.id)
+            : null;
+          const guaranteed = shinyVer
+            ? { ...shinyVer }
+            : (drawn ? { ...drawn, isShiny: true } : null);
+          const rest = drawCards(packKey, count - 1);
+          return [guaranteed, ...rest].filter(Boolean);
+        }
         if (type === 'mysteryBox') {
-          // Open a random owned special pack
           const owned = [...ownedSpecialPacks];
           if (!owned.length) return drawCards(packKey, 3);
           const randomKey = owned[Math.floor(Math.random() * owned.length)];
           const randomCfg = SPECIAL_PACK_CFG[randomKey];
           toast(`🎁 Mystery opened: ${randomCfg?.label || randomKey}!`);
-          if (type === 'shinyPack') {
-          // 1 guaranteed shiny + rest standard
-          const basePool = CARD_DATABASE.filter(c => !c.isShiny && c.pullWeight > 0);
-          const drawn    = drawOneCard(packKey); // standard draw for the base card
-          const shinyVer = drawn
-            ? CARD_DATABASE.find(s => s.isShiny && s.baseId === drawn.id)
-            : null;
-          const guaranteed = shinyVer ? { ...shinyVer } : (drawn ? { ...drawn, isShiny: true } : null);
-          const rest = drawCards(packKey, count - 1);
-          return [guaranteed, ...rest].filter(Boolean);
-        }
           return drawSpecialPackCards(randomKey, randomCfg);
         }
+        if (type === 'prismaticPack') {
+          // Prismatic ist SEHR selten (~0.05%) — nur in diesen 2 Packs überhaupt möglich
+          const prisPool = typeof CARD_DATABASE !== 'undefined'
+            ? CARD_DATABASE.filter(c => c.rarity === 'Prismatic' && c.pullWeight > 0)
+            : [];
+          return Array.from({ length: count }, () => {
+            // Gewichteter Draw inkl. Prismatic
+            const mod = cfg.weightMod || {};
+            const rawW = {};
+            RARITY_ORDER.forEach(r => {
+              rawW[r] = (RARITY_CFG[r].baseWeight || 0) * (mod[r] !== undefined ? mod[r] : 1);
+            });
+            rawW['Prismatic'] = 0.5; // SSSR=2 → Prismatic ist ~4× seltener als SSSR
+            const luckW = applyLuck(rawW);
+            const total = Object.values(luckW).reduce((s, v) => s + v, 0);
+            let roll = Math.random() * total;
+            let chosen = RARITY_ORDER[RARITY_ORDER.length - 1];
+            for (const rr of [...RARITY_ORDER, 'Prismatic']) {
+              roll -= luckW[rr] || 0;
+              if (roll <= 0) { chosen = rr; break; }
+            }
+            if (chosen === 'Prismatic') {
+              if (!prisPool.length) return drawOneCard(packKey);
+              return { ...weightedDraw(prisPool) };
+            }
+            return drawOneCard(packKey);
+          }).filter(Boolean);
+        }
         if (type === 'twistPack') {
-          // Build pairs and open the twist modal
           const pairCount = count;
           const pairs = Array.from({ length: pairCount }, () => [
             drawOneCard(packKey), drawOneCard(packKey),
@@ -3114,7 +3423,7 @@ window.onFirebaseAuthChange = function(user) {
           twistSelections = new Array(pairCount).fill(null);
           renderTwistModal(pairs);
           openModal('twist-modal');
-          return []; // result handled via collectTwistPack
+          return [];
         }
         // default: standard
         return drawCards(packKey, count);
@@ -3154,7 +3463,7 @@ window.onFirebaseAuthChange = function(user) {
           // Apply FX class
           const fx = rcfg.revealFx || 'common';
           if (card.isShiny) wrap.classList.add('fx-shiny');
-          else if (['epic','mythical','legendary','sssr','hidden'].includes(fx)) wrap.classList.add(`fx-${fx}`);
+          else if (['epic','mythical','legendary','sssr','hidden','prismatic'].includes(fx)) wrap.classList.add(`fx-${fx}`);
 
           wrap.addEventListener('click', () => flipCard(wrap, card, idx));
           grid.appendChild(wrap);
@@ -3187,6 +3496,11 @@ window.onFirebaseAuthChange = function(user) {
           setTimeout(() => document.getElementById('legend-flash')?.classList.remove('pop'), 1400);
           SFX.play('rare');
           showCongratsModal(card, 'legendary');
+        } else if (fx === 'prismatic') {
+          document.getElementById('prismatic-flash')?.classList.add('pop');
+          setTimeout(() => document.getElementById('prismatic-flash')?.classList.remove('pop'), 1400);
+          SFX.play('sssr');
+          showCongratsModal(card, 'prismatic');
         } else if (fx === 'hidden') {
           document.getElementById('hidden-flash')?.classList.add('pop');
           setTimeout(() => document.getElementById('hidden-flash')?.classList.remove('pop'), 1400);
@@ -3268,7 +3582,7 @@ window.onFirebaseAuthChange = function(user) {
         setLastOpened(key);
 
         let cards;
-        if (cfg.type === 'twistPack') {
+        if (cfg.type === 'twistPack' || cfg.type === 'prismaticPack') {
           cards = drawSpecialPackCards(key, cfg);
           if (!cards.length) { saveData(); return; }
         } else {
@@ -3450,7 +3764,7 @@ window.onFirebaseAuthChange = function(user) {
         const odds = cardOdds(card);
         const oddsEl = document.getElementById('detail-odds');
         oddsEl.textContent = card.rarity === 'Hidden'
-          ? '✨ Obtainable via special code only'
+          ? '✨ Obtainable via special code or only'
           : (odds ? `~1 in ${odds.toLocaleString()} chance per card` : '');
 
         const sv = card.sellValue ?? rcfg.sellValue ?? 0;
@@ -3981,6 +4295,43 @@ window.onFirebaseAuthChange = function(user) {
         }
       }
 
+      async function loadFullGameStateFromCloud() {
+        if (!fbUser) { toast('❌ Login first!'); openModal('auth-modal'); return; }
+        const confirmed = window.confirm(
+          'Achtung: Dein aktueller lokaler Fortschritt wird durch den Cloud-Speicherstand ersetzt. Fortfahren?'
+        );
+        if (!confirmed) return;
+        try {
+          const { doc, getDoc } = window.fbFuncs;
+          const snap = await getDoc(doc(window.fbDb, 'users', fbUser.uid));
+          if (!snap.exists()) { toast('⚠️ Kein Cloud-Stand gefunden.'); return; }
+          const d = snap.data();
+          coins             = d.coins            ?? 0;
+          collection        = d.collection       || [];
+          questClaimed      = new Set(d.questsClaimed    || []);
+          ownedSpecialPacks = new Set(d.ownedSpecialPacks || []);
+          if (d.luckPercent  != null) luckPercent  = d.luckPercent;
+          if (d.luckLevel    != null) luckLevel    = d.luckLevel;
+          if (d.packsOpened  != null) packsOpened  = d.packsOpened;
+          if (d.unopenedPacks)        unopenedPacks = d.unopenedPacks;
+          if (d.usedCodes)            usedCodes    = new Set(d.usedCodes);
+          if (d.username)           { username = d.username; localStorage.setItem(LS_KEY.USER, username); }
+          if (d.fightsPlayed != null) fightsPlayed = d.fightsPlayed;
+          if (d.fightsWon    != null) fightsWon    = d.fightsWon;
+          saveData();
+          saveQuestData();
+          updateUI();
+          initProfile();
+          renderQuestList();
+          updateQuestFabBadge();
+          renderShopSpecialPacks();
+          toast('☁️ Cloud-Stand erfolgreich geladen!', true);
+        } catch (e) {
+          console.error(e);
+          toast('❌ Laden fehlgeschlagen: ' + e.message);
+        }
+      }
+
       async function loadFromCloud(uid) {
         try {
           const { doc, getDoc } = window.fbFuncs;
@@ -4493,6 +4844,176 @@ window.onFirebaseAuthChange = function(user) {
 
       document.addEventListener('DOMContentLoaded', init);
 
+      /* ═══════════════════════════════════════════════════════════
+   SELL ALL SYSTEM
+═══════════════════════════════════════════════════════════ */
+let _sellAllMode = 'all'; // 'all' | 'dupes'
+let _multiSelectMode = false;
+let _selectedCardIds = new Set(); // 'id:isShiny' keys
+
+function openSellAllCardsModal() {
+  _sellAllMode = 'all';
+  document.getElementById('sac-opt-all').classList.add('active');
+  document.getElementById('sac-opt-dupes').classList.remove('active');
+  _updateSellAllSummary();
+  openModal('sell-all-cards-modal');
+}
+
+function selectSellOpt(mode) {
+  _sellAllMode = mode;
+  document.getElementById('sac-opt-all').classList.toggle('active', mode === 'all');
+  document.getElementById('sac-opt-dupes').classList.toggle('active', mode === 'dupes');
+  _updateSellAllSummary();
+}
+
+function _updateSellAllSummary() {
+  const cards = _getSellAllCards();
+  const total = cards.reduce((s, c) => s + c.qty, 0);
+  const coins_sum = cards.reduce((s, c) => {
+    const sv = c.card.sellValue ?? RARITY_CFG[c.card.rarity]?.sellValue ?? 0;
+    return s + sv * c.qty;
+  }, 0);
+  const el = document.getElementById('sac-summary');
+  el.innerHTML = `
+    <b>${total}</b> Karten · <span class="sc-coins">🪙 ${coins_sum.toLocaleString()}</span>
+    ${_sellAllMode === 'dupes' ? '<br><span style="color:var(--subtext);font-size:0.76rem;">Von jeder Karte bleibt 1 Exemplar erhalten.</span>' : ''}
+  `;
+}
+
+function _getSellAllCards() {
+  if (_sellAllMode === 'all') {
+    return collection.map(c => ({ card: c, qty: c.count }));
+  } else {
+    return collection.filter(c => c.count > 1).map(c => ({ card: c, qty: c.count - 1 }));
+  }
+}
+
+function executeSellAllCards() {
+  const cards = _getSellAllCards();
+  if (!cards.length) { toast('⚠️ Nichts zu verkaufen!'); closeModal('sell-all-cards-modal'); return; }
+  let earned = 0;
+  cards.forEach(({ card, qty }) => {
+    const sv = card.sellValue ?? RARITY_CFG[card.rarity]?.sellValue ?? 0;
+    earned += sv * qty;
+    const entry = collection.find(c => c.id === card.id && !!c.isShiny === !!card.isShiny);
+    if (entry) {
+      entry.count -= qty;
+      if (entry.count <= 0) collection.splice(collection.indexOf(entry), 1);
+    }
+  });
+  coins += earned;
+  SFX.play('sell');
+  saveData();
+  closeModal('sell-all-cards-modal');
+  toast(`🪙 Verkauft! +${earned.toLocaleString()} Coins`);
+  renderCollection();
+  renderStats();
+}
+
+function openSellAllPacksModal() {
+  const total = unopenedPacks.length;
+  const earned = unopenedPacks.reduce((s, p) => {
+    const cfg = SPECIAL_PACK_CFG?.[p.packKey] || PACK_CFG?.[p.packKey];
+    return s + (p.sellValue || cfg?.sellValue || 0);
+  }, 0);
+  document.getElementById('sap-summary').innerHTML =
+    `<b>${total}</b> Packs · <span class="sc-coins">🪙 ${earned.toLocaleString()}</span>`;
+  openModal('sell-all-packs-modal');
+}
+
+function executeSellAllPacks() {
+  const earned = unopenedPacks.reduce((s, p) => {
+    const cfg = SPECIAL_PACK_CFG?.[p.packKey] || PACK_CFG?.[p.packKey];
+    return s + (p.sellValue || cfg?.sellValue || 0);
+  }, 0);
+  const count = unopenedPacks.length;
+  unopenedPacks = [];
+  coins += earned;
+  SFX.play('sell');
+  saveData();
+  closeModal('sell-all-packs-modal');
+  toast(`🪙 ${count} Packs verkauft! +${earned.toLocaleString()} Coins`);
+  renderPacksInventory();
+  updateUI();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MULTI-SELECT SYSTEM
+═══════════════════════════════════════════════════════════ */
+function toggleMultiSelect() {
+  _multiSelectMode = !_multiSelectMode;
+  _selectedCardIds.clear();
+  const btn = document.getElementById('ms-toggle-btn');
+  const grid = document.getElementById('card-grid');
+  btn?.classList.toggle('active', _multiSelectMode);
+  grid?.classList.toggle('multiselect-mode', _multiSelectMode);
+  _updateMsSellBar();
+  if (!_multiSelectMode) renderCollection(); // neu rendern um Checkmarks zu clearen
+}
+
+function clearMultiSelect() {
+  _selectedCardIds.clear();
+  document.querySelectorAll('.ccard.selected').forEach(el => el.classList.remove('selected'));
+  _updateMsSellBar();
+}
+
+function toggleCardSelection(el, card) {
+  const key = `${card.id}:${!!card.isShiny}`;
+  if (_selectedCardIds.has(key)) {
+    _selectedCardIds.delete(key);
+    el.classList.remove('selected');
+  } else {
+    _selectedCardIds.add(key);
+    el.classList.add('selected');
+  }
+  _updateMsSellBar();
+}
+
+function _updateMsSellBar() {
+  const bar = document.getElementById('ms-sell-bar');
+  if (!bar) return;
+  if (!_multiSelectMode || _selectedCardIds.size === 0) {
+    bar.classList.remove('visible'); return;
+  }
+  let totalCoins = 0;
+  _selectedCardIds.forEach(key => {
+    const [id, shiny] = key.split(':');
+    const entry = collection.find(c => String(c.id) === id && !!c.isShiny === (shiny === 'true'));
+    if (entry) {
+      const sv = entry.sellValue ?? RARITY_CFG[entry.rarity]?.sellValue ?? 0;
+      totalCoins += sv; // verkauft 1 Stück je Auswahl
+    }
+  });
+  document.getElementById('ms-count').textContent = _selectedCardIds.size;
+  document.getElementById('ms-coins-preview').textContent = `🪙 ${totalCoins.toLocaleString()}`;
+  bar.classList.add('visible');
+}
+
+function sellSelectedCards() {
+  if (!_selectedCardIds.size) return;
+  let earned = 0;
+  _selectedCardIds.forEach(key => {
+    const [id, shiny] = key.split(':');
+    const entry = collection.find(c => String(c.id) === id && !!c.isShiny === (shiny === 'true'));
+    if (entry) {
+      const sv = entry.sellValue ?? RARITY_CFG[entry.rarity]?.sellValue ?? 0;
+      earned += sv;
+      entry.count--;
+      if (entry.count <= 0) collection.splice(collection.indexOf(entry), 1);
+    }
+  });
+  coins += earned;
+  _selectedCardIds.clear();
+  _multiSelectMode = false;
+  SFX.play('sell');
+  saveData();
+  renderCollection();
+  renderStats();
+  _updateMsSellBar();
+  document.getElementById('ms-toggle-btn')?.classList.remove('active');
+  document.getElementById('card-grid')?.classList.remove('multiselect-mode');
+  toast(`🪙 Verkauft! +${earned.toLocaleString()} Coins`);
+}
     </script>
   </body>
 </html>
