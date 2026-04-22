@@ -324,3 +324,25 @@ function adminUnlockAllPacks() {
     if (typeof toast === 'function') toast('👑 All special packs unlocked!');
   }
 }
+/* ── 8. UNLOCK ALL CARDS (Admin Only) ───────────────────── */
+function adminUnlockAllCards() {
+  if (!isUserAdmin()) return;
+  if (typeof CARD_DATABASE === 'undefined' || typeof collection === 'undefined') {
+    if (typeof toast === 'function') toast('❌ Collection not ready');
+    return;
+  }
+
+  let added = 0;
+  CARD_DATABASE.forEach(card => {
+    const exists = collection.find(c => c.id === card.id && !!c.isShiny === !!card.isShiny);
+    if (!exists) {
+      collection.push({ ...card, count: 1 });
+      added++;
+    }
+  });
+
+  if (typeof saveData === 'function') saveData();
+  if (typeof renderCollection === 'function') renderCollection();
+  if (typeof renderStats === 'function') renderStats();
+  if (typeof toast === 'function') toast(`👑 ${added} cards unlocked! (Base + Shiny)`);
+}

@@ -379,6 +379,7 @@ async function joinFightRoom() {
 function cancelFightRoom() {
   if (unsubFight) { unsubFight(); unsubFight = null; }
   currentRoom = null;
+  window._fightResultCounted = false; // Reset für nächsten Kampf
   fightToast("Left the room", 'info');
   fightState('fight-deck-builder');
 }
@@ -422,7 +423,13 @@ function renderBattleUI(state) {
       : '<span style="color:#ff4d6d">Battle Over! You Lost. 💀</span>';
     document.getElementById('fight-action-btn').style.display = 'none';
     fightToast(iWon ? "Victory! Well played! 🏆" : "Defeat. Better luck next time.", iWon ? 'win' : 'lose');
-  } else {
+    // ── Fight Stats tracking ──────────────────────────────
+    if (!window._fightResultCounted) {
+      window._fightResultCounted = true; // verhindert mehrfaches Zählen (rerenders)
+      if (typeof fightsPlayed !== 'undefined') { fightsPlayed++; }
+      if (iWon && typeof fightsWon !== 'undefined') { fightsWon++; }
+      if (typeof saveData === 'function') saveData();
+    } else {
     document.getElementById('fight-status').innerHTML = isMyTurn
       ? '<span style="color:var(--accent)">Your Turn!</span>'
       : '<span style="color:var(--subtext)">Enemy\'s Turn...</span>';

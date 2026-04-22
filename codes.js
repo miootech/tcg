@@ -42,6 +42,17 @@ window.CODE_HASHES = {
     msg: "✨ shiny Card added to collection!",
   },
 
+  // samu
+  "d803cb8221337ea9a5556a44720efe0844063b90": {
+    type: "packs",
+    coins: 750,
+    packs: [
+      { packKey: "starterBooster", count: 2 },
+      { packKey: "onlyRare",       count: 1 },
+    ],
+    msg: "🎁 Samu's Gift! +750 coins & 3 packs added!",
+  },
+
   // freepacks
   "87ae53d280b7ee1dff7a16ebe8fe8a4a86367a55": {
     type: "packs",
