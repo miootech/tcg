@@ -128,16 +128,34 @@
       .orb-3 { width: 260px; height: 260px; background: var(--mint); top: 38%; left: 34%; animation-delay: -13s; opacity: 0.035; }
       @keyframes orbDrift { from { transform: translateY(0) scale(1); } to { transform: translateY(-40px) scale(1.08); } }
 
-      /* Mobile: Orbs stark reduzieren */
       @media (max-width: 768px) {
-        .orb { filter: blur(50px); animation: none; }
-        .orb-3 { display: none; }
-        .modal-overlay  { backdrop-filter: none; -webkit-backdrop-filter: none; }
-        .dock           { backdrop-filter: none; -webkit-backdrop-filter: none; }
-        #pack-overlay   { backdrop-filter: none; -webkit-backdrop-filter: none; }
-        #mailbox-overlay{ backdrop-filter: none; -webkit-backdrop-filter: none; }
-        .header         { backdrop-filter: blur(8px) saturate(120%); -webkit-backdrop-filter: blur(8px) saturate(120%); }
-      }
+  .orb { filter: blur(50px); animation: none; }
+  .orb-3 { display: none; }
+  .modal-overlay  { backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .dock           { backdrop-filter: none; -webkit-backdrop-filter: none; }
+  #pack-overlay   { backdrop-filter: none; -webkit-backdrop-filter: none; }
+  #mailbox-overlay{ backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .header         { backdrop-filter: blur(8px) saturate(120%); -webkit-backdrop-filter: blur(8px) saturate(120%); }
+
+  /* ── Performance fixes ── */
+  .ccard {
+    animation: none !important;      /* kein cardIn stagger */
+    transition: none !important;     /* kein hover-transform */
+    will-change: auto;
+  }
+  .ccard:hover { transform: none; } /* hover existiert auf touch eh nicht */
+  .ccard:active { opacity: 0.82; }  /* stattdessen: leichtes tap-feedback */
+
+  .ccard.shiny::before { animation: none !important; } /* shiny-slide stoppen */
+  .shiny-badge         { animation: none !important; }
+  .prismatic-badge     { animation: none !important; }
+  .ccard.prismatic::before { animation: none !important; }
+
+  .card-grid { content-visibility: auto; } /* off-screen cards nicht rendern */
+
+  /* Stats-Animationen deaktivieren */
+  .stat-bar-fill { transition: none !important; }
+}
       /* ═══ TYPE HELPERS ══════════════════════════════════════════ */
       .f-display { font-family: "Comfortaa", cursive; }
       .f-mono { font-family: "DM Mono", monospace; }
@@ -2764,8 +2782,8 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
       "use strict";
 
     /* ── VERSION INFO ──────────────────────────────────────── */
-    const VERSION      = '1.0.1';
-    const UPDATE_NAME  = 'Profile & Titles';
+    const VERSION      = '1.0.2';
+    const UPDATE_NAME  = 'Performance';
 
       /* ────────────────────────────────────────────────────────
      SOUND SYSTEM PLACEHOLDERS
@@ -3501,7 +3519,8 @@ window.onFirebaseAuthChange = function(user) {
           const el   = document.createElement('div');
           const isPrismatic = card.rarity === 'Prismatic';
           el.className = 'ccard' + (card.isShiny ? ' shiny' : '') + (isPrismatic ? ' prismatic' : '');
-          el.style.cssText = `animation-delay:${idx*0.022}s;border-color:${card.isShiny ? '#eec06066' : (rcfg.color+'22')};`;
+          const isMobile = window.innerWidth <= 768;
+el.style.cssText = `${isMobile ? '' : `animation-delay:${idx*0.022}s;`}border-color:${card.isShiny ? '#eec06066' : (rcfg.color+'22')};`;
           el.dataset.rarity = card.rarity;
           const art = document.createElement('div');
           art.className = 'ccard-art'; art.appendChild(makeArtEl(card));
@@ -3554,6 +3573,8 @@ window.onFirebaseAuthChange = function(user) {
      STATS
     ──────────────────────────────────────────────────────── */
       function renderStats() {
+  const statsPanel = document.getElementById('panel-profile');
+  if (statsPanel && statsPanel.style.display === 'none') return;
   const total     = collection.reduce((s,c) => s+c.count, 0);
   const unique    = collection.length;
   const dbLen     = typeof CARD_DATABASE !== 'undefined' ? CARD_DATABASE.length : 1;
