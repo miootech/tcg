@@ -153,6 +153,33 @@
       @keyframes fadeUp { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
       .entry-card { background: var(--surface); border: 1px solid var(--glass-edge); border-radius: var(--r-xl); padding: 2rem 1.8rem; width: min(360px,90vw); display: flex; flex-direction: column; gap: 1rem; box-shadow: 0 24px 60px rgba(0,0,0,0.5), inset 0 1px 0 var(--glass-hi); animation: fadeUp 0.8s 0.5s var(--ease) both; }
       .entry-hint { font-size: 0.74rem; color: var(--subtext); text-align: center; }
+      .entry-footer {
+  bottom: 2rem;
+  left: 0; right: 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  animation: fadeUp 0.8s 0.7s var(--ease) both;
+}
+.entry-footer-version {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.2);
+  letter-spacing: 0.05em;
+}
+.entry-footer-credit {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.22);
+  letter-spacing: 0.04em;
+}
+.entry-footer-credit a {
+  color: rgba(180,158,255,0.5);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.entry-footer-credit a:hover { color: var(--accent); }
+.entry-footer-sep { margin: 0 0.4em; opacity: 0.35; }
 
       /* ═══ SHARED COMPONENTS ═════════════════════════════════════ */
       .input-field { width: 100%; padding: 0.82rem 1rem; background: rgba(0,0,0,0.22); border: 1.5px solid rgba(255,255,255,0.07); border-radius: var(--r-sm); color: var(--text); font-family: "Quicksand", sans-serif; font-size: 0.95rem; font-weight: 500; text-align: center; outline: none; transition: border-color 0.25s, box-shadow 0.25s, background 0.25s; }
@@ -832,6 +859,32 @@
       }
 
       /* ─── ENHANCED DARK GLASS REAUTH MODAL ─── */
+
+
+/* ═══ FOOTER ════════════════════════════════════════════════ */
+.app-footer {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 200;
+  text-align: center;
+  padding: 0.3rem 1rem 0.32rem;
+  font-size: 0.62rem;
+  color: rgba(255,255,255,0.18);
+  letter-spacing: 0.04em;
+  pointer-events: none;
+  user-select: none;
+}
+.app-footer a {
+  color: rgba(180,158,255,0.45);
+  text-decoration: none;
+  pointer-events: all;
+  transition: color 0.2s;
+}
+.app-footer a:hover { color: var(--accent); }
+.app-footer .footer-sep {
+  margin: 0 0.45em;
+  opacity: 0.35;
+}
 
 #reauth-modal.modal-overlay {
   background: rgba(0, 0, 0, 0.8) !important;
@@ -1808,6 +1861,13 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
         <input type="password" id="einput" class="input-field" placeholder="Enter access code…" autocomplete="off" aria-label="Access code" />
         <button class="btn btn-primary btn-full" id="ebtn">✦ Enter the basement</button>
         <p class="entry-hint">"Nothing happened" ~ Zoro</p>
+
+        <div class="entry-footer">
+          <div class="entry-footer-version"></div>
+          <div class="entry-footer-credit">
+            Created by <a href="https://www.instagram.com/malikali065" target="_blank" rel="noopener">KingRali</a>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -2150,6 +2210,13 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
             <button class="dock-btn" data-panel="4">⚔️ <span class="dlbl">Fight</span></button>
           </div>
         </nav>
+
+        <footer class="app-footer">
+          <span class="app-footer-version"></span>
+          <span class="footer-sep">·</span>
+          Created by <a href="https://www.instagram.com/malikali065" target="_blank" rel="noopener">KingRali</a>
+        </footer>
+
     </div><!-- #app -->
 
     <!-- ═══ PACK OPENING OVERLAY ════════════════════════════════ -->
@@ -2695,6 +2762,10 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
     ═══════════════════════════════════════════════════════════ -->
     <script>
       "use strict";
+
+    /* ── VERSION INFO ──────────────────────────────────────── */
+    const VERSION      = '1.0.1';
+    const UPDATE_NAME  = 'Profile & Titles';
 
       /* ────────────────────────────────────────────────────────
      SOUND SYSTEM PLACEHOLDERS
@@ -5861,6 +5932,12 @@ function sellSelectedCards() {
   document.getElementById('card-grid')?.classList.remove('multiselect-mode');
   toast(`🪙 Verkauft! +${earned.toLocaleString()} Coins`);
 }
+/* ── FOOTER VERSION INJECT ─────────────────────────────── */
+(function injectVersion() {
+  const text = `v${VERSION} · ${UPDATE_NAME} Update · © All Rights Reserved`;
+  document.querySelectorAll('.entry-footer-version, .app-footer-version')
+    .forEach(el => el.textContent = text);
+})();
     </script>
   </body>
 </html>
