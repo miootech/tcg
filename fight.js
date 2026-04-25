@@ -424,12 +424,15 @@ function renderBattleUI(state) {
     document.getElementById('fight-action-btn').style.display = 'none';
     fightToast(iWon ? "Victory! Well played! 🏆" : "Defeat. Better luck next time.", iWon ? 'win' : 'lose');
     // ── Fight Stats tracking ──────────────────────────────
-    if (!window._fightResultCounted) {
-      window._fightResultCounted = true; // verhindert mehrfaches Zählen (rerenders)
+if (!window._fightResultCounted) {
+      window._fightResultCounted = true;
       if (typeof fightsPlayed !== 'undefined') { fightsPlayed++; }
       if (iWon && typeof fightsWon !== 'undefined') { fightsWon++; }
       if (typeof saveData === 'function') saveData();
-    } else {
+      // Nach fightsWon++ und saveData():
+      if (typeof checkAndUnlockTitles === 'function') checkAndUnlockTitles();
+    }
+  } else {
     document.getElementById('fight-status').innerHTML = isMyTurn
       ? '<span style="color:var(--accent)">Your Turn!</span>'
       : '<span style="color:var(--subtext)">Enemy\'s Turn...</span>';
@@ -440,8 +443,7 @@ function renderBattleUI(state) {
     }
   }
 
-  const slotHtml = (id, hp, i, active, isPlayer) => {
-    const card = getFullCard(id); const dead = hp <= 0;
+  const slotHtml = (id, hp, i, active, isPlayer) => {    const card = getFullCard(id); const dead = hp <= 0;
     const color = isPlayer ? 'var(--accent)' : '#ff4d6d';
     const hpCol = isPlayer ? '#a8ffb2' : '#ff4d6d';
     return `<div style="flex:1;border:1px solid ${active ? color : 'var(--glass-edge)'};padding:0.5rem;text-align:center;opacity:${dead ? 0.3 : 1};background:var(--surface-2);border-radius:10px;transition:border-color 0.3s,opacity 0.3s;">

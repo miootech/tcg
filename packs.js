@@ -309,4 +309,32 @@ const SPECIAL_PACK_CFG = {
     type: "prismaticPack",
     bg: "linear-gradient(145deg,#0d0020,#001a2e)",
   },
+
+  // ── CODE/ADMIN ONLY — nie im Shop sichtbar ───────────────
+  godPack: {
+    id: "godPack",
+    name: "God Pack",
+    label: "God Pack",
+    icon: "👑",
+    description: "5 cards — massiv erhöhte Legendary & SSSR Odds. Nur für Auserwählte.",
+    displayOdds: "5 cards · Legendary ×8 · SSSR ×15 · +20% Luck",
+    cardCount: 5,
+    timedCooldown: 0,
+    coinCost: 0,
+    price: 0,
+    sellValue: 999999,
+    luckBonus: 20,
+    rotation: "always",
+    type: "collectorsChoice",
+    shopHidden: true,              // ← nie im Shop anzeigen
+    weightMod: {
+      Common:    0.05,
+      Rare:      0.10,
+      Epic:      0.30,
+      Mythical:  1.20,
+      Legendary: 8,
+      SSSR:      15,
+    },
+    bg: "linear-gradient(145deg,#1a0a00,#2e1400)",
+  },
 };

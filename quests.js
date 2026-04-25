@@ -37,12 +37,23 @@ window.QUESTS_DATABASE = [
   {
     id: 'q_unlock_doubbleA',
     name: "DOUBBLE A???",
-    icon: '🅰️', // Das rote A passend zum Namen der Quest
+    icon: '👀', // Das rote A passend zum Namen der Quest
     description: 'Collect the Alex and Ali SSSR Cards to unlock a Hidden Secret Card.',
     rewardText: '1× Hidden Card',
     type: 'collect_cards',
     requiredCardIds: [902, 906],
     rewardType: 'card',
     rewardCardId: 1004,
+  },
+  {
+    id: 'q_unlock_Ammarius',
+    name: "Ammarius???",
+    icon: '🅰️', // Das rote A passend zum Namen der Quest
+    description: 'Collect all the Ammar cards to unlock a Hidden Secret Card.',
+    rewardText: '1× Hidden Card',
+    type: 'collect_cards',
+    requiredCardIds: [5, 402, 603, 751, 903, 908, 909],
+    rewardType: 'card',
+    rewardCardId: 1006,
   },
 ];

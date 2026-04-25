@@ -1253,6 +1253,23 @@ const _BASE_CARDS = [
     attackDamage: 330,
     effect: null,
   },
+  {
+    id: 909,
+    name: "Hausmeister Ammarius",
+    rarity: "SSSR",
+    class: "Yapper",
+    description:
+        "Be careful he is a syrian spy amongst the students.",
+    pullWeight: 0.2,
+    imageUrl: "assets/cards/sssr/9.png",
+    sellValue: 13500,
+    isShiny: false,
+    baseId: 909,
+    type: "fighter",
+    hp: 330,
+    attackDamage: 267,
+    effect: null,
+  },
 
   // ──────────── HIDDEN ─────────────────────────────────────
   // id 1001 – 1050  —  code-unlock only, pullWeight always 0
@@ -1336,6 +1353,23 @@ const _BASE_CARDS = [
     type: "fighter",
     hp: 300,
     attackDamage: 280,
+    effect: null,
+  },
+  {
+    id: 1006,
+    name: "KFC Meister Ammarius",
+    rarity: "Hidden",
+    class: "Aura",
+    description:
+        "To ragebait Amo he is willing to do anything.",
+    pullWeight: 0,
+    imageUrl: "assets/cards/hidden/6.png",
+    sellValue: 57000,
+    isShiny: false,
+    baseId: 1006,
+    type: "fighter",
+    hp: 210,
+    attackDamage: 290,
     effect: null,
   },
 

@@ -65,6 +65,19 @@ window.CODE_HASHES = {
     msg: "🎁 5 Packs added to your inventory!",
   },
 
+  // goatadmin
+  "218c5c7f4dab6ae0a9914a292add4261d0cb7b3d": {
+    type: "packs",
+    coins: 670,
+    packs: [
+      { packKey: "starterBooster", count: 1 },
+      { packKey: "onlyRare",       count: 1 },
+      { packKey: "bulkPack",       count: 1 },
+      { packKey: "shinyPack",      count: 1 },
+    ],
+    msg: "🎁 Admins Gift! +670 coins & 4 packs added!",
+  },
+
   // --- Admin & System ---
   // admin
   "d033e22ae348aeb5660fc2140aec35850c4da997": {
@@ -95,6 +108,22 @@ window.CODE_HASHES = {
   "5b43a3793c7aa25c75ff70f1710cfab9ede0bc18": {
     coins: 14000,
     msg: "💰 Jackpot! +14,000 coins.",
+  },
+
+  // --- Code-exklusive Titel ---
+  // "chosen" → SHA-1 von "CHOSEN" → title_chosen_one
+  // Zum Generieren: https://emn178.github.io/online-tools/sha1.html (Großbuchstaben eingeben)
+  "56ab24c15b72a457069c5ea42fcfc640f6c33d4a": {
+    type: "title",
+    titleId: "title_chosen_one",
+    msg: "🌟 Du bist The Chosen One — Exklusiver Titel freigeschaltet!",
+  },
+
+  // "insider" → SHA-1 von "INSIDER" → title_insider
+  "cbc3c4527c2a6e78282c8ee99acbcf2c02dc4bb1": {
+    type: "title",
+    titleId: "title_insider",
+    msg: "🔐 Insider-Titel freigeschaltet!",
   },
 };
 

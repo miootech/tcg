@@ -14,6 +14,7 @@
     <script src="quests.js"></script>
     <script src="fight.js"></script>
     <script src="admin.js"></script>
+    <script src="titles.js"></script>
 
     <!-- ═══ FIREBASE (module) ═══════════════════════════════════════ -->
 <script type="module">
@@ -1329,6 +1330,46 @@
 }
 .btn-adm-quick:hover { background: rgba(238,192,96,0.2); transform: translateY(-1px); }
 
+/* ─── Multi-Pack Builder ─── */
+.adm-pack-row {
+  display: flex; gap: 0.5rem; align-items: center;
+  margin-bottom: 0.45rem;
+}
+.adm-pack-row-remove {
+  flex-shrink: 0;
+  padding: 0.28rem 0.55rem;
+  background: rgba(255,150,188,0.1);
+  border: 1px solid rgba(255,150,188,0.25);
+  border-radius: var(--r-sm);
+  color: var(--rose); font-size: 0.8rem; font-weight: 700;
+  cursor: pointer; transition: background 0.15s;
+}
+.adm-pack-row-remove:hover { background: rgba(255,150,188,0.24); }
+.adm-pack-add-btn {
+  font-size: 0.72rem; font-weight: 700;
+  padding: 0.2rem 0.65rem;
+  background: rgba(72,238,184,0.1);
+  border: 1px solid rgba(72,238,184,0.25);
+  border-radius: var(--r-pill);
+  color: var(--mint); cursor: pointer;
+  transition: background 0.15s;
+}
+.adm-pack-add-btn:hover { background: rgba(72,238,184,0.22); }
+
+/* ─── Account Management Buttons ─── */
+.btn-adm-warning {
+  color: var(--gold) !important;
+  border-color: rgba(238,192,96,0.35) !important;
+  background: rgba(238,192,96,0.1) !important;
+}
+.btn-adm-warning:hover { background: rgba(238,192,96,0.24) !important; }
+.btn-adm-danger {
+  color: var(--rose) !important;
+  border-color: rgba(255,150,188,0.35) !important;
+  background: rgba(255,150,188,0.1) !important;
+}
+.btn-adm-danger:hover { background: rgba(255,150,188,0.24) !important; }
+
 /* Admin ∞ card count (applied via body.is-admin) */
 body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold); }
     /* ═══ PRISMATIC CARDS ═══════════════════════════════════════ */
@@ -1458,7 +1499,242 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
 
 /* Admin ∞ card count (applied via body.is-admin) */
 body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold); }
-    
+
+/* ═══ TITLES SYSTEM ══════════════════════════════════════════ */
+
+/* Profile badge */
+#profile-title-badge {
+  font-size: 0.78rem; font-weight: 700; letter-spacing: 0.03em;
+  display: none; margin-top: 0.25rem;
+  transition: text-shadow 0.4s;
+}
+
+/* Boost readout bar */
+.title-boost-readout {
+  font-size: 0.7rem; font-weight: 700; color: var(--mint);
+  font-family: "DM Mono", monospace; padding: 0.4rem 0.7rem;
+  background: rgba(88,240,192,0.06); border: 1px solid rgba(88,240,192,0.15);
+  border-radius: var(--r-sm); margin-top: 0.5rem; text-align: center;
+  line-height: 1.5;
+}
+
+/* Titles panel */
+.titles-section-label {
+  font-size: 0.72rem; font-weight: 700; color: var(--subtext);
+  text-transform: uppercase; letter-spacing: 0.08em;
+  margin-bottom: 0.5rem; display: flex; align-items: center;
+  justify-content: space-between;
+}
+.titles-count {
+  background: var(--accent-dim); color: var(--accent);
+  border-radius: var(--r-pill); padding: 2px 8px; font-size: 0.68rem;
+  border: 1px solid rgba(180,158,255,0.25);
+}
+.titles-list { display: flex; flex-direction: column; gap: 0.4rem; }
+.titles-rarity-group { margin-bottom: 0.75rem; }
+.titles-rarity-hd {
+  font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.1em; margin-bottom: 0.35rem; opacity: 0.85;
+}
+.title-card {
+  display: flex; align-items: center; gap: 0.65rem;
+  padding: 0.6rem 0.75rem; border-radius: var(--r-sm);
+  background: var(--surface-2); border: 1px solid var(--glass-edge);
+  transition: border-color 0.2s, background 0.2s;
+  opacity: 0.45;
+}
+.title-card.unlocked { opacity: 1; }
+.title-card.equipped {
+  background: rgba(180,158,255,0.07);
+  border-color: rgba(180,158,255,0.35);
+}
+.title-card-icon { font-size: 1.2rem; flex-shrink: 0; width: 28px; text-align: center; }
+.title-card-body { flex: 1; min-width: 0; }
+.title-card-name { font-size: 0.84rem; font-weight: 700; }
+.title-card-hint { font-size: 0.68rem; color: var(--subtext); margin-top: 1px; }
+.title-card-action { flex-shrink: 0; }
+.title-badge-eq {
+  font-size: 0.65rem; font-weight: 700; padding: 2px 8px;
+  background: rgba(180,158,255,0.15); color: var(--accent);
+  border-radius: var(--r-pill); border: 1px solid rgba(180,158,255,0.3);
+}
+.title-badge-lock { font-size: 0.9rem; opacity: 0.5; }
+
+/* Equipped preview */
+.title-eq-preview {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.75rem 1rem; border-radius: var(--r-md);
+  background: rgba(180,158,255,0.06); border: 1px solid rgba(180,158,255,0.2);
+  margin-bottom: 0.5rem;
+}
+.title-eq-icon { font-size: 1.5rem; }
+.title-eq-info { flex: 1; }
+.title-eq-name { font-size: 0.92rem; font-weight: 700; }
+.title-eq-rarity { font-size: 0.68rem; font-weight: 700; opacity: 0.8; margin-top: 2px; }
+.title-eq-empty {
+  font-size: 0.78rem; color: var(--subtext); text-align: center;
+  padding: 0.6rem; font-style: italic; margin-bottom: 0.5rem;
+}
+
+/* Color picker */
+.title-color-row { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
+.title-color-dot {
+  width: 26px; height: 26px; border-radius: 50%; border: 2px solid transparent;
+  cursor: pointer; transition: transform 0.2s var(--ease-bounce), box-shadow 0.2s;
+  outline: none;
+}
+.title-color-dot:hover { transform: scale(1.15); }
+.title-color-dot.active {
+  border-color: #fff;
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.15), 0 0 10px currentColor !important;
+  transform: scale(1.2);
+}
+
+/* Showcase editor */
+.showcase-slots-row {
+  display: flex; gap: 0.5rem; margin-bottom: 1rem;
+}
+.showcase-slot {
+  flex: 1; border-radius: var(--r-md); min-height: 100px;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 0.3rem; position: relative;
+  border: 1.5px dashed var(--glass-hi); background: var(--surface-2);
+  overflow: hidden; transition: border-color 0.2s;
+}
+.showcase-slot.filled { border-style: solid; }
+.showcase-slot-img { width: 100%; aspect-ratio: 3/4; display: flex; align-items: center; justify-content: center; }
+.showcase-slot-img img { width: 100%; height: 100%; object-fit: cover; }
+.showcase-slot-name {
+  font-size: 0.6rem; font-weight: 700; text-align: center;
+  padding: 0 4px 4px; line-height: 1.2;
+}
+.showcase-slot-label { font-size: 0.68rem; color: var(--subtext); }
+.showcase-slot.empty span { font-size: 1.5rem; color: var(--subtext); opacity: 0.4; }
+.showcase-slot-remove {
+  position: absolute; top: 3px; right: 3px; width: 18px; height: 18px;
+  border-radius: 50%; background: rgba(255,80,80,0.7); border: none;
+  color: #fff; font-size: 0.6rem; cursor: pointer; display: flex;
+  align-items: center; justify-content: center; font-weight: 700;
+}
+.showcase-pick-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+  gap: 0.4rem; max-height: 220px; overflow-y: auto; padding-right: 2px;
+}
+.showcase-pick-grid::-webkit-scrollbar { width: 3px; }
+.showcase-pick-grid::-webkit-scrollbar-thumb { background: var(--surface-4); border-radius: 99px; }
+.showcase-pick-item {
+  background: var(--surface-2); border: 1.5px solid transparent;
+  border-radius: var(--r-sm); padding: 0.3rem; cursor: pointer;
+  transition: border-color 0.18s, transform 0.18s var(--ease-bounce);
+  position: relative; text-align: center;
+}
+.showcase-pick-item:hover { transform: translateY(-1px); }
+.showcase-pick-item.selected { background: rgba(180,158,255,0.07); }
+.showcase-pick-img { aspect-ratio: 3/4; display: flex; align-items: center; justify-content: center; margin-bottom: 3px; overflow: hidden; border-radius: 4px; }
+.showcase-pick-img img { width: 100%; height: 100%; object-fit: cover; }
+.showcase-pick-name { font-size: 0.58rem; font-weight: 700; color: var(--text); line-height: 1.2; }
+.showcase-pick-rar { font-size: 0.52rem; font-weight: 700; }
+.showcase-pick-check {
+  position: absolute; top: 3px; right: 3px; width: 14px; height: 14px;
+  background: var(--mint); border-radius: 50%; font-size: 0.55rem; font-weight: 700;
+  color: #0b0a12; display: flex; align-items: center; justify-content: center;
+}
+
+/* Player search */
+.player-search-row { display: flex; gap: 0.4rem; margin-bottom: 0.5rem; }
+.player-search-row .input-field { text-align: left; font-size: 0.84rem; }
+
+/* Player Profile Modal */
+#player-profile-modal .modal-box { max-width: 380px; text-align: center; }
+.pp-avatar {
+  width: 60px; height: 60px; border-radius: 50%;
+  background: conic-gradient(from 0deg, var(--accent), var(--rose), var(--mint), var(--gold), var(--accent));
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 0.75rem; font-size: 1.6rem;
+  box-shadow: 0 0 24px var(--accent-glow);
+}
+.pp-username {
+  font-family: "Comfortaa", cursive; font-size: 1.25rem; font-weight: 700;
+  margin-bottom: 0.2rem;
+}
+.pp-title {
+  font-size: 0.82rem; font-weight: 700; letter-spacing: 0.04em;
+  margin-bottom: 0.25rem; transition: text-shadow 0.4s;
+}
+.pp-meta { font-size: 0.72rem; color: var(--subtext); margin-bottom: 1.2rem; }
+.pp-showcase-label {
+  font-size: 0.7rem; font-weight: 700; color: var(--subtext);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem;
+}
+.pp-showcase-row { display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1.2rem; flex-wrap: wrap; }
+.pp-showcase-card {
+  width: 80px; border-radius: var(--r-sm); overflow: hidden;
+  border: 1.5px solid var(--glass-edge); background: var(--surface-2);
+  flex-shrink: 0;
+}
+.pp-showcase-img { aspect-ratio: 3/4; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.pp-showcase-img img { width: 100%; height: 100%; object-fit: cover; }
+.pp-showcase-name { font-size: 0.58rem; font-weight: 700; padding: 3px 4px 0; line-height: 1.2; }
+.pp-showcase-rar { font-size: 0.52rem; font-weight: 700; padding: 0 4px 4px; }
+.pp-showcase-card.empty {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; opacity: 0.2; aspect-ratio: 3/4;
+}
+
+/* Admin title grant */
+.adm-title-grant-row { display: flex; gap: 0.4rem; margin-top: 0.4rem; }
+.adm-title-grant-row .adm-target-input { flex: 1; }
+.adm-title-select {
+  flex: 1; background: var(--surface-3); color: var(--text);
+  border: 1px solid var(--glass-hi); border-radius: var(--r-sm);
+  padding: 0.5rem 0.65rem; font-size: 0.78rem; font-family: "Quicksand", sans-serif;
+}
+
+/* Titles & Showcase Modal Tabs */
+.tsm-tabs {
+  display: flex; gap: 0.3rem; margin-bottom: 1.2rem;
+  background: var(--surface-2); border-radius: var(--r-sm);
+  padding: 0.3rem;
+}
+.tsm-tab {
+  flex: 1; padding: 0.45rem 0.5rem; border: none; border-radius: var(--r-xs);
+  background: transparent; color: var(--subtext);
+  font-family: "Quicksand", sans-serif; font-weight: 700; font-size: 0.78rem;
+  cursor: pointer; transition: all 0.2s var(--ease);
+}
+.tsm-tab.active { background: var(--surface-4); color: var(--accent); }
+.tsm-tab:hover:not(.active) { color: var(--text); background: var(--muted); }
+.tsm-pane { animation: fadeUp 0.2s var(--ease) both; }
+
+/* ═══ PROFILE PANEL OVERFLOW FIX ════════════════════════ */
+#panel-profile { overflow-x: hidden !important; }
+.track { overflow: hidden; }
+
+/* Player Profile Stats Grid */
+.pp-stats-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem; margin-top: 1rem; text-align: center;
+}
+.pp-stat {
+  background: var(--surface-2); border-radius: var(--r-sm);
+  padding: 0.5rem 0.3rem; border: 1px solid var(--glass-edge);
+}
+.pp-stat-val { font-size: 0.82rem; font-weight: 700; font-family: "DM Mono", monospace; }
+.pp-stat-lbl { font-size: 0.58rem; color: var(--subtext); margin-top: 2px; }
+
+/* Showcase Shiny Shimmer */
+.pp-sc-shiny { box-shadow: 0 0 12px rgba(255,220,100,0.25) !important; }
+.pp-shiny-shimmer {
+  position: absolute; inset: 0; z-index: 0;
+  background: linear-gradient(135deg, transparent 30%, rgba(255,220,100,0.22) 50%, transparent 70%);
+  background-size: 200% 200%;
+  animation: ppShinySlide 2.2s ease-in-out infinite;
+}
+@keyframes ppShinySlide {
+  0%   { background-position: -100% -100%; }
+  100% { background-position: 200% 200%; }
+}
+    </style>    
     </style>
   </head>
   <body>
@@ -1708,15 +1984,19 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
               </div>
               <div class="prof-hero-info">
                 <div class="profile-name" onclick="toggleNameEdit()" title="Klicken zum Bearbeiten">
-                  <span id="username-disp">Patricks Linker Fuß</span>
+                  <span id="username-disp">Traveler</span>
                   <span style="font-size:0.75rem;color:var(--subtext);opacity:0.7">✏️</span>
                 </div>
                 <div id="name-edit-row" style="display:none;flex-direction:row;gap:0.5rem;margin-top:0.5rem;justify-content:center;">
                   <input type="text" id="username-input" class="input-field" style="text-align:left;font-size:0.84rem" placeholder="New username…" maxlength="24" />
                   <button class="btn btn-primary btn-sm" onclick="saveUsername()">Save</button>
                 </div>
+                <div id="profile-title-badge"></div>
                 <div class="profile-joined" id="profile-joined" style="margin-top:0.25rem;">—</div>
-                <button class="btn btn-rose btn-sm" style="margin-top:0.75rem;" onclick="openGiftModal({})">🎁 Send a Gift</button>
+                <div style="display:flex;gap:0.4rem;margin-top:0.75rem;flex-wrap:wrap;justify-content:center;">
+                  <button class="btn btn-rose btn-sm" onclick="openGiftModal({})">🎁 Send a Gift</button>
+                  <button class="btn btn-surface btn-sm" onclick="openTitlesModal()">🏷️ Titles & Showcase</button>
+                </div>
               </div>
             </div>
 
@@ -1732,6 +2012,31 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
               <div class="rarity-dist" id="rarity-dist"></div>
             </div>
 
+            <!-- Drop Rate Explorer -->
+            <div class="prof-section">
+              <div class="prof-section-title">📊 Drop Rate Explorer</div>
+              <div class="shop-card">
+                <div style="display:flex;flex-direction:column;gap:0.6rem;margin-bottom:0.75rem">
+                  <div style="display:flex;align-items:center;gap:0.6rem">
+                    <span style="font-size:0.74rem;color:var(--subtext);min-width:52px">Pack</span>
+                    <select id="odds-exp-pack" onchange="renderOddsExplorer()"
+                      style="flex:1;font-size:0.78rem;background:var(--surface-3);color:var(--text);border:1px solid var(--glass-hi);border-radius:var(--r-sm);padding:0.3rem 0.5rem;cursor:pointer"></select>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:0.6rem">
+                    <span style="font-size:0.74rem;color:var(--subtext);min-width:52px">Luck</span>
+                    <input type="range" id="odds-exp-luck" min="0" max="25" step="0.5"
+                      oninput="document.getElementById('odds-exp-luck-val').textContent=parseFloat(this.value).toFixed(1)+'%';renderOddsExplorer()"
+                      style="flex:1">
+                    <span id="odds-exp-luck-val" style="font-size:0.74rem;color:var(--mint);font-family:'DM Mono',monospace;min-width:40px;text-align:right">0.0%</span>
+                  </div>
+                </div>
+                <div id="odds-exp-pills" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:0.6rem"></div>
+                <div id="odds-exp-note" style="display:none;font-size:0.7rem;color:var(--subtext);border-left:2px solid var(--glass-hi);padding-left:0.5rem;margin-bottom:0.6rem;line-height:1.5"></div>
+                <div id="odds-exp-bars"></div>
+                <div id="odds-exp-special-notes" style="margin-top:0.6rem;display:flex;flex-direction:column;gap:4px"></div>
+              </div>
+            </div>
+
             <!-- Cloud Account -->
             <div class="prof-section" id="cloud-section">
               <div class="prof-section-title">☁️ Cloud Account</div>
@@ -1739,13 +2044,15 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
                 <div class="cloud-dot" id="cloud-dot"></div>
                 <span id="cloud-status-txt">Not connected — guest mode</span>
               </div>
-            <button class="btn btn-ghost btn-full btn-sm" onclick="openModal('auth-modal')">🔐 Login / Register</button>
+              <button class="btn btn-ghost btn-full btn-sm" onclick="openModal('auth-modal')">🔐 Login / Register</button>
               <div style="display:flex;gap:0.5rem;margin-top:0.5rem;">
                 <button class="btn btn-ghost btn-sm" style="flex:1" onclick="syncToCloud()">💾 Save to Cloud</button>
                 <button class="btn btn-ghost btn-sm" style="flex:1" onclick="loadFullGameStateFromCloud()">☁️ Load from Cloud</button>
-              </div>            </div>
-          </div>
-          
+              </div>
+            </div>
+
+          </div><!-- /#panel-profile END -->
+
           <!-- ── PANEL 4: FIGHT ─────────────────────── -->
             <div class="panel" id="panel-fight">
               <div class="section-hd">
@@ -2199,8 +2506,62 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
   </div>
 </div>
 <!-- ═══ ADMIN PANEL MODAL ══════════════════════════════════ -->
-<div class="modal-overlay" id="admin-panel-modal" role="dialog" aria-modal="true">
-  <div class="modal-box" style="max-width:520px;border-color:rgba(238,192,96,0.3);">
+<!-- ═══ TITLES & SHOWCASE MODAL ════════════════════════════ -->
+<div class="modal-overlay" id="titles-showcase-modal" role="dialog" aria-modal="true">
+  <div class="modal-box" style="max-width:460px;">
+    <button class="modal-close" onclick="closeModal('titles-showcase-modal')" aria-label="Close">×</button>
+    <div class="modal-title">🏷️ Titles & Showcase</div>
+
+    <!-- Tab Bar -->
+    <div class="tsm-tabs">
+      <button class="tsm-tab active" data-tab="titles" onclick="switchTSMTab('titles',this)">My Titles</button>
+      <button class="tsm-tab" data-tab="showcase" onclick="switchTSMTab('showcase',this)">Showcase</button>
+      <button class="tsm-tab" data-tab="search" onclick="switchTSMTab('search',this)">🔍 Search</button>
+    </div>
+
+    <!-- Titles Tab -->
+    <div id="tsm-tab-titles" class="tsm-pane">
+      <div id="titles-panel-body"></div>
+    </div>
+
+    <!-- Showcase Tab -->
+    <div id="tsm-tab-showcase" class="tsm-pane" style="display:none">
+      <div id="showcase-editor-body"></div>
+    </div>
+
+    <!-- Player Search Tab -->
+    <div id="tsm-tab-search" class="tsm-pane" style="display:none">
+      <div style="font-size:0.8rem;color:var(--subtext);margin-bottom:0.75rem;">
+        Finde einen Spieler und sieh sein Profil, Titel & Showcase.
+      </div>
+      <div class="player-search-row">
+        <input type="text" id="player-search-input" class="input-field"
+               placeholder="Username eingeben…" autocomplete="off"
+               onkeydown="if(event.key==='Enter') searchPlayerProfile()" />
+        <button id="player-search-btn" class="btn btn-primary btn-sm"
+                onclick="searchPlayerProfile()">🔍</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ═══ PLAYER PROFILE MODAL ═══════════════════════════════ -->
+<div class="modal-overlay" id="player-profile-modal" role="dialog" aria-modal="true">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('player-profile-modal')" aria-label="Close">×</button>
+    <div class="pp-avatar">✦</div>
+    <div class="pp-username" id="pp-username">—</div>
+    <div id="pp-title-row"></div>
+    <div class="pp-meta" id="pp-title-count">0 titles unlocked</div>
+    <div class="pp-showcase-label">🖼️ Showcase</div>
+    <div class="pp-showcase-row" id="pp-showcase-row"></div>
+    <div id="pp-stats-section"></div>
+    <button class="btn btn-ghost btn-full btn-sm" style="margin-top:1rem" onclick="closeModal('player-profile-modal')">
+      Schließen
+    </button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="admin-panel-modal" role="dialog" aria-modal="true">  <div class="modal-box" style="max-width:520px;border-color:rgba(238,192,96,0.3);">
     <button class="modal-close" onclick="closeModal('admin-panel-modal')" aria-label="Close">×</button>
 
     <!-- Header -->
@@ -2219,6 +2580,7 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
       <button class="btn-adm-quick" onclick="adminUnlockAllPacks()">📦 Unlock All Packs</button>
       <button class="btn-adm-quick" onclick="adminUnlockAllCards()">🃏 Unlock All Cards</button>
       <button class="btn-adm-quick" onclick="window._adminCoinsAdd && window._adminCoinsAdd(1000000); toast('👑 +1M coins!')">🏦 +1M Coins</button>
+      <button class="btn-adm-quick" onclick="adminUnlockAllTitles()" style="grid-column:span 2;">🏷️ Unlock All Titles</button>
     </div>
 
     <div class="adm-divider"></div>
@@ -2260,15 +2622,12 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
       <input type="number" id="adm-coins" class="adm-number-input" min="0" value="0" step="100" />
     </div>
 
-    <!-- Pack selection -->
-    <div class="adm-section-label">📦 Pack</div>
-    <div class="adm-row">
-      <span class="adm-row-label">Pack</span>
-      <select id="adm-pack-select" class="adm-select"></select>
-      <input type="number" id="adm-pack-qty" class="adm-number-input" min="1" value="1"
-             style="max-width:70px;" title="Anzahl" />
-      <span style="font-size:0.72rem;color:var(--subtext);">×</span>
+    <!-- Pack selection (multi) -->
+    <div class="adm-section-label" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>📦 Packs</span>
+      <button class="adm-pack-add-btn" onclick="adminAddPackRow()">＋ Hinzufügen</button>
     </div>
+    <div id="adm-pack-rows"><!-- wird via JS befüllt --></div>
 
     <!-- Card multi-select -->
     <div class="adm-section-label" style="display:flex;align-items:center;justify-content:space-between;">
@@ -2286,6 +2645,41 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
     </div>
     <div class="adm-card-list" id="adm-card-list">
       <!-- Wird via JS befüllt -->
+    </div>
+
+    <div class="adm-divider"></div>
+
+    <!-- Title Grant -->
+    <div class="adm-section-label">🏷️ Titel vergeben</div>
+    <div class="adm-title-grant-row">
+      <input type="text" id="adm-grant-user" class="adm-target-input"
+             placeholder="Username des Empfängers" autocomplete="off" />
+      <select id="adm-grant-title-sel" class="adm-title-select">
+        <option value="">— Titel wählen —</option>
+      </select>
+      <button class="btn-adm-quick" onclick="adminGrantTitleFromPanel()"
+              style="white-space:nowrap">👑 Grant</button>
+    </div>
+
+   <div class="adm-divider"></div>
+
+    <!-- Account Management -->
+    <div class="adm-section-label">🛠️ Account Verwaltung</div>
+    <div class="adm-indiv-label">Username des Ziel-Accounts</div>
+    <input type="text" id="adm-manage-user" class="adm-target-input"
+           placeholder="z.B. PlayerUsername" autocomplete="off"
+           style="margin-bottom:0.5rem;" />
+    <div class="adm-quick-row">
+      <button class="btn-adm-quick btn-adm-warning" onclick="adminResetAccountFromPanel()">
+        ♻️ Reset Account
+      </button>
+      <button class="btn-adm-quick btn-adm-danger" onclick="adminDeleteAccountFromPanel()">
+        🗑️ Delete Account
+      </button>
+    </div>
+    <div class="adm-hint" style="margin-bottom:0.8rem;">
+      <b>Reset:</b> Löscht Profil + sendet System-Mail (User bestätigt Reset beim Öffnen).<br>
+      <b>Delete:</b> Löscht Profil. Firebase Auth → über Firebase Console entfernen.
     </div>
 
     <div class="adm-divider"></div>
@@ -2401,7 +2795,7 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
           bg:'linear-gradient(145deg,#141224,#1E1432)',
         },
         prismaticFree: {
-          label:'Prismatic Pack', icon:'🌈', description:'2 Karten · 6h Cooldown · Eine davon garantiert Prismatic',
+          label:'Prismatic Pack', icon:'🌈', description:'2 Cards · odds of an prismatic card · Free every 6h',
           timedCooldown: 6 * 60 * 60, coinCost:0, cardCount:2, luckBonus:0, weightMod:{},
           type:'prismaticPack',
           bg:'linear-gradient(145deg,#0d0020,#001a2e)',
@@ -2548,6 +2942,11 @@ window.onFirebaseAuthChange = function(user) {
           ownedSpecialPacks: [...ownedSpecialPacks],
           questsClaimed: [...questClaimed],
           fightsPlayed, fightsWon,
+          // ── Titles & Profile ────────────────────────────────────
+          equippedTitleId:    window.equippedTitleId    || null,
+          equippedTitleColor: window.equippedTitleColor || 'purple',
+          unlockedTitles:     [...(window.unlockedTitles || [])],
+          showcaseCards:      (window.showcaseCards     || []),
           syncedAt: new Date().toISOString(),
         };
       }
@@ -2558,14 +2957,68 @@ window.onFirebaseAuthChange = function(user) {
       function clamp(v, mn, mx) { return Math.max(mn, Math.min(mx, v)); }
       function luckCost() { return adminMode ? 0 : Math.round(LUCK_BASE * Math.pow(LUCK_MULT, luckLevel)); }
 
-      function rarityChances(packKey = null) {
-        const mod = packKey ? (PACK_CFG[packKey]?.weightMod || {}) : {};
-        const w = {};
-        RARITY_ORDER.forEach(r => { w[r] = (RARITY_CFG[r].baseWeight || 0) * (mod[r] !== undefined ? mod[r] : 1); });
-        const total = Object.values(w).reduce((s,v) => s+v, 0);
-        const out = {};
-        RARITY_ORDER.forEach(r => (out[r] = total > 0 ? w[r]/total : 0));
-        return out;
+     function rarityChances(packKey = null, extraLuck = 0) {
+        const cfg = packKey ? (PACK_CFG[packKey] || SPECIAL_PACK_CFG?.[packKey]) : null;
+        const mod = cfg?.weightMod || {};
+        const type = cfg?.type || 'standard';
+        // ── Title boost integration ──────────────────────────────
+        const _titleBoost = (typeof getActiveTitleBoost === 'function') ? getActiveTitleBoost() : { luck: 1.0, packLuck: 0 };
+        const totalLuck = (luckPercent * (_titleBoost.luck || 1.0)) + (cfg?.luckBonus || 0) + extraLuck + (_titleBoost.packLuck || 0);
+
+        function _applyLuck(weights) {
+          const out = { ...weights };
+          const boost = totalLuck / 100;
+          const reduce = (out.Common || 0) * boost * 0.7;
+          out.Common = Math.max(0, (out.Common || 0) - reduce);
+          ['Rare','Epic','Mythical','Legendary','SSSR'].forEach((r, i) => {
+            if (out[r] !== undefined) out[r] = out[r] * (1 + boost * (0.3 + i * 0.15));
+          });
+          if (out.Prismatic !== undefined)
+            out.Prismatic = out.Prismatic * (1 + boost * (0.3 + 5 * 0.15));
+          return out;
+        }
+
+        function _normalize(weights, keys) {
+          const total = keys.reduce((s, r) => s + (weights[r] || 0), 0);
+          const out = {};
+          keys.forEach(r => out[r] = total > 0 ? (weights[r] || 0) / total : 0);
+          return out;
+        }
+
+        if (type === 'onlyRarity') {
+          const out = {};
+          [...RARITY_ORDER, 'Prismatic'].forEach(r => out[r] = 0);
+          if (cfg.fixedRarity) out[cfg.fixedRarity] = 1;
+          return { chances: out, keys: [cfg.fixedRarity], prismatic: false };
+        }
+
+        if (type === 'epicPlus') {
+          const pool = ['Epic','Mythical','Legendary','SSSR'];
+          const rawW = {}; pool.forEach(r => rawW[r] = RARITY_CFG[r].baseWeight);
+          const out = {}; RARITY_ORDER.forEach(r => out[r] = 0);
+          Object.assign(out, _normalize(_applyLuck(rawW), pool));
+          return { chances: out, keys: pool, prismatic: false };
+        }
+
+        if (type === 'mythicalPlus') {
+          const pool = ['Mythical','Legendary','SSSR'];
+          const rawW = {}; pool.forEach(r => rawW[r] = RARITY_CFG[r].baseWeight);
+          const out = {}; RARITY_ORDER.forEach(r => out[r] = 0);
+          Object.assign(out, _normalize(_applyLuck(rawW), pool));
+          return { chances: out, keys: pool, prismatic: false };
+        }
+
+        if (type === 'prismaticPack') {
+          const rawW = {};
+          RARITY_ORDER.forEach(r => rawW[r] = (RARITY_CFG[r].baseWeight || 0) * (mod[r] !== undefined ? mod[r] : 1));
+          rawW['Prismatic'] = 0.5;
+          const allKeys = [...RARITY_ORDER, 'Prismatic'];
+          return { chances: _normalize(_applyLuck(rawW), allKeys), keys: allKeys, prismatic: true };
+        }
+
+        const rawW = {};
+        RARITY_ORDER.forEach(r => rawW[r] = (RARITY_CFG[r].baseWeight || 0) * (mod[r] !== undefined ? mod[r] : 1));
+        return { chances: _normalize(_applyLuck(rawW), RARITY_ORDER), keys: RARITY_ORDER, prismatic: false };
       }
 
       function cardOdds(card, packKey = null) {
@@ -2723,12 +3176,9 @@ window.onFirebaseAuthChange = function(user) {
           btn.addEventListener('click', () => {
             SFX.play('click');
             const idx = parseInt(btn.dataset.panel);
-            
-            // KORREKTUR: Bei 5 Panels (500% Track) muss jeder Schritt 20% sein (100 / 5)
             document.getElementById('track').style.transform = `translateX(-${idx * 20}%)`;
-            
-            // Aktiven Button markieren
             document.querySelectorAll('.dock-btn').forEach((b, j) => b.classList.toggle('active', j === idx));
+            if (idx === 3) initOddsExplorer(); // Profile tab
           });
         });
       }
@@ -2742,6 +3192,31 @@ window.onFirebaseAuthChange = function(user) {
         const d = new Date(joinedDate);
         document.getElementById('profile-joined').textContent =
           `Joined ${d.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' })}`;
+        if (typeof _applyEquippedTitleToUI === 'function') _applyEquippedTitleToUI();
+      }
+
+      function openTitlesModal() {
+        if (typeof renderTitlesPanel === 'function') renderTitlesPanel();
+        if (typeof renderShowcaseEditor === 'function') renderShowcaseEditor();
+        // Reset to first tab
+        switchTSMTab('titles', document.querySelector('.tsm-tab[data-tab="titles"]'));
+        openModal('titles-showcase-modal');
+      }
+
+      function switchTSMTab(tabName, btn) {
+        // Hide all panes
+        ['titles','showcase','search'].forEach(t => {
+          const el = document.getElementById('tsm-tab-' + t);
+          if (el) el.style.display = 'none';
+        });
+        // Show selected
+        const active = document.getElementById('tsm-tab-' + tabName);
+        if (active) active.style.display = '';
+        // Update tab buttons
+        document.querySelectorAll('.tsm-tab').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        // Lazy render
+        if (tabName === 'showcase' && typeof renderShowcaseEditor === 'function') renderShowcaseEditor();
       }
 
       function handleAvatarUpload(e) {
@@ -3229,7 +3704,9 @@ window.onFirebaseAuthChange = function(user) {
             <div class="pack-top">
               <div class="pack-icon-bubble">${pk.icon}</div>
               <div class="pack-info">
-                <div class="pack-label">${pk.label}</div>
+                <div class="pack-label">${pk.label}
+                  <button class="info-btn" onclick="openOddsModal('${key}')" title="Drop rates">i</button>
+                </div>
                 <div class="pack-desc">${pk.description}</div>
               </div>
             </div>
@@ -3256,7 +3733,7 @@ window.onFirebaseAuthChange = function(user) {
         if (typeof SPECIAL_PACK_CFG === 'undefined') return;
         const container = document.getElementById('shop-special-packs');
         if (!container) return;
-        let entries = Object.entries(SPECIAL_PACK_CFG);
+        let entries = Object.entries(SPECIAL_PACK_CFG).filter(([, pk]) => !pk.shopHidden);
         const notOwned = entries.filter(([k]) => !ownedSpecialPacks.has(k));
         const owned    = entries.filter(([k]) =>  ownedSpecialPacks.has(k));
         for (let i = notOwned.length - 1; i > 0; i--) {
@@ -3271,7 +3748,9 @@ window.onFirebaseAuthChange = function(user) {
             <div class="shop-special-pack${isOwned ? ' owned' : ''}">
               <div class="shop-sp-icon">${pk.icon}</div>
               <div class="shop-sp-info">
-                <div class="shop-sp-label">${pk.label}</div>
+                <div class="shop-sp-label">${pk.label}
+                  <button class="info-btn" onclick="openOddsModal('${key}')" title="Drop rates">i</button>
+                </div>
                 <div class="shop-sp-desc">${pk.description}</div>
                 <div class="shop-sp-price">${isOwned ? '✓ Unlocked' : `🪙 ${cost.toLocaleString()}`}</div>
               </div>
@@ -3322,19 +3801,20 @@ window.onFirebaseAuthChange = function(user) {
       function renderOddsChart() {
         const container = document.getElementById('odds-chart');
         if (!container) return;
-        const ch = rarityChances();
+        const { chances: ch } = rarityChances();
+        const maxPct = Math.max(...RARITY_ORDER.map(r => (ch[r] || 0) * 100), 0.001);
         container.innerHTML = RARITY_ORDER.map(r => {
           const rcfg = RARITY_CFG[r];
-          const pct  = (ch[r] * 100);
+          const pct  = (ch[r] || 0) * 100;
           const disp = pctStr(pct);
-          const w    = Math.min(100, pct * 1.5).toFixed(2);
+          const w    = pct === 0 ? 0 : Math.max(3, (pct / maxPct) * 90 + 5);
           return `<div class="odds-bar-row">
             <div class="odds-bar-head">
               <span style="color:${rcfg.color}">${rcfg.icon} ${r}</span>
               <span class="odds-bar-pct">${disp}</span>
             </div>
             <div class="odds-track">
-              <div class="odds-fill" style="width:${w}%;background:${rcfg.color};animation-delay:${RARITY_ORDER.indexOf(r)*0.06}s;"></div>
+              <div class="odds-fill" style="width:${w.toFixed(2)}%;background:${rcfg.color};animation-delay:${RARITY_ORDER.indexOf(r)*0.06}s;"></div>
             </div>
           </div>`;
         }).join('');
@@ -3343,32 +3823,193 @@ window.onFirebaseAuthChange = function(user) {
       function openOddsModal(packKey) {
         const title = document.getElementById('odds-title');
         const body  = document.getElementById('odds-modal-body');
-        const label = packKey
-          ? (PACK_CFG[packKey]?.label || SPECIAL_PACK_CFG?.[packKey]?.label || packKey)
-          : 'All Packs (Base Rates)';
+        const cfg   = packKey ? (PACK_CFG[packKey] || SPECIAL_PACK_CFG?.[packKey]) : null;
+        const label = cfg?.label || packKey || 'All Packs (Base Rates)';
         title.textContent = `📊 Drop Rates — ${label}`;
-        const ch = rarityChances(packKey);
-        body.innerHTML = RARITY_ORDER.map(r => {
-          const rcfg = RARITY_CFG[r];
-          const pct  = ch[r] * 100;
+
+        const { chances: ch, keys, prismatic } = rarityChances(packKey);
+        const packLuck   = cfg?.luckBonus || 0;
+        const _tBoost = getActiveTitleBoost();
+        const effectiveLuck = (luckPercent * _tBoost.luck) + _tBoost.packLuck;
+        const totalLuck = effectiveLuck + packLuck;
+        parts.push(`your luck +${effectiveLuck.toFixed(1)}% (×1.25 Title)`);
+        const maxPct     = Math.max(...keys.map(r => (ch[r] || 0) * 100), 0.001);
+
+        body.innerHTML = keys.map(r => {
+          const rcfg = RARITY_CFG[r] || { color:'#d966ff', icon:'🌈' };
+          const pct  = (ch[r] || 0) * 100;
           const disp = pctStr(pct);
-          const w    = Math.min(100, pct * 1.5).toFixed(2);
+          const w    = pct === 0 ? 0 : Math.max(3, (pct / maxPct) * 90 + 5);
           const pool = CARD_DATABASE.filter(c => c.rarity === r && c.pullWeight > 0).length;
           return `<div class="odds-bar-row">
             <div class="odds-bar-head">
-              <span style="color:${rcfg.color}">${rcfg.icon} ${r}</span>
+              <span style="color:${rcfg.color}">${rcfg.icon || ''} ${r}</span>
               <span class="odds-bar-pct">${disp} · ${pool} card${pool!==1?'s':''}</span>
             </div>
             <div class="odds-track">
-              <div class="odds-fill" style="width:${w}%;background:${rcfg.color};animation-delay:${RARITY_ORDER.indexOf(r)*0.06}s;"></div>
+              <div class="odds-fill" style="width:${w.toFixed(2)}%;background:${rcfg.color};animation-delay:${keys.indexOf(r)*0.06}s;"></div>
             </div>
           </div>`;
         }).join('');
-        if (packKey && SPECIAL_PACK_CFG?.[packKey]?.luckBonus) {
-          body.innerHTML += `<p style="font-size:0.72rem;color:var(--mint);margin-top:0.8rem;">+${SPECIAL_PACK_CFG[packKey].luckBonus}% luck bonus active for this pack.</p>`;
+
+        // Luck summary
+        if (totalLuck > 0) {
+          const parts = [];
+          if (luckPercent > 0) parts.push(`your luck +${luckPercent.toFixed(1)}%`);
+          if (packLuck > 0)    parts.push(`pack bonus +${packLuck}%`);
+          body.innerHTML += `<p style="font-size:0.72rem;color:var(--mint);margin-top:0.8rem;">🍀 ${parts.join(' · ')} → total ${totalLuck.toFixed(1)}% applied</p>`;
         }
+
+        // Special pack notes
+        const type = cfg?.type;
+        const notes = [];
+        if (type === 'starterBooster') notes.push('✦ 1 card guaranteed Rare — remaining cards at standard odds');
+        if (type === 'shinyPack')      notes.push('✨ 1 card guaranteed Shiny — base rarity chosen at standard odds');
+        if (prismatic)                 notes.push('🌈 Prismatic rarity enabled in this pack (base weight 0.5)');
+        if (type === 'epicPlus')       notes.push('❋ All cards Epic or higher — weighted by base rarity ratios');
+        if (type === 'mythicalPlus')   notes.push('✸ All cards Mythical or higher — weighted by base rarity ratios');
+        if (type === 'classPack')      notes.push('🎭 Odds shown are within the randomly selected class pool');
+        if (type === 'twistPack')      notes.push('🌀 Two cards drawn per duel — you choose one from each pair');
+        if (type === 'mysteryBox')     notes.push('🎁 Actual odds depend on which pack gets randomly selected');
+        if (type === 'collectorsChoice') notes.push('💎 SSSR ×12 · Legendary ×3 applied via weight modifier');
+        if (type === 'speedPack')      notes.push('⚡ Legendary ×5 · Epic ×1.1 applied via weight modifier');
+
+        if (notes.length) {
+          body.innerHTML += notes.map(n =>
+            `<p style="font-size:0.72rem;color:var(--subtext);margin-top:0.5rem;padding-left:0.25rem;">${n}</p>`
+          ).join('');
+        }
+
         openModal('odds-modal');
       }
+
+    /* ────────────────────────────────────────────────────────
+      DROP RATE EXPLORER (Profile Tab)
+    ──────────────────────────────────────────────────────── */
+    function initOddsExplorer() {
+      const sel = document.getElementById('odds-exp-pack');
+      if (!sel) return;
+      const prev = sel.value;
+      sel.innerHTML = '';
+
+      const addGroup = (label, entries) => {
+        if (!entries.length) return;
+        const g = document.createElement('optgroup');
+        g.label = label;
+        entries.forEach(([k, pk]) => {
+          const o = document.createElement('option');
+          o.value = k;
+          o.textContent = pk.label + (pk.luckBonus > 0 ? ` (+${pk.luckBonus}% luck)` : '');
+          if (k === prev) o.selected = true;
+          g.appendChild(o);
+        });
+        sel.appendChild(g);
+      };
+
+      addGroup('Free Packs', Object.entries(PACK_CFG));
+      if (typeof SPECIAL_PACK_CFG !== 'undefined') {
+        const owned = Object.entries(SPECIAL_PACK_CFG).filter(([k]) => adminMode || ownedSpecialPacks.has(k));
+        addGroup('Special Packs', owned);
+      }
+
+      const luckSlider = document.getElementById('odds-exp-luck');
+      const luckValEl  = document.getElementById('odds-exp-luck-val');
+      if (luckSlider) {
+        luckSlider.value = luckPercent;
+        luckValEl.textContent = luckPercent.toFixed(1) + '%';
+      }
+      renderOddsExplorer();
+    }
+
+    function renderOddsExplorer() {
+      const sel        = document.getElementById('odds-exp-pack');
+      const luckSlider = document.getElementById('odds-exp-luck');
+      if (!sel || !luckSlider) return;
+
+      const packKey    = sel.value;
+      const customLuck = parseFloat(luckSlider.value) || 0;
+      const cfg        = PACK_CFG[packKey] || SPECIAL_PACK_CFG?.[packKey];
+      if (!cfg) return;
+      
+      const packLuck  = cfg.luckBonus || 0;
+      const _tBoost = (typeof getActiveTitleBoost === 'function') ? getActiveTitleBoost() : { luck: 1.0, packLuck: 0 };
+      const effectiveLuck = (customLuck * (_tBoost.luck || 1.0)) + (_tBoost.packLuck || 0);
+      const totalLuck = effectiveLuck + packLuck;      
+      // Anzeige: "your luck +6.25% (×1.25 Title) → total 6.25%"
+
+      // Pills
+      const pillsEl = document.getElementById('odds-exp-pills');
+      let pH = '';
+      if (customLuck > 0) pH += `<span style="font-size:0.68rem;font-weight:700;padding:2px 9px;border-radius:99px;background:rgba(88,240,192,0.13);color:var(--mint);border:1px solid rgba(88,240,192,0.28)">You +${effectiveLuck.toFixed(1)}%${_tBoost.luck > 1.0 ? ' (×'+_tBoost.luck.toFixed(2)+' Title)' : ''}</span>`;
+      if (packLuck  > 0) pH += `<span style="font-size:0.68rem;font-weight:700;padding:2px 9px;border-radius:99px;background:rgba(180,158,255,0.13);color:var(--accent);border:1px solid rgba(180,158,255,0.28)">Pack +${packLuck}%</span>`;
+      if (totalLuck > 0) pH += `<span style="font-size:0.68rem;font-weight:700;padding:2px 9px;border-radius:99px;background:rgba(88,240,192,0.07);color:var(--mint);border:1px solid rgba(88,240,192,0.18)">Total ${totalLuck.toFixed(1)}%</span>`;
+      pillsEl.innerHTML = pH;
+
+      // Type note
+      const noteEl = document.getElementById('odds-exp-note');
+      const type   = cfg.type || 'standard';
+      const typeNotes = {
+        onlyRarity:       `Fixed draw — only ${cfg.fixedRarity || ''} cards from the pool`,
+        epicPlus:         'All cards guaranteed Epic or higher',
+        mythicalPlus:     'All cards guaranteed Mythical or higher',
+        prismaticPack:    'Standard draw + Prismatic rarity enabled (weight 0.5)',
+        speedPack:        'Legendary ×5 · Epic ×1.1 via weight modifier',
+        collectorsChoice: 'SSSR ×12 · Legendary ×3 via weight modifier',
+        classPack:        'Standard weights within a randomly chosen class',
+        twistPack:        'Two cards drawn per round — you pick one from each pair',
+        mysteryBox:       'Opens a random owned pack — odds depend on selection',
+        shinyPack:        'Standard odds for rarities · 1 card always Shiny',
+        starterBooster:   'First card forced Rare · remaining cards at standard odds',
+      };
+      const tn = typeNotes[type];
+      if (tn) { noteEl.textContent = tn; noteEl.style.display = 'block'; }
+      else noteEl.style.display = 'none';
+
+      // Compute odds — temporarily swap luckPercent so rarityChances() picks it up
+      const savedLuck = luckPercent;
+      luckPercent = customLuck;
+      const { chances: ch, keys, prismatic } = rarityChances(packKey);
+      luckPercent = savedLuck;
+
+      // Bars — render at width:0 first, then rAF to trigger CSS transition
+const barsEl = document.getElementById('odds-exp-bars');
+const maxPct = Math.max(...keys.map(r => (ch[r] || 0) * 100), 0.001);
+const barData = keys.map(r => {
+  const rcfg = RARITY_CFG[r] || { color:'#d966ff', icon:'🌈' };
+  const pct  = (ch[r] || 0) * 100;
+  const disp = pctStr(pct);
+  const w    = pct === 0 ? 0 : Math.max(3, (pct / maxPct) * 90 + 5);
+  return { r, rcfg, disp, w };
+});
+barsEl.innerHTML = barData.map(({ r, rcfg, disp }) => `<div style="margin-bottom:0.5rem">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+    <span style="font-size:0.76rem;font-weight:700;color:${rcfg.color}">${rcfg.icon || ''} ${r}</span>
+    <span style="font-size:0.7rem;color:var(--subtext);font-family:'DM Mono',monospace">${disp}</span>
+  </div>
+  <div style="height:6px;background:rgba(255,255,255,0.06);border-radius:99px;overflow:hidden">
+    <div class="odds-exp-fill" data-rarity="${r}" style="height:100%;width:0%;background:${rcfg.color};border-radius:99px;transition:width 0.45s cubic-bezier(0.16,1,0.3,1)"></div>
+  </div>
+</div>`).join('');
+requestAnimationFrame(() => {
+  barData.forEach(({ r, w }) => {
+    const el = barsEl.querySelector(`.odds-exp-fill[data-rarity="${r}"]`);
+    if (el) el.style.width = w.toFixed(2) + '%';
+  });
+});
+
+      // Special notes
+      const notesEl = document.getElementById('odds-exp-special-notes');
+      const specNotes = [];
+      if (type === 'starterBooster') specNotes.push({ c:'#6AB2FF', t:'1 card guaranteed Rare' });
+      if (type === 'shinyPack')      specNotes.push({ c:'#ffe066', t:'1 card guaranteed Shiny (any rarity)' });
+      if (prismatic)                 specNotes.push({ c:'#d966ff', t:'Prismatic rarity active in this pack' });
+      if (type === 'mysteryBox')     specNotes.push({ c:'#FF6E9E', t:'Odds depend on which pack gets selected' });
+      notesEl.innerHTML = specNotes.map(n =>
+        `<div style="display:flex;align-items:center;gap:6px;font-size:0.7rem;color:var(--subtext)">
+          <span style="width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block;background:${n.c}"></span>${n.t}
+        </div>`
+      ).join('');
+    }
 
       /* ────────────────────────────────────────────────────────
      COOLDOWNS
@@ -3702,7 +4343,8 @@ window.onFirebaseAuthChange = function(user) {
         SFX.play('collect');
         renderCollection();
         renderStats();
-        checkQuestProgress(); // ← NEU
+        checkQuestProgress();
+        if (typeof checkAndUnlockTitles === 'function') checkAndUnlockTitles();
         currentCards  = [];
         revealedCount = 0;
       }
@@ -3928,7 +4570,7 @@ window.onFirebaseAuthChange = function(user) {
         const odds = cardOdds(card);
         const oddsEl = document.getElementById('detail-odds');
         oddsEl.textContent = card.rarity === 'Hidden'
-          ? '✨ Obtainable via special code or only'
+          ? '✨ Obtainable only via special code or quests.'
           : (odds ? `~1 in ${odds.toLocaleString()} chance per card` : '');
 
         const sv = card.sellValue ?? rcfg.sellValue ?? 0;
@@ -4073,6 +4715,13 @@ window.onFirebaseAuthChange = function(user) {
               totalAdded++;
           }
       });
+  }
+  else if (reward.type === 'title') {
+    // Code-exklusiver Titel — direkt ins unlockedTitles Set
+    if (typeof window.unlockedTitles !== 'undefined' && reward.titleId) {
+      window.unlockedTitles.add(reward.titleId);
+      if (typeof saveTitleData === 'function') saveTitleData();
+    }
   }
 
   // Gemeinsames Speichern und Benachrichtigen
@@ -4326,7 +4975,12 @@ window.onFirebaseAuthChange = function(user) {
               chips.push(`<div class="mail-att-chip card">🎴 ${att.card.isShiny?'✨ ':''}${att.card.name} (${att.card.rarity})</div>`);
             }
             // Pack mit optionaler Mengenangabe
-            if (att.pack) {
+            if (att.packs && att.packs.length) {
+              att.packs.forEach(p => {
+                const qty = p.qty > 1 ? ` ×${p.qty}` : '';
+                chips.push(`<div class="mail-att-chip pack">${p.icon||'📦'} ${p.name||p.packKey}${qty}</div>`);
+              });
+            } else if (att.pack) {
               const qty = att.pack.qty > 1 ? ` ×${att.pack.qty}` : '';
               chips.push(`<div class="mail-att-chip pack">${att.pack.icon||'📦'} ${att.pack.name||att.pack.packKey}${qty}</div>`);
             }
@@ -4374,13 +5028,35 @@ window.onFirebaseAuthChange = function(user) {
           } else if (att.card) {
             addToCollection({ ...att.card, count: 1 });
           }
-          // Pack mit Mengenangabe (qty), Default: 1
-          if (att.pack) {
+          // Packs: neues Multi-Array-Format + Legacy Einzel-Pack
+          if (att.packs && att.packs.length) {
+            att.packs.forEach(p => {
+              const qty = p.qty || 1;
+              for (let i = 0; i < qty; i++) {
+                unopenedPacks.push({ ...p, acquiredAt: new Date().toISOString() });
+              }
+            });
+          } else if (att.pack) {
             const qty = att.pack.qty || 1;
             for (let i = 0; i < qty; i++) {
               unopenedPacks.push({ ...att.pack, acquiredAt: new Date().toISOString() });
             }
           }
+
+          // System-Reset (gesendet via adminResetAccount)
+          if (data.isSystemReset) {
+            await updateDoc(ref, { collected: true, collectedAt: serverTimestamp() });
+            if (confirm('⚠️ System-Reset: Alle Spieldaten werden unwiderruflich gelöscht.\nFortfahren?')) {
+              ['cztcg5_col','cztcg5_coins','cztcg5_luck','cztcg5_luck_lvl','cztcg5_packs',
+               'cztcg5_user','cztcg5_avatar','cztcg5_joined','cztcg5_codes_v2',
+               'cztcg5_pack_vis','cztcg5_owned_special','cztcg5_unopened_packs']
+                .forEach(k => localStorage.removeItem(k));
+              toast('🔄 Account zurückgesetzt. Seite wird neu geladen…', true);
+              setTimeout(() => location.reload(), 1800);
+            }
+            return;
+          }
+
           await updateDoc(ref, { collected: true, collectedAt: serverTimestamp() });
           saveData();
           renderCollection();
@@ -4389,7 +5065,10 @@ window.onFirebaseAuthChange = function(user) {
           const cardNames = att.cards?.length
            ? att.cards.map(c=>c.name).join(', ')
            : (att.card?.name || '');
-          toast(`✅ Collected! ${att.coins?`+🪙${att.coins.toLocaleString()} `:''}${cardNames?`🎴 ${cardNames} `:''}${att.pack?`📦 ${att.pack.name}`:''}`.trim());
+          const packSummary = att.packs?.length
+            ? att.packs.map(p => `📦 ${p.name}${p.qty > 1 ? ` ×${p.qty}` : ''}`).join(', ')
+            : (att.pack ? `📦 ${att.pack.name}` : '');
+          toast(`✅ Collected! ${att.coins?`+🪙${att.coins.toLocaleString()} `:''}${cardNames?`🎴 ${cardNames} `:''}${packSummary}`.trim());
           SFX.play('collect');
           loadMailbox();
         } catch (e) {
@@ -4482,6 +5161,7 @@ window.onFirebaseAuthChange = function(user) {
           if (d.username)           { username = d.username; localStorage.setItem(LS_KEY.USER, username); }
           if (d.fightsPlayed != null) fightsPlayed = d.fightsPlayed;
           if (d.fightsWon    != null) fightsWon    = d.fightsWon;
+          if (typeof loadTitleDataFromCloud === 'function') loadTitleDataFromCloud(d);
           saveData();
           saveQuestData();
           updateUI();
@@ -4511,6 +5191,7 @@ window.onFirebaseAuthChange = function(user) {
           if (d.joinedDate)     joinedDate = d.joinedDate;
           if (d.usedCodes)      usedCodes  = new Set(d.usedCodes);
           if (d.unopenedPacks)  unopenedPacks = d.unopenedPacks;
+          if (typeof loadTitleDataFromCloud === 'function') loadTitleDataFromCloud(d);
           saveData();
           updateUI();
           initProfile();
@@ -4729,6 +5410,7 @@ window.onFirebaseAuthChange = function(user) {
       function init() {
         loadData();
         loadQuestData();
+        if (typeof initTitleSystem === 'function') initTitleSystem();
         updateUI();
         initNav();
         initProfile();
@@ -4965,6 +5647,7 @@ window.onFirebaseAuthChange = function(user) {
         }
 
         saveQuestData();
+        if (typeof checkAndUnlockTitles === 'function') checkAndUnlockTitles();
         updateQuestFabBadge();
         renderQuestList();
       }

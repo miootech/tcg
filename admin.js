@@ -41,10 +41,10 @@ function openAdminPanel() {
   }
   _buildAdminCardSelect();
   _buildAdminPackSelect();
+  _buildAdminTitleSelect();
   _resetAdminForm();
   openModal('admin-panel-modal');
 }
-
 /* ── 4. FORM HELPERS ────────────────────────────────────── */
 function _buildAdminCardSelect() {
   const container = document.getElementById('adm-card-list');
@@ -69,33 +69,104 @@ function _buildAdminCardSelect() {
   });
 }
 
-function _buildAdminPackSelect() {
-  const sel = document.getElementById('adm-pack-select');
-  if (!sel) return;
-  sel.innerHTML = '<option value="">— None —</option>';
+/* Returns HTML string of all pack <option>s + <optgroup>s */
+function _getPackOptionsHTML() {
+  let html = '<option value="">— None —</option>';
+  if (typeof PACK_CFG !== 'undefined') {
+    html += '<optgroup label="Standard Packs">';
+    Object.entries(PACK_CFG).forEach(([key, pk]) => {
+      html += `<option value="${key}">${pk.icon || '📦'} ${pk.label || pk.name || key}</option>`;
+    });
+    html += '</optgroup>';
+  }
+  if (typeof SPECIAL_PACK_CFG !== 'undefined') {
+    html += '<optgroup label="Special Packs">';
+    Object.entries(SPECIAL_PACK_CFG).forEach(([key, pk]) => {
+      html += `<option value="${key}">${pk.icon || '📦'} ${pk.label || pk.name || key}</option>`;
+    });
+    html += '</optgroup>';
+  }
+  return html;
+}
 
-  const addGroup = (label, entries) => {
+/* Initialises the multi-pack builder with one empty row */
+function _buildAdminPackSelect() {
+  const container = document.getElementById('adm-pack-rows');
+  if (!container) return;
+  container.innerHTML = '';
+  adminAddPackRow();
+}
+
+/* Adds one new pack row to the multi-pack builder */
+function adminAddPackRow() {
+  const container = document.getElementById('adm-pack-rows');
+  if (!container) return;
+  const row = document.createElement('div');
+  row.className = 'adm-pack-row';
+  row.innerHTML = `
+    <select class="adm-select adm-pack-row-sel">${_getPackOptionsHTML()}</select>
+    <input type="number" class="adm-number-input adm-pack-row-qty"
+           min="1" value="1" style="max-width:72px;" title="Anzahl" />
+    <span style="font-size:0.72rem;color:var(--subtext);padding:0 2px;">×</span>
+    <button class="adm-pack-row-remove" onclick="adminRemovePackRow(this)" title="Entfernen">✕</button>`;
+  container.appendChild(row);
+}
+
+/* Removes the pack row containing the given button */
+function adminRemovePackRow(btn) {
+  const row = btn.closest('.adm-pack-row');
+  if (row) row.remove();
+}
+
+/* Collects all valid pack selections from the multi-pack builder */
+function _getAdminPacksForGift() {
+  const packs = [];
+  document.querySelectorAll('.adm-pack-row').forEach(row => {
+    const key = row.querySelector('.adm-pack-row-sel')?.value;
+    const qty = Math.max(1, parseInt(row.querySelector('.adm-pack-row-qty')?.value) || 1);
+    if (!key) return;
+    const cfg = (typeof SPECIAL_PACK_CFG !== 'undefined' && SPECIAL_PACK_CFG?.[key])
+              || (typeof PACK_CFG !== 'undefined' && PACK_CFG?.[key]);
+    if (!cfg) return;
+    packs.push({
+      packKey:   key,
+      name:      cfg.label || cfg.name || key,
+      icon:      cfg.icon  || '📦',
+      bg:        cfg.bg    || '',
+      qty,
+      sellValue: cfg.sellValue || 0,
+    });
+  });
+  return packs;
+}
+
+function _buildAdminTitleSelect() {
+  const sel = document.getElementById('adm-grant-title-sel');
+  if (!sel || typeof window.TITLES_DATABASE === 'undefined') return;
+  sel.innerHTML = '<option value="">— Titel wählen —</option>';
+  const RARITY_ORDER = ['Common','Rare','Epic','Mythical','Legendary','SSSR','Hidden'];
+  RARITY_ORDER.forEach(rar => {
+    const titles = window.TITLES_DATABASE.filter(t => t.rarity === rar);
+    if (!titles.length) return;
     const grp = document.createElement('optgroup');
-    grp.label = label;
-    entries.forEach(([key, pk]) => {
+    grp.label = rar;
+    titles.forEach(t => {
       const opt = document.createElement('option');
-      opt.value = key;
-      opt.textContent = `${pk.icon || '📦'} ${pk.label || pk.name || key}`;
+      opt.value = t.id;
+      opt.textContent = `${t.icon} ${t.name}`;
       grp.appendChild(opt);
     });
     sel.appendChild(grp);
-  };
-
-  if (typeof PACK_CFG !== 'undefined') addGroup('Standard Packs', Object.entries(PACK_CFG));
-  if (typeof SPECIAL_PACK_CFG !== 'undefined') addGroup('Special Packs', Object.entries(SPECIAL_PACK_CFG));
+  });
 }
 
 function _resetAdminForm() {
-  const ids = ['adm-target-input','adm-msg','adm-coins','adm-pack-qty'];
+  const ids = ['adm-target-input', 'adm-msg', 'adm-coins', 'adm-manage-user'];
   ids.forEach(id => { const el = document.getElementById(id); if (el) el.value = el.type === 'number' ? 0 : ''; });
   document.querySelectorAll('.adm-card-cb').forEach(cb => cb.checked = false);
-  const sel = document.getElementById('adm-pack-select');
-  if (sel) sel.value = '';
+  // Reset multi-pack builder back to one empty row
+  const packRows = document.getElementById('adm-pack-rows');
+  if (packRows) { packRows.innerHTML = ''; adminAddPackRow(); }
   _setAdminTargetMode('individual');
   document.getElementById('adm-card-search')?.dispatchEvent(new Event('input'));
 }
@@ -160,10 +231,9 @@ async function adminSendGift() {
   const toggle     = document.getElementById('adm-target-toggle');
   const targetMode = toggle?.dataset.mode || 'individual';
   const coinsAmt   = parseInt(document.getElementById('adm-coins')?.value) || 0;
-  const packKey    = document.getElementById('adm-pack-select')?.value || '';
-  const packQty    = Math.max(1, parseInt(document.getElementById('adm-pack-qty')?.value) || 1);
-  const message    = document.getElementById('adm-msg')?.value.trim() || '';
-  const selectedIds = [...document.querySelectorAll('.adm-card-cb:checked')].map(cb => cb.value);
+  const packsForGift = _getAdminPacksForGift(); // ← multi-pack array
+  const message      = document.getElementById('adm-msg')?.value.trim() || '';
+  const selectedIds  = [...document.querySelectorAll('.adm-card-cb:checked')].map(cb => cb.value);
 
   // Karten-Objekte aus CARD_DATABASE holen
   const cardObjects = (typeof CARD_DATABASE !== 'undefined')
@@ -177,26 +247,15 @@ async function adminSendGift() {
       }).filter(Boolean)
     : [];
 
-  // Pack-Attachment
-  const packCfg = packKey ? (SPECIAL_PACK_CFG?.[packKey] || PACK_CFG?.[packKey]) : null;
-  const packAtt = packCfg ? {
-    packKey,
-    name: packCfg.label || packCfg.name || packKey,
-    icon: packCfg.icon || '📦',
-    bg:   packCfg.bg   || '',
-    qty:  packQty,
-    sellValue: packCfg.sellValue || 0,
-  } : null;
-
-  if (coinsAmt === 0 && !packAtt && cardObjects.length === 0 && !message) {
+  if (coinsAmt === 0 && !packsForGift.length && cardObjects.length === 0 && !message) {
     toast('⚠️ Füge etwas zum Geschenk hinzu!'); return;
   }
 
-  // attachments-Objekt — kompatibel mit bestehendem collectMail
+  // attachments — packs als Array (neues Format, abwärtskompatibel via collectMail)
   const attachments = {};
-  if (coinsAmt > 0)        attachments.coins = coinsAmt;
-  if (cardObjects.length)  attachments.cards = cardObjects;   // ← Array (Admin-Gift)
-  if (packAtt)             attachments.pack  = packAtt;
+  if (coinsAmt > 0)          attachments.coins = coinsAmt;
+  if (cardObjects.length)    attachments.cards = cardObjects;
+  if (packsForGift.length)   attachments.packs = packsForGift; // ← neues Multi-Pack-Format
 
   const sendBtn = document.getElementById('adm-send-btn');
   if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = '⏳ Sending…'; }
@@ -325,6 +384,20 @@ function adminUnlockAllPacks() {
   }
 }
 /* ── 8. UNLOCK ALL CARDS (Admin Only) ───────────────────── */
+/* ── 9. TITLE GRANT FROM PANEL (Admin UI wrapper) ───────── */
+async function adminGrantTitleFromPanel() {
+  if (!isUserAdmin()) return;
+  const targetUser = document.getElementById('adm-grant-user')?.value.trim() || '';
+  const titleId    = document.getElementById('adm-grant-title-sel')?.value || '';
+  if (!targetUser) { if (typeof toast === 'function') toast('⚠️ Username eingeben!'); return; }
+  if (!titleId)    { if (typeof toast === 'function') toast('⚠️ Titel wählen!'); return; }
+  if (typeof adminGrantTitle === 'function') {
+    await adminGrantTitle(targetUser, titleId);
+  } else {
+    if (typeof toast === 'function') toast('❌ adminGrantTitle() nicht gefunden. titles.js geladen?');
+  }
+}
+
 function adminUnlockAllCards() {
   if (!isUserAdmin()) return;
   if (typeof CARD_DATABASE === 'undefined' || typeof collection === 'undefined') {
@@ -344,5 +417,76 @@ function adminUnlockAllCards() {
   if (typeof saveData === 'function') saveData();
   if (typeof renderCollection === 'function') renderCollection();
   if (typeof renderStats === 'function') renderStats();
+  // ← FIX: Titel nach Card-Unlock neu prüfen
+  if (typeof checkAndUnlockTitles === 'function') checkAndUnlockTitles();
   if (typeof toast === 'function') toast(`👑 ${added} cards unlocked! (Base + Shiny)`);
+}
+
+/* ── 10. ACCOUNT MANAGEMENT (Admin only) ────────────────── */
+
+function adminResetAccountFromPanel() {
+  if (!isUserAdmin()) return;
+  const username = document.getElementById('adm-manage-user')?.value.trim();
+  if (!username) { if (typeof toast === 'function') toast('⚠️ Username eingeben!'); return; }
+  if (!confirm(`Account "${username}" wirklich zurücksetzen?\n\nDies löscht das öffentliche Profil und sendet dem User eine System-Reset-Mail.`)) return;
+  adminResetAccount(username);
+}
+
+function adminDeleteAccountFromPanel() {
+  if (!isUserAdmin()) return;
+  const username = document.getElementById('adm-manage-user')?.value.trim();
+  if (!username) { if (typeof toast === 'function') toast('⚠️ Username eingeben!'); return; }
+  if (!confirm(`Account "${username}" wirklich löschen?\n\nDas öffentliche Profil wird gelöscht.\nFirebase Auth-Account → bitte über Firebase Console entfernen.`)) return;
+  adminDeleteAccount(username);
+}
+
+/**
+ * Soft-Reset: Löscht profiles/{username} und schickt dem User
+ * eine System-Mail. Wenn der User die Mail "collected", werden
+ * alle lokalen Spieldaten gelöscht.
+ */
+async function adminResetAccount(username) {
+  if (!isUserAdmin() || !window.fbDb || !window.fbFuncs) {
+    if (typeof toast === 'function') toast('❌ Firebase nicht bereit'); return;
+  }
+  try {
+    const { doc, deleteDoc, addDoc, collection: col, serverTimestamp } = window.fbFuncs;
+    // 1. Profil-Dokument löschen (Titel, Showcase, Stats)
+    await deleteDoc(doc(window.fbDb, 'profiles', username));
+    // 2. System-Reset-Mail senden
+    await addDoc(col(window.fbDb, 'mailbox'), {
+      sender:        '⚙️ System',
+      receiver:      username,
+      message:       '⚠️ Dein Account wurde vom Admin zurückgesetzt. Klicke auf "Reset ausführen", um alle Spieldaten zu löschen und neu zu starten.',
+      attachments:   {},
+      isSystemReset: true,
+      timestamp:     serverTimestamp(),
+      collected:     false,
+      isAdminGift:   false,
+    });
+    if (typeof toast === 'function') toast(`✅ "${username}" zurückgesetzt & System-Mail gesendet!`, true);
+  } catch (e) {
+    console.error('adminResetAccount:', e);
+    if (typeof toast === 'function') toast('❌ ' + e.message);
+  }
+}
+
+/**
+ * Löscht profiles/{username} (das Einzige, worauf der Admin-Client
+ * per Firestore-Regel Zugriff hat). Firebase Auth muss manuell
+ * über die Firebase Console gelöscht werden.
+ */
+async function adminDeleteAccount(username) {
+  if (!isUserAdmin() || !window.fbDb || !window.fbFuncs) {
+    if (typeof toast === 'function') toast('❌ Firebase nicht bereit'); return;
+  }
+  try {
+    const { doc, deleteDoc } = window.fbFuncs;
+    await deleteDoc(doc(window.fbDb, 'profiles', username));
+    if (typeof toast === 'function')
+      toast(`🗑️ Profil von "${username}" gelöscht. Firebase Auth → Console!`, true);
+  } catch (e) {
+    console.error('adminDeleteAccount:', e);
+    if (typeof toast === 'function') toast('❌ ' + e.message);
+  }
 }
