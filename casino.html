@@ -1,0 +1,3437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>The Monseur Casino</title>
+  <link rel="icon" type="image/x-icon" href="/assets/casino.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,700&family=Quicksand:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- ═══ FIREBASE ══════════════════════════════════════════ -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import {
+      getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, where,
+      getDocs, addDoc, updateDoc, serverTimestamp, onSnapshot, deleteDoc, arrayUnion, arrayRemove
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBhMnXR9WVMWON4kz5K2-m9rCaEmJYPmc8",
+      authDomain: "tcggame-ef1c3.firebaseapp.com",
+      projectId: "tcggame-ef1c3",
+      storageBucket: "tcggame-ef1c3.firebasestorage.app",
+      messagingSenderId: "118974198654",
+      appId: "1:118974198654:web:99a44e020ad59d09b5f92f"
+    };
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+    window.fbAuth  = auth;
+    window.fbDb    = db;
+    window.fbFuncs = { doc, setDoc, getDoc, collection, query, orderBy, limit, where,
+                       getDocs, addDoc, updateDoc, serverTimestamp, onSnapshot, deleteDoc,
+                       arrayUnion, arrayRemove };
+    onAuthStateChanged(auth, user => {
+      window.fbUser = user || null;
+      if (window.onCasinoAuthChange) window.onCasinoAuthChange(user);
+    });
+  </script>
+  <script src="packs.js"></script>
+  <script src="codes.js"></script>
+  <script src="titles.js"></script>
+
+  <style>
+    /* ═══════════════════════════════════════════════════════
+       TOKENS — Mafia / Elegant / Dark
+    ═══════════════════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      /* ── Deep Ocean Blue ── */
+      --bg:        #060d18;
+      --surface:   #091622;
+      --surface-2: #0d1e30;
+      --surface-3: #1B3A4B;
+      --surface-4: #212F45;
+
+      /* Gold — warm contrast on ocean */
+      --gold:      #c8a96a;
+      --gold-2:    #e2c47a;
+      --gold-dim:  rgba(200,169,106,0.13);
+      --gold-glow: rgba(200,169,106,0.28);
+      --gold-border: rgba(200,169,106,0.20);
+      --gold-border-hi: rgba(200,169,106,0.38);
+
+      /* Teal accent */
+      --teal:        #006466;
+      --teal-2:      #065A60;
+      --teal-3:      #0B525B;
+      --teal-dim:    rgba(0,100,102,0.22);
+      --teal-glow:   rgba(0,100,102,0.35);
+      --teal-border: rgba(6,90,96,0.5);
+
+      /* Purple / Deep (replaces crimson) */
+      --crimson:   #272640;
+      --crimson-2: #312244;
+      --crimson-3: #3E1F47;
+      --rose:      #c0304a;
+
+      /* Table felt — Deep Teal */
+      --felt:      #006466;
+      --felt-2:    #065A60;
+
+      /* Text */
+      --text:      #caf0f8;
+      --subtext:   #4a6a7a;
+      --subtext-2: #6a8a9a;
+
+      /* Utility */
+      --border:    rgba(200,169,106,0.10);
+      --border-hi: rgba(200,169,106,0.28);
+      --glass:     rgba(13,15,20,0.92);
+
+      --r-xs: 4px; --r-sm: 8px; --r-md: 12px; --r-lg: 18px; --r-xl: 24px; --r-pill: 9999px;
+      --ease: cubic-bezier(0.16,1,0.3,1);
+      --ease-b: cubic-bezier(0.34,1.56,0.64,1);
+      --shadow-gold: 0 0 32px rgba(200,169,106,0.18);
+    }
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      font-family: "Quicksand", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Noise grain ── */
+    body::after {
+      content: ""; position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 250 250' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      opacity: 0.028; mix-blend-mode: overlay;
+    }
+
+    /* ── Background orbs ── */
+    .bg-layer { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(110px); }
+    .orb-1 { width: 600px; height: 600px; background: #312244; top: -200px; left: -150px; opacity: 0.22; }
+    .orb-2 { width: 450px; height: 450px; background: #006466; bottom: -100px; right: -80px; opacity: 0.26; }
+    .orb-3 { width: 300px; height: 300px; background: #144552; top: 40%; left: 50%; transform: translate(-50%,-50%); opacity: 0.06; }
+
+    /* ════════════════════════════════════════════════════════
+       LOCKED SCREEN
+    ════════════════════════════════════════════════════════ */
+    #locked-screen {
+      position: fixed; inset: 0; z-index: 500; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; background: var(--bg); gap: 1.2rem; padding: 2rem;
+    }
+    .lock-icon { font-size: 3.5rem; }
+    .lock-title { font-family: "Playfair Display", serif; font-size: 1.9rem; color: var(--gold); text-align: center; line-height: 1.2; }
+    .lock-sub { font-size: 0.86rem; color: var(--subtext-2); text-align: center; max-width: 300px; line-height: 1.7; }
+    .lock-quest {
+      background: var(--surface-2); border: 1px solid var(--gold-border);
+      border-radius: var(--r-lg); padding: 1.1rem 1.5rem;
+      font-size: 0.82rem; color: var(--text); text-align: center; line-height: 1.7; max-width: 320px;
+    }
+    .lock-quest b { color: var(--gold); }
+    .lock-or { font-size: 0.75rem; color: var(--subtext); }
+    .lock-back {
+      margin-top: 0.25rem; padding: 0.72rem 2rem;
+      border: 1px solid var(--gold-border-hi); border-radius: var(--r-pill);
+      background: transparent; color: var(--gold);
+      font-family: "Quicksand", sans-serif; font-weight: 700; cursor: pointer; font-size: 0.9rem;
+      transition: all 0.2s var(--ease);
+    }
+    .lock-back:hover { background: var(--gold-dim); transform: translateY(-1px); }
+    .lock-play-btn {
+      padding: 0.85rem 2.2rem; background: var(--gold); color: var(--bg);
+      border: none; border-radius: var(--r-md); font-family: "Quicksand", sans-serif;
+      font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s var(--ease-b);
+    }
+    .lock-play-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 28px var(--gold-glow); }
+
+    /* ════════════════════════════════════════════════════════
+       HEADER
+    ════════════════════════════════════════════════════════ */
+    #casino-app { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; }
+    .casino-header {
+      height: 56px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 1rem; background: var(--surface);
+      border-bottom: 1px solid var(--border); position: relative; z-index: 20;
+    }
+    .header-left  { display: flex; align-items: center; gap: 0.6rem; }
+    .header-right { display: flex; align-items: center; gap: 0.55rem; }
+
+    .casino-logo { font-family: "Playfair Display", serif; font-size: 1.1rem; color: var(--gold); letter-spacing: 0.02em; }
+    .casino-logo small { color: var(--subtext); font-size: 0.68rem; font-family: "Quicksand", sans-serif; font-weight: 500; margin-left: 0.3rem; }
+
+    .chip-display {
+      display: flex; align-items: center; gap: 0.35rem;
+      background: var(--surface-3); border: 1px solid var(--gold-border-hi);
+      border-radius: var(--r-pill); padding: 0.25rem 0.7rem;
+      font-size: 0.82rem; font-weight: 700; color: var(--gold);
+    }
+
+    .hdr-btn {
+      width: 34px; height: 34px; border-radius: var(--r-sm);
+      background: var(--surface-3); border: 1px solid var(--border);
+      color: var(--text); font-size: 0.9rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.18s var(--ease); flex-shrink: 0;
+    }
+    .hdr-btn:hover { background: var(--surface-4); border-color: var(--gold-border); color: var(--gold); }
+
+    /* Admin crown */
+    #admin-crown-btn {
+      display: none; /* shown via JS */
+      background: linear-gradient(135deg, rgba(200,169,106,0.2), rgba(200,169,106,0.08));
+      border-color: rgba(200,169,106,0.38); color: var(--gold); font-size: 1.05rem;
+    }
+    #admin-crown-btn:hover {
+      background: rgba(200,169,106,0.28); transform: translateY(-1px) scale(1.07);
+      box-shadow: 0 4px 18px var(--gold-glow);
+    }
+
+    /* Login badge */
+    #login-badge {
+      display: flex; align-items: center; gap: 0.3rem;
+      font-size: 0.72rem; color: var(--subtext-2); font-weight: 600;
+    }
+    #login-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #3a3; }
+    #login-badge .dot.off { background: #553; }
+
+    /* ════════════════════════════════════════════════════════
+       TAB BAR
+    ════════════════════════════════════════════════════════ */
+    .casino-tabs {
+      display: flex; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .c-tab {
+      flex: 1; padding: 0.65rem 0.4rem; font-size: 0.8rem; font-weight: 700;
+      background: transparent; border: none; color: var(--subtext);
+      font-family: "Quicksand", sans-serif; cursor: pointer; transition: all 0.22s;
+      border-bottom: 2px solid transparent; display: flex; align-items: center;
+      justify-content: center; gap: 0.3rem; letter-spacing: 0.01em;
+    }
+    .c-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+    .c-tab:hover:not(.active) { color: var(--text); }
+
+    /* ════════════════════════════════════════════════════════
+       CONTENT AREA
+    ════════════════════════════════════════════════════════ */
+    .casino-body { flex: 1; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; }
+    .casino-body::-webkit-scrollbar { width: 3px; }
+    .casino-body::-webkit-scrollbar-thumb { background: var(--surface-4); border-radius: 99px; }
+    .tab-pane { display: none; padding: 1rem 1rem 6rem; animation: fadeUp 0.28s var(--ease) both; }
+    .tab-pane.active { display: block; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+    /* ════════════════════════════════════════════════════════
+       SHARED COMPONENTS
+    ════════════════════════════════════════════════════════ */
+    .c-btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+      padding: 0.72rem 1.15rem; border: none; border-radius: var(--r-md);
+      font-family: "Quicksand", sans-serif; font-weight: 700; font-size: 0.88rem;
+      cursor: pointer; transition: all 0.18s var(--ease-b); letter-spacing: 0.01em; white-space: nowrap;
+    }
+    .c-btn:active:not(:disabled) { transform: scale(0.95) !important; }
+    .c-btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+    .c-btn-gold { background: linear-gradient(135deg, var(--gold-2), var(--gold)); color: #0a0608; }
+    .c-btn-gold:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 22px var(--gold-glow); }
+    .c-btn-ghost { background: transparent; color: var(--text); border: 1.5px solid var(--gold-border-hi); }
+    .c-btn-ghost:hover:not(:disabled) { background: var(--surface-3); border-color: var(--gold-border-hi); }
+    .c-btn-crimson { background: linear-gradient(135deg, var(--crimson-3), var(--crimson-2)); color: #fff; }
+    .c-btn-crimson:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(168,40,40,0.4); }
+    .c-btn-full { width: 100%; }
+    .c-btn-lg { padding: 0.95rem 1.5rem; font-size: 0.96rem; border-radius: var(--r-lg); letter-spacing: 0.06em; }
+    .c-btn-sm { padding: 0.42rem 0.75rem; font-size: 0.75rem; border-radius: var(--r-sm); }
+
+    .c-input {
+      width: 100%; padding: 0.72rem 1rem;
+      background: rgba(0,0,0,0.35); border: 1.5px solid var(--border);
+      border-radius: var(--r-md); color: var(--text);
+      font-family: "Quicksand", sans-serif; font-size: 0.88rem; font-weight: 600;
+      outline: none; transition: border-color 0.22s;
+    }
+    .c-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-dim); }
+    .c-input::placeholder { color: var(--subtext); }
+
+    .section-box {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r-lg); padding: 1.15rem; margin-bottom: 0.9rem;
+    }
+    .section-title {
+      font-family: "Playfair Display", serif; font-size: 0.95rem;
+      color: var(--gold); margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.4rem;
+    }
+    .divider { height: 1px; background: var(--border); margin: 0.85rem 0; }
+    .tag { display: inline-flex; align-items: center; gap: 0.25rem; padding: 2px 8px; border-radius: var(--r-pill); font-size: 0.67rem; font-weight: 700; letter-spacing: 0.04em; }
+    .tag-gold { background: rgba(200,169,106,0.12); color: var(--gold); border: 1px solid rgba(200,169,106,0.28); }
+    .tag-red  { background: rgba(168,40,40,0.18); color: #ff7a7a; border: 1px solid rgba(168,40,40,0.35); }
+    .tag-green{ background: rgba(60,180,60,0.14); color: #70e070; border: 1px solid rgba(60,180,60,0.28); }
+    .tag-blue { background: rgba(60,100,200,0.14); color: #88aaff; border: 1px solid rgba(60,100,200,0.28); }
+
+    /* ════════════════════════════════════════════════════════
+       TOAST
+    ════════════════════════════════════════════════════════ */
+    #toast-wrap { position: fixed; bottom: 5rem; left: 50%; transform: translateX(-50%); z-index: 9100; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; pointer-events: none; min-width: 200px; }
+    .c-toast {
+      background: var(--surface-4); border: 1px solid var(--gold-border-hi);
+      border-radius: var(--r-pill); padding: 0.55rem 1.25rem;
+      font-size: 0.84rem; font-weight: 700; color: var(--text); white-space: nowrap;
+      animation: toastIn 0.3s var(--ease) both, toastOut 0.3s 2.5s var(--ease) forwards;
+    }
+    .c-toast-epic { background: linear-gradient(135deg,var(--crimson-2),#2a0808); border-color: var(--gold-border-hi); color: var(--gold-2); }
+    .c-toast-ok   { background: linear-gradient(135deg,#0d3020,#061a10); border-color: rgba(60,180,60,0.3); color: #70e070; }
+    @keyframes toastIn  { from { opacity: 0; transform: translateY(10px) scale(0.9); } to { opacity: 1; transform: none scale(1); } }
+    @keyframes toastOut { to   { opacity: 0; transform: translateY(-8px); } }
+
+    /* ════════════════════════════════════════════════════════
+       TABLE TAB — MODE SELECTION
+    ════════════════════════════════════════════════════════ */
+    .table-mode-btns { display: grid; gap: 0.7rem; margin-bottom: 1rem; }
+    .table-mode-btn {
+      padding: 1rem 1.2rem; background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: var(--r-lg); color: var(--text); font-family: "Quicksand", sans-serif;
+      font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.22s var(--ease);
+      text-align: left; display: flex; align-items: center; gap: 0.8rem;
+    }
+    .table-mode-btn:hover { background: var(--surface-3); border-color: var(--gold-border-hi); transform: translateX(2px); }
+    .table-mode-btn .tmb-icon { font-size: 1.6rem; flex-shrink: 0; }
+    .table-mode-btn .tmb-label { color: var(--gold-2); display: block; font-size: 0.93rem; }
+    .table-mode-btn .tmb-desc  { font-size: 0.73rem; color: var(--subtext-2); margin-top: 1px; }
+    .table-mode-btn .tmb-badge { font-size: 0.65rem; padding: 1px 7px; border-radius: var(--r-pill); background: rgba(200,169,106,0.1); color: var(--gold); border: 1px solid var(--gold-border); margin-top: 3px; display: inline-block; }
+
+    /* ════════════════════════════════════════════════════════
+       BLACKJACK GAME
+    ════════════════════════════════════════════════════════ */
+    #game-area { display: none; }
+    .game-area-inner { display: flex; flex-direction: column; gap: 0.7rem; }
+
+    /* Bet area */
+    .bet-area {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: var(--r-lg); padding: 1rem;
+    }
+    .bet-label { font-size: 0.7rem; font-weight: 700; color: var(--subtext); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem; }
+    .bet-row   { display: flex; gap: 0.4rem; align-items: stretch; }
+    .bet-input {
+      flex: 1; padding: 0.65rem 0.9rem; background: rgba(0,0,0,0.4);
+      border: 1.5px solid var(--gold-border-hi); border-radius: var(--r-md);
+      color: var(--gold-2); font-family: "DM Mono", monospace;
+      font-size: 1.1rem; font-weight: 500; text-align: center; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .bet-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-dim); }
+    .bet-presets { display: flex; gap: 0.35rem; margin-top: 0.55rem; flex-wrap: wrap; }
+    .bet-preset {
+      padding: 0.28rem 0.58rem; background: var(--surface-3); border: 1px solid var(--border);
+      border-radius: var(--r-pill); font-size: 0.72rem; font-weight: 700;
+      cursor: pointer; color: var(--subtext-2); transition: all 0.18s;
+    }
+    .bet-preset:hover { background: var(--gold-dim); border-color: var(--gold-border-hi); color: var(--gold); }
+    .bet-preset.max { color: var(--gold); border-color: var(--gold-border); background: rgba(200,169,106,0.08); }
+
+    /* Card Table — felt top */
+    .card-table {
+      background: radial-gradient(ellipse at center, var(--felt-2) 0%, var(--felt) 60%, #060f09 100%);
+      border: 2px solid rgba(200,169,106,0.22); border-radius: var(--r-xl);
+      padding: 1rem 1rem 1rem; position: relative; min-height: 290px;
+      box-shadow: inset 0 0 40px rgba(0,0,0,0.6), 0 8px 24px rgba(0,0,0,0.5);
+    }
+    .card-table::before {
+      content: ""; position: absolute; inset: 6px; border-radius: calc(var(--r-xl) - 4px);
+      border: 1px solid rgba(200,169,106,0.1); pointer-events: none;
+    }
+    .hand-label {
+      font-size: 0.68rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.1em; color: rgba(255,255,255,0.35); margin-bottom: 0.4rem;
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+    .hand-value {
+      display: inline-block; background: rgba(0,0,0,0.45); border: 1px solid rgba(200,169,106,0.2);
+      border-radius: var(--r-pill); padding: 0px 7px; font-size: 0.72rem; font-weight: 700;
+      color: var(--gold); margin-left: 0.3rem;
+    }
+    .hand-value.bust { color: #ff7a7a; background: rgba(150,0,0,0.2); border-color: rgba(150,0,0,0.3); }
+    .hand-value.bj   { color: #70e070; background: rgba(0,100,0,0.2); border-color: rgba(0,100,0,0.3); }
+    .cards-row { display: flex; gap: 0.4rem; flex-wrap: wrap; min-height: 88px; margin-bottom: 0.65rem; align-items: flex-end; }
+
+    /* Playing cards */
+    .playing-card {
+      width: 58px; height: 82px; border-radius: 7px;
+      border: 1.5px solid rgba(255,255,255,0.08);
+      background: #faf7f0; display: flex; flex-direction: column;
+      align-items: flex-start; justify-content: flex-start;
+      position: relative; box-shadow: 0 4px 14px rgba(0,0,0,0.7);
+      transition: transform 0.25s var(--ease-b);
+      animation: cardSlide 0.32s var(--ease) both; flex-shrink: 0;
+      overflow: hidden; padding: 3px;
+    }
+    @keyframes cardSlide { from { opacity: 0; transform: translateY(-20px) rotate(-4deg); } to { opacity: 1; transform: none; } }
+    .playing-card:hover { transform: translateY(-3px); }
+    .playing-card img { width: 100%; height: 100%; object-fit: cover; border-radius: 5px; display: block; position: absolute; inset: 0; }
+    .card-inner {
+      position: relative; width: 100%; height: 100%;
+      display: flex; flex-direction: column; justify-content: space-between; padding: 2px 3px;
+    }
+    .card-rank { font-family: "DM Mono", monospace; font-size: 0.78rem; font-weight: 500; line-height: 1; }
+    .card-suit { font-size: 0.65rem; }
+    .card-center { font-size: 1.3rem; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); }
+    .card-bottom { transform: rotate(180deg); align-self: flex-end; }
+    .card-red .card-rank, .card-red .card-suit, .card-red .card-center { color: #b00; }
+    .card-black .card-rank, .card-black .card-suit, .card-black .card-center { color: #111; }
+
+    .playing-card.face-down {
+      background: linear-gradient(135deg, #0a1f4e 0%, #030d24 100%);
+      border-color: rgba(200,169,106,0.3);
+    }
+    .playing-card.face-down::after {
+      content: ""; position: absolute; inset: 4px;
+      background: repeating-linear-gradient(45deg, rgba(200,169,106,0.06) 0px, rgba(200,169,106,0.06) 2px, transparent 2px, transparent 8px);
+      border-radius: 4px; border: 1px solid rgba(200,169,106,0.12);
+    }
+
+    /* Round result overlay */
+    .round-result {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      background: rgba(7,8,11,0.88); backdrop-filter: blur(4px);
+      border-radius: inherit; flex-direction: column; gap: 0.5rem;
+      animation: fadeUp 0.3s var(--ease) both; z-index: 5;
+    }
+    .rr-title  { font-family: "Playfair Display", serif; font-size: 1.9rem; }
+    .rr-detail { font-size: 0.82rem; color: var(--subtext-2); }
+    .rr-payout { font-family: "DM Mono", monospace; font-size: 1.1rem; font-weight: 500; }
+    .round-result.win  .rr-title { color: var(--gold-2); }
+    .round-result.lose .rr-title { color: #ff7a7a; }
+    .round-result.push .rr-title { color: var(--text); }
+    .round-result.bj   .rr-title { color: #70e070; }
+    .round-result.win  .rr-payout { color: var(--gold); }
+    .round-result.lose .rr-payout { color: #ff7a7a; }
+    .round-result.push .rr-payout { color: var(--subtext-2); }
+    .round-result.bj   .rr-payout { color: #70e070; }
+
+    /* Insurance bar */
+    #insurance-bar {
+      background: var(--surface-3); border: 1px solid rgba(200,169,106,0.22);
+      border-radius: var(--r-md); padding: 0.75rem 1rem;
+      display: none; align-items: center; justify-content: space-between; gap: 0.6rem;
+    }
+    .ins-text { font-size: 0.84rem; font-weight: 700; color: var(--gold); }
+    .ins-sub  { font-size: 0.68rem; color: var(--subtext-2); margin-top: 2px; }
+
+    /* Action bar */
+    .action-bar { 
+      display: grid; 
+      grid-template-columns: 1fr 1fr; 
+      gap: 0.5rem; 
+    }
+    #btn-hit, #btn-stand { grid-column: auto; }
+    #btn-double, #btn-split, #btn-insurance { grid-column: auto; }
+    /* Du kannst die grid-column Attribute aus deinem alten CSS entfernen, damit sie sich natürlich anordnen */
+
+    /* ════════════════════════════════════════════════════════
+       PRIVATE TABLE
+    ════════════════════════════════════════════════════════ */
+    #private-table-area { display: none; }
+    .pt-room {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: var(--r-lg); padding: 1rem; text-align: center;
+    }
+    .pt-room-code { font-family: "Playfair Display", serif; font-size: 2rem; letter-spacing: 0.2em; color: var(--gold); margin: 0.4rem 0; }
+    .pt-status { font-size: 0.76rem; color: var(--subtext-2); margin-bottom: 0.6rem; }
+    .pt-players { display: flex; gap: 0.4rem; justify-content: center; flex-wrap: wrap; margin: 0.6rem 0; }
+    .pt-player {
+      background: var(--surface-3); border: 1px solid var(--border);
+      border-radius: var(--r-pill); padding: 0.22rem 0.65rem; font-size: 0.74rem; font-weight: 700;
+    }
+    .pt-player.me { border-color: var(--gold-border-hi); color: var(--gold); }
+
+    /* Live Chat */
+    .pt-chat {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r-lg); overflow: hidden; margin-top: 0.8rem;
+    }
+    .pt-chat-header {
+      padding: 0.55rem 0.9rem; background: var(--surface-2);
+      border-bottom: 1px solid var(--border); font-size: 0.72rem; font-weight: 700;
+      color: var(--subtext-2); display: flex; align-items: center; gap: 0.4rem;
+    }
+    .chat-live-dot { width: 6px; height: 6px; border-radius: 50%; background: #3a3; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .pt-chat-msgs {
+      height: 150px; overflow-y: auto; padding: 0.65rem 0.9rem;
+      display: flex; flex-direction: column; gap: 0.35rem;
+    }
+    .pt-chat-msgs::-webkit-scrollbar { width: 3px; }
+    .pt-chat-msgs::-webkit-scrollbar-thumb { background: var(--surface-4); border-radius: 99px; }
+    .chat-msg { font-size: 0.78rem; line-height: 1.4; }
+    .chat-msg .chat-user { color: var(--gold); font-weight: 700; margin-right: 0.3rem; }
+    .chat-msg.sys { color: var(--subtext); font-style: italic; }
+    .pt-chat-input-row { display: flex; gap: 0.4rem; padding: 0.55rem 0.9rem; border-top: 1px solid var(--border); }
+    .pt-chat-input {
+      flex: 1; padding: 0.4rem 0.7rem; background: rgba(0,0,0,0.35);
+      border: 1px solid var(--border); border-radius: var(--r-pill);
+      color: var(--text); font-family: "Quicksand", sans-serif; font-size: 0.8rem;
+      outline: none; transition: border-color 0.2s;
+    }
+    .pt-chat-input:focus { border-color: var(--gold-border); }
+    .pt-chat-input::placeholder { color: var(--subtext); }
+    .pt-chat-send {
+      padding: 0.35rem 0.7rem; background: var(--gold-dim); border: 1px solid var(--gold-border);
+      border-radius: var(--r-pill); color: var(--gold); font-size: 0.78rem; font-weight: 700;
+      cursor: pointer; transition: all 0.18s;
+    }
+    .pt-chat-send:hover { background: rgba(200,169,106,0.22); }
+
+    /* ════════════════════════════════════════════════════════
+       SHOP TAB
+    ════════════════════════════════════════════════════════ */
+    .shop-rate { font-size: 0.78rem; color: var(--subtext-2); text-align: center; margin-bottom: 0.85rem; line-height: 1.6; }
+    .shop-rate b { color: var(--gold); }
+    .bundle-grid { display: grid; gap: 0.55rem; }
+    .bundle-card {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: var(--r-md); padding: 0.85rem 1rem;
+      display: flex; align-items: center; justify-content: space-between; gap: 0.8rem;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .bundle-card:hover { border-color: var(--gold-border); background: var(--surface-3); }
+    .bundle-card.featured { border-color: var(--gold-border-hi); background: rgba(200,169,106,0.06); }
+    .bundle-info { flex: 1; }
+    .bundle-chips { font-family: "DM Mono", monospace; font-size: 1.05rem; font-weight: 500; color: var(--gold-2); }
+    .bundle-cost  { font-size: 0.72rem; color: var(--subtext-2); margin-top: 2px; }
+    .bundle-badge { font-size: 0.62rem; padding: 1px 7px; border-radius: var(--r-pill); margin-left: 0.4rem; }
+
+    .limit-wrap { margin-bottom: 0.9rem; }
+    .limit-label { font-size: 0.7rem; color: var(--subtext-2); display: flex; justify-content: space-between; margin-bottom: 0.35rem; font-weight: 600; }
+    .limit-bar-bg { background: var(--surface-3); border-radius: var(--r-pill); height: 5px; overflow: hidden; }
+    .limit-bar-fill { height: 100%; background: linear-gradient(90deg,var(--crimson-2),var(--rose)); border-radius: inherit; transition: width 0.4s var(--ease); }
+    .limit-timer { font-size: 0.74rem; color: #ff7a7a; font-weight: 700; margin-top: 0.35rem; text-align: right; }
+
+    .vip-divider { display: flex; align-items: center; gap: 0.5rem; margin: 0.9rem 0; }
+    .vip-divider::before, .vip-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+    .vip-divider span { font-size: 0.7rem; color: var(--gold); font-weight: 700; white-space: nowrap; letter-spacing: 0.05em; }
+
+    /* ════════════════════════════════════════════════════════
+       STATS TAB
+    ════════════════════════════════════════════════════════ */
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    .stat-tile {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: var(--r-md); padding: 0.8rem 0.75rem; text-align: center;
+    }
+    .stat-val { font-size: 1.25rem; font-weight: 700; font-family: "DM Mono", monospace; color: var(--gold-2); }
+    .stat-lbl { font-size: 0.62rem; color: var(--subtext); text-transform: uppercase; letter-spacing: 0.07em; margin-top: 2px; }
+    .lb-row { display: flex; align-items: center; gap: 0.6rem; padding: 0.52rem 0; border-bottom: 1px solid var(--border); }
+    .lb-rank { font-family: "DM Mono", monospace; font-size: 0.78rem; color: var(--subtext); width: 24px; text-align: center; flex-shrink: 0; }
+    .lb-rank.top { color: var(--gold); font-weight: 700; }
+    .lb-name { flex: 1; font-size: 0.84rem; font-weight: 700; }
+    .lb-name.me { color: var(--gold); }
+    .lb-chips { font-family: "DM Mono", monospace; font-size: 0.78rem; color: var(--gold); }
+
+    /* ════════════════════════════════════════════════════════
+       ADMIN PANEL MODAL
+    ════════════════════════════════════════════════════════ */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 800;
+      display: flex; align-items: flex-end; justify-content: center;
+      background: rgba(0,0,0,0.72); backdrop-filter: blur(6px);
+      opacity: 0; pointer-events: none; transition: opacity 0.25s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal-box {
+      background: var(--surface); border: 1px solid var(--border-hi);
+      border-radius: var(--r-xl) var(--r-xl) 0 0;
+      padding: 1.5rem 1.3rem 2rem; width: min(480px, 100vw);
+      position: relative; max-height: 90vh; overflow-y: auto;
+      animation: slideUp 0.3s var(--ease) both;
+    }
+    .modal-overlay.center { align-items: center; }
+    .modal-overlay.center .modal-box { border-radius: var(--r-xl); max-height: 85vh; }
+    @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+    .modal-title { font-family: "Playfair Display", serif; font-size: 1.15rem; color: var(--gold); margin-bottom: 1.1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .modal-close { position: absolute; top: 1rem; right: 1rem; width: 28px; height: 28px; border-radius: 50%; background: var(--surface-3); border: 1px solid var(--border); color: var(--text); cursor: pointer; font-size: 0.88rem; display: flex; align-items: center; justify-content: center; z-index: 1; }
+
+    /* Admin panel grid */
+    .adm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin-bottom: 0.75rem; }
+    .adm-field label { font-size: 0.68rem; color: var(--subtext); text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 0.3rem; font-weight: 600; }
+    .adm-input {
+      width: 100%; padding: 0.5rem 0.7rem; background: rgba(0,0,0,0.4);
+      border: 1px solid var(--gold-border); border-radius: var(--r-sm);
+      color: var(--gold-2); font-family: "DM Mono", monospace; font-size: 0.86rem; outline: none;
+      transition: border-color 0.2s;
+    }
+    .adm-input:focus { border-color: var(--gold); }
+    .adm-section-title { font-size: 0.72rem; color: var(--subtext); text-transform: uppercase; letter-spacing: 0.07em; font-weight: 700; margin: 0.9rem 0 0.5rem; display: flex; align-items: center; gap: 0.4rem; }
+    .adm-section-title::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+    .god-mode-toggle {
+      width: 100%; padding: 0.7rem; border: 1px dashed var(--gold-border);
+      border-radius: var(--r-md); background: var(--gold-dim);
+      color: var(--gold); font-family: "Quicksand", sans-serif; font-weight: 700;
+      font-size: 0.84rem; cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+    }
+    .god-mode-toggle.on { background: rgba(200,169,106,0.2); border-style: solid; }
+    .god-mode-toggle:hover { border-color: var(--gold); }
+
+    /* God mode live spy (shown in-game) */
+    #gm-spy-live { display: none; }
+    .spy-box { background: rgba(0,0,0,0.4); border: 1px solid var(--gold-border); border-radius: var(--r-md); padding: 0.7rem; }
+    .spy-lbl { font-size: 0.65rem; color: var(--subtext); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.3rem; font-weight: 700; }
+    .spy-cards { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+    .spy-card { padding: 0.22rem 0.5rem; background: rgba(200,169,106,0.1); border: 1px solid var(--gold-border); border-radius: 4px; font-family: "DM Mono", monospace; font-size: 0.72rem; color: var(--gold); }
+
+    /* ════════════════════════════════════════════════════════
+       RADAR / SPIDER CHART
+    ════════════════════════════════════════════════════════ */
+    .radar-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.7rem; padding: 0.4rem 0 0.2rem; }
+    .radar-svg { overflow: visible; }
+    .radar-grid-poly { fill: none; stroke: rgba(200,169,106,0.12); stroke-width: 1; }
+    .radar-axis { stroke: rgba(200,169,106,0.18); stroke-width: 1; }
+    .radar-data-poly { fill: rgba(200,169,106,0.18); stroke: var(--gold); stroke-width: 2; stroke-linejoin: round;
+      transition: all 0.8s cubic-bezier(0.16,1,0.3,1); }
+    .radar-dot { fill: var(--gold); r: 4; }
+    .radar-label { font-family: "Quicksand", sans-serif; font-size: 9px; font-weight: 700;
+      fill: var(--subtext-2); text-anchor: middle; dominant-baseline: middle; }
+    .radar-val-label { font-family: "DM Mono", monospace; font-size: 8px; fill: var(--gold); text-anchor: middle; dominant-baseline: middle; }
+    .radar-legend { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; font-size: 0.67rem; color: var(--subtext); }
+    .radar-legend b { color: var(--gold-2); }
+    .chart-no-data { text-align: center; color: var(--subtext); font-size: 0.78rem; padding: 1.5rem 0; font-style: italic; }
+
+  
+    /* ════════════════════════════════════════════════════════
+       TABLE THEMES
+    ════════════════════════════════════════════════════════ */
+    
+    /* ── 🌙 MIDNIGHT VELVET ── */
+    .theme-velvet .card-table {
+      background: linear-gradient(160deg,#0d0018,#1a0030 55%,#2a0050) !important;
+      border-color: rgba(180,100,255,0.6) !important;
+      box-shadow: 0 0 60px rgba(130,0,255,0.2), inset 0 0 40px rgba(90,0,180,0.08) !important;
+    }
+    .theme-velvet .hand-label { color:#d8b4fe; text-shadow:0 0 10px rgba(180,100,255,0.6); }
+    .theme-velvet .hand-value { background:rgba(180,100,255,0.14);border-color:rgba(180,100,255,0.45);color:#d8b4fe; }
+    .theme-velvet .card { border-color:rgba(180,100,255,0.35) !important;box-shadow:0 3px 14px rgba(100,0,200,0.35) !important; }
+    .theme-velvet .card-table::after { content:"♠ ♥ ♣ ♦";position:absolute;bottom:0.6rem;left:50%;transform:translateX(-50%);font-size:0.9rem;opacity:0.1;letter-spacing:0.6rem;pointer-events:none;color:#d8b4fe; }
+
+    /* ── 🩸 BLOOD MONEY ── */
+    .theme-blood .card-table {
+      background: linear-gradient(160deg,#0f0000,#200008 55%,#380010) !important;
+      border-color: rgba(220,30,60,0.65) !important;
+      box-shadow: 0 0 60px rgba(200,0,40,0.22), inset 0 0 30px rgba(150,0,20,0.12) !important;
+    }
+    .theme-blood .hand-label { color:#fca5a5; text-shadow:0 0 8px rgba(220,30,60,0.5); }
+    .theme-blood .hand-value { background:rgba(220,30,60,0.15);border-color:rgba(220,30,60,0.5);color:#fca5a5; }
+    .theme-blood .card { border-color:rgba(220,30,60,0.4) !important;box-shadow:0 3px 10px rgba(180,0,30,0.4) !important; }
+    .theme-blood .card-table::after { content:"💀 ♠ 💀 ♠ 💀";position:absolute;bottom:0.6rem;left:50%;transform:translateX(-50%);font-size:0.65rem;opacity:0.18;letter-spacing:0.4rem;pointer-events:none; }
+
+    /* ── 🎱 GREEN FELT CLASSIC ── */
+    .theme-felt .card-table {
+      background: linear-gradient(160deg,#012a14,#024520 55%,#016030) !important;
+      border-color: rgba(100,220,120,0.5) !important;
+      box-shadow: 0 0 50px rgba(0,160,60,0.18), inset 0 0 60px rgba(0,80,20,0.32) !important;
+    }
+    .theme-felt .hand-label { color:#86efac; text-shadow:0 0 8px rgba(60,200,100,0.4); }
+    .theme-felt .hand-value { background:rgba(60,200,100,0.13);border-color:rgba(100,220,120,0.45);color:#86efac; }
+    .theme-felt .card { border-color:rgba(100,220,120,0.3) !important;box-shadow:0 2px 8px rgba(0,100,30,0.4) !important; }
+    .theme-felt .card-table::after { content:"♠ ♣ ♥ ♦ ♠ ♣";position:absolute;bottom:0.5rem;left:50%;transform:translateX(-50%);font-size:0.75rem;opacity:0.11;letter-spacing:0.5rem;pointer-events:none;color:#86efac; }
+
+    /* UNDERGROUND */
+    .underground-active #game-area .card-table {
+      background:linear-gradient(160deg,#0e0022,#20004a 60%,#3E1F47) !important;
+      border-color:rgba(200,100,255,0.45) !important;
+      box-shadow:0 0 50px rgba(150,0,255,0.12) !important;
+    }
+    .underground-active .hand-label { color:#c084fc; }
+    .underground-active .hand-value { background:rgba(150,50,255,0.14);border-color:rgba(180,100,255,0.3);color:#c084fc; }
+    .underground-banner { display:none; text-align:center; font-size:0.7rem; font-weight:700;
+      padding:0.3rem 1rem; background:linear-gradient(90deg,#3E1F47,#272640,#3E1F47);
+      border-bottom:1px solid rgba(200,100,255,0.25); color:#c084fc; letter-spacing:0.07em; }
+    .underground-active .underground-banner { display:block; }
+
+    /* CASINO PACKS */
+    .cpak-grid { display:flex;flex-direction:column;gap:0.6rem;margin-top:0.5rem; }
+    .cpak-card { display:flex;align-items:center;justify-content:space-between;
+      background:var(--surface-3);border:1px solid var(--teal-border);
+      border-radius:var(--r-md);padding:0.85rem 1rem;gap:0.8rem;transition:border-color 0.2s; }
+    .cpak-card:hover { border-color:rgba(6,90,96,0.85); }
+    .cpak-icon { font-size:2rem;flex-shrink:0; }
+    .cpak-info { flex:1;min-width:0; }
+    .cpak-name { font-weight:700;font-size:0.87rem;color:var(--text);margin-bottom:0.2rem; }
+    .cpak-desc { font-size:0.7rem;color:var(--subtext-2);line-height:1.45; }
+    .cpak-meta { display:flex;gap:0.6rem;align-items:center;margin-top:0.25rem;flex-wrap:wrap; }
+    .cpak-cost { font-size:0.73rem;color:var(--gold);font-weight:700; }
+    .cpak-cd { font-size:0.67rem;color:var(--subtext);font-style:italic; }
+
+    /* CASINO TITLES */
+    .ctitle-grid { display:flex;flex-direction:column;gap:0.4rem;margin-top:0.5rem; }
+    .ctitle-row { display:flex;align-items:center;justify-content:space-between;
+      background:var(--surface-2);border:1px solid var(--border);
+      border-radius:var(--r-sm);padding:0.5rem 0.8rem;gap:0.5rem;transition:all 0.2s; }
+    .ctitle-row.unlocked { border-color:var(--gold-border-hi);background:var(--surface-3); }
+    .ctitle-row.locked { opacity:0.4; }
+    .ctitle-label { font-size:0.82rem;font-weight:700;color:var(--text); }
+    .ctitle-row.locked .ctitle-label { color:var(--subtext-2); }
+    .ctitle-req { font-size:0.63rem;color:var(--subtext);margin-top:0.1rem; }
+    .ctitle-rarity { font-size:0.58rem;padding:0.14rem 0.42rem;border-radius:var(--r-pill);font-weight:700;letter-spacing:0.04em; }
+    .cr-common    { background:rgba(150,200,150,0.14);color:#90c890;border:1px solid rgba(150,200,150,0.25); }
+    .cr-rare      { background:rgba(80,120,220,0.14); color:#88aaff;border:1px solid rgba(80,120,220,0.25); }
+    .cr-epic      { background:rgba(150,80,200,0.14); color:#c084fc;border:1px solid rgba(150,80,200,0.25); }
+    .cr-mythical  { background:rgba(255,140,0,0.14);  color:#ffaa44;border:1px solid rgba(255,140,0,0.25); }
+    .cr-legendary { background:rgba(200,169,106,0.14);color:var(--gold);border:1px solid var(--gold-border-hi); }
+    .cr-hidden    { background:rgba(200,50,100,0.14); color:#ff7aaa;border:1px solid rgba(200,50,100,0.3); }
+
+    /* PRISMATIC */
+    .prism-panel { display:flex;flex-direction:column;gap:0.5rem;margin-top:0.5rem; }
+    .prism-card { display:flex;align-items:center;gap:0.7rem;
+      background:linear-gradient(135deg,rgba(150,50,200,0.1),rgba(0,100,102,0.1));
+      border:1px solid rgba(150,50,200,0.28);border-radius:var(--r-md);padding:0.65rem 0.9rem;transition:all 0.2s; }
+    .prism-card.active-eff { border-color:rgba(200,100,255,0.55);box-shadow:0 0 16px rgba(150,50,255,0.12); }
+    .prism-card.on-cd { opacity:0.5; }
+    .prism-icon { width:36px;height:36px;border-radius:var(--r-xs);background:var(--surface-4);
+      border:1px solid rgba(200,100,255,0.2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.1rem; }
+    .prism-info { flex:1;min-width:0; }
+    .prism-name { font-size:0.78rem;font-weight:700;color:#c084fc;margin-bottom:0.15rem; }
+    .prism-eff  { font-size:0.67rem;color:var(--subtext-2);line-height:1.4; }
+    .prism-cdbar { height:2px;background:var(--surface-4);border-radius:99px;margin-top:0.25rem; }
+    .prism-cdfill { height:2px;background:linear-gradient(90deg,#c084fc,#00b4d8);border-radius:99px;transition:width 1s linear; }
+    .prism-no { font-size:0.76rem;color:var(--subtext);text-align:center;padding:0.8rem 0;font-style:italic; }
+
+    /* CODES */
+    .code-row { display:flex;gap:0.5rem; }
+    .code-row .c-input { flex:1;font-family:"DM Mono",monospace;letter-spacing:0.08em;font-size:0.88rem; }
+
+    /* THEMES SHOP */
+    .theme-shop-grid { display:flex;flex-direction:column;gap:0.5rem;margin-top:0.5rem; }
+    .theme-shop-item { display:flex;align-items:center;justify-content:space-between;gap:0.7rem;
+      background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);padding:0.7rem 0.9rem; }
+    .theme-shop-item.owned-t { border-color:var(--gold-border-hi); }
+    .tp-preview { width:48px;height:34px;border-radius:var(--r-xs);flex-shrink:0;border:1px solid var(--border);overflow:hidden; }
+    .tp-info { flex:1; }
+    .tp-name { font-size:0.83rem;font-weight:700;color:var(--text); }
+    .tp-desc { font-size:0.68rem;color:var(--subtext-2);margin-top:0.1rem; }
+    .tp-toggle { font-size:0.63rem;color:var(--teal-2);border:1px solid var(--teal-border);
+      background:var(--teal-dim);border-radius:var(--r-pill);padding:0.18rem 0.48rem;cursor:pointer;font-weight:700;transition:all 0.18s; }
+    .tp-toggle.active { background:var(--teal);border-color:var(--teal-2);color:#fff; }
+    .tp-buy-btn { font-size:0.72rem; }
+
+    /* UNDERGROUND TICKET */
+    .ug-ticket-box { background:linear-gradient(135deg,rgba(39,38,64,0.65),rgba(62,31,71,0.65));
+      border:1px solid rgba(200,100,255,0.28);border-radius:var(--r-md);padding:0.85rem 1rem; }
+    .ug-ticket-title { font-size:0.88rem;font-weight:700;color:#c084fc;margin-bottom:0.25rem; }
+    .ug-ticket-desc  { font-size:0.72rem;color:var(--subtext-2);line-height:1.5;margin-bottom:0.65rem; }
+    .ug-stats { font-size:0.7rem;color:#c084fc;opacity:0.8;margin-bottom:0.5rem; }
+
+    /* INSURANCE always visible */
+    #insurance-bar.ins-disabled { opacity:0.32;pointer-events:none; }
+
+    @media (max-width: 380px) {
+      .playing-card { width: 50px; height: 70px; }
+      .card-center  { font-size: 1.1rem; }
+    }
+
+    @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+    @keyframes shuffleSpin { from{transform:rotate(0deg) scale(1)} 50%{transform:rotate(180deg) scale(1.2)} to{transform:rotate(360deg) scale(1)} }
+    @keyframes shuffleDot  { 0%,80%,100%{transform:scale(0.6);opacity:0.4} 40%{transform:scale(1.2);opacity:1} }
+
+    /* ── Leaderboard Bar Chart ── */
+    .lb-chart { display:flex;flex-direction:column;gap:0.55rem;padding:0.2rem 0; }
+    .lb-bar-row { display:flex;align-items:center;gap:0.5rem;animation:lbSlideIn 0.4s both; }
+    .lb-bar-medal { font-size:1.1rem;width:1.6rem;text-align:center;flex-shrink:0; }
+    .lb-bar-info  { flex:1;min-width:0; }
+    .lb-bar-name  { font-size:0.72rem;font-weight:700;color:var(--text);margin-bottom:0.2rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .lb-me { color:#4a90c8 !important; }
+    .lb-bar-track { height:8px;background:rgba(255,255,255,0.06);border-radius:99px;overflow:hidden;border:1px solid rgba(255,255,255,0.05); }
+    .lb-bar-fill  { height:100%;border-radius:99px;width:0%; }
+    .lb-bar-chips { font-size:0.68rem;color:var(--gold);font-weight:700;min-width:55px;text-align:right;transition:opacity 0.2s,transform 0.2s;white-space:nowrap; }
+    @keyframes lbSlideIn { from{opacity:0;transform:translateX(-12px)} to{opacity:1;transform:none} }
+    @keyframes lbPulse   { 0%,100%{opacity:0.5} 50%{opacity:1} }
+
+
+  </style>
+</head>
+<body>
+  <div class="bg-layer" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+  <div id="toast-wrap"></div>
+
+  <!-- ══ LOCKED SCREEN (multiplayer gate only) ═══════════ -->
+  <div id="locked-screen" style="display:none">
+    <div class="lock-icon">🔒</div>
+    <div class="lock-title">Private Tables</div>
+    <div class="lock-sub">Multiplayer & Cloud Sync requires a 67 TCG account.</div>
+    <div class="lock-quest">
+      Also complete the quest<br><b>🕴️ "The Man who controls the Monseur-Mafia…"</b><br>for full access.
+    </div>
+    <button class="lock-play-btn" onclick="hideLocked(); startLocalGame()">🃏 Play Solo (No Login)</button>
+    <button class="lock-back" onclick="history.back()">← Back to 67 TCG</button>
+  </div>
+
+  <!-- ══ CASINO APP ════════════════════════════════════════ -->
+  <div id="casino-app">
+    <header class="casino-header">
+      <div class="header-left">
+        <button class="hdr-btn" onclick="smartBack()" title="Back">←</button>
+        <div class="casino-logo">🎰 Monseur <small>Casino</small></div>
+      </div>
+      <div class="header-right">
+        <div id="login-badge">
+          <div class="dot off" id="auth-dot"></div>
+          <span id="auth-name">Guest</span>
+        </div>
+        <div class="chip-display">🔴 <span id="chip-count">0</span></div>
+        <button class="hdr-btn" id="admin-crown-btn" onclick="openAdminModal()" title="Admin Panel">👑</button>
+      </div>
+    </header>
+
+    <nav class="casino-tabs">
+      <button class="c-tab active" data-tab="table" onclick="switchTab('table')">🃏 Table</button>
+      <button class="c-tab" data-tab="shop"  onclick="switchTab('shop')">🏪 Shop</button>
+      <button class="c-tab" data-tab="stats" onclick="switchTab('stats')">📊 Stats</button>
+    </nav>
+
+    <div class="casino-body">
+
+      <!-- ══ TAB: TABLE ═══════════════════════════════════ -->
+      <div class="tab-pane active" id="tab-table">
+
+        <!-- Mode selection -->
+        <div id="table-menu">
+          <div class="table-mode-btns">
+            <button class="table-mode-btn" onclick="startLocalGame()">
+              <span class="tmb-icon">🃏</span>
+              <div>
+                <span class="tmb-label">Play</span>
+                <span class="tmb-desc">Solo Blackjack vs. the house</span>
+                <span class="tmb-badge">No Login Needed</span>
+              </div>
+            </button>
+            <button class="table-mode-btn" id="ug-table-btn" onclick="enterUnderground()" style="border-color:rgba(200,100,255,0.3);background:linear-gradient(135deg,rgba(39,38,64,0.4),rgba(62,31,71,0.4))">
+              <span class="tmb-icon">🕳️</span>
+              <div>
+                <span class="tmb-label" style="color:#c084fc">Underground Table</span>
+                <span class="tmb-desc">Higher stakes · Better payouts · Win 1.5x · 21 = 3x</span>
+                <span class="tmb-badge" id="ug-badge" style="background:rgba(200,100,255,0.15);color:#c084fc;border-color:rgba(200,100,255,0.3)">Ticket Required (Shop)</span>
+              </div>
+            </button>
+            <button class="table-mode-btn" onclick="openCreateTable()">
+              <span class="tmb-icon">🏰</span>
+              <div>
+                <span class="tmb-label">Create Private Table</span>
+                <span class="tmb-desc">Invite up to 4 friends with a room code</span>
+                <span class="tmb-badge">Login Required</span>
+              </div>
+            </button>
+            <button class="table-mode-btn" onclick="openJoinTable()">
+              <span class="tmb-icon">🚪</span>
+              <div>
+                <span class="tmb-label">Join Private Table</span>
+                <span class="tmb-desc">Enter a 4-character room code</span>
+                <span class="tmb-badge">Login Required</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- ── Local / Solo Game ── -->
+        <div id="game-area">
+          <div class="underground-banner">🕳️ UNDERGROUND TABLE — Win 1.5× · 21 pays 3× · Min bet 10,000</div>
+          <div class="game-area-inner">
+            <!-- Bet -->
+            <div class="bet-area" id="bet-area">
+              <div class="bet-label">Your Bet <span class="tag tag-gold">🔴 Chips</span></div>
+              <div class="bet-row">
+                <input type="number" id="bet-input" class="bet-input" value="10" min="1" max="99999" />
+                <button class="c-btn c-btn-gold" onclick="dealHand()" id="deal-btn" style="min-width:80px">Deal ▶</button>
+              </div>
+              <div class="bet-presets">
+                <span class="bet-preset" onclick="setBet(5)">5</span>
+                <span class="bet-preset" onclick="setBet(10)">10</span>
+                <span class="bet-preset" onclick="setBet(25)">25</span>
+                <span class="bet-preset" onclick="setBet(50)">50</span>
+                <span class="bet-preset" onclick="setBet(100)">100</span>
+                <span class="bet-preset" onclick="setBet(250)">250</span>
+                <span class="bet-preset" onclick="setBet(500)">500</span>
+                <span class="bet-preset max" onclick="setBetHalf()">½ HALF</span>
+                <span class="bet-preset max" onclick="setBetAllIn()" style="background:rgba(168,40,40,0.15);border-color:rgba(168,40,40,0.4);color:#ff7a7a">ALL IN</span>
+              </div>
+            </div>
+
+            <!-- Insurance — always rendered, state controlled via JS -->
+            <div id="insurance-bar" class="ins-disabled">
+              <div>
+                <div class="ins-text">🛡 Insurance</div>
+                <div class="ins-sub" id="ins-sub-text">Available when dealer shows Ace or 10. Cost: <b id="ins-cost">0</b> chips</div>
+              </div>
+              <div style="display:flex;gap:0.4rem">
+                <button class="c-btn c-btn-gold c-btn-sm" onclick="takeInsurance()" id="ins-yes-btn">Yes</button>
+                <button class="c-btn c-btn-ghost c-btn-sm" onclick="declineInsurance()">No</button>
+              </div>
+            </div>
+
+            <!-- Card Table -->
+            <div class="card-table" id="card-table">
+              <div class="hand-label">Dealer <span class="hand-value" id="dealer-val">—</span></div>
+              <div class="cards-row" id="dealer-cards"></div>
+              <div class="hand-label">You <span class="hand-value" id="player-val">—</span></div>
+              <div class="cards-row" id="player-cards"></div>
+              <!-- Split -->
+              <div id="split-hand-area">
+                <div class="divider"></div>
+                <div class="hand-label">Split Hand <span class="hand-value" id="split-val">—</span></div>
+                <div class="cards-row" id="split-cards"></div>
+              </div>
+              <!-- Result overlay -->
+              <div class="round-result" id="round-result" style="display:none">
+                <div class="rr-title"  id="result-title">—</div>
+                <div class="rr-payout" id="result-payout">—</div>
+                <div class="rr-detail" id="result-detail">—</div>
+                <div style="display:flex;gap:0.5rem;margin-top:0.9rem;flex-wrap:wrap;justify-content:center">
+                  <button class="c-btn c-btn-gold" onclick="playAgain()">▶ Play Again</button>
+                  <button class="c-btn c-btn-ghost c-btn-sm" onclick="goToMenuAfterRound()">🚪 Leave Table</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action bar -->
+            <div class="action-bar" id="action-bar" style="display:none">
+              <button class="c-btn c-btn-gold c-btn-full c-btn-lg"    onclick="playerHit()"    id="btn-hit">HIT</button>
+              <button class="c-btn c-btn-crimson c-btn-full c-btn-lg" onclick="playerStand()"  id="btn-stand">STAND</button>
+              <button class="c-btn c-btn-ghost c-btn-full"            onclick="playerDouble()" id="btn-double">DOUBLE</button>
+              <button class="c-btn c-btn-ghost c-btn-full"            onclick="playerSplit()"  id="btn-split" disabled>SPLIT</button>
+              <button class="c-btn c-btn-ghost c-btn-full"            onclick="takeInsurance()" id="btn-insurance" disabled>INSURANCE</button>
+            </div>
+
+            <!-- God Mode live spy -->
+            <div id="gm-spy-live" style="display:none">
+              <div class="spy-box" style="margin-bottom:0.4rem">
+                <div class="spy-lbl">👁 Next Cards from Deck</div>
+                <div class="spy-cards" id="spy-next-cards"></div>
+              </div>
+              <div class="spy-box">
+                <div class="spy-lbl">👁 Dealer Hole Card</div>
+                <div class="spy-cards" id="spy-dealer-hole"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Private Table area ── -->
+        <div id="private-table-area">
+          <div class="pt-room section-box">
+            <div class="section-title" id="pt-room-title">Room</div>
+            <div class="pt-room-code" id="pt-room-code">——</div>
+            <div class="pt-status" id="pt-status">Waiting for players…</div>
+            <div class="pt-players" id="pt-players"></div>
+            <div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;">
+              <button class="c-btn c-btn-gold c-btn-sm" onclick="startPrivateGame()" id="pt-start-btn" style="display:none">▶ Start Game</button>
+              <button class="c-btn c-btn-ghost c-btn-sm" onclick="leavePrivateTable()">Leave Room</button>
+            </div>
+          </div>
+          <!-- Live Chat -->
+          <div class="pt-chat" id="pt-chat">
+            <div class="pt-chat-header"><div class="chat-live-dot"></div> Live Chat</div>
+            <div class="pt-chat-msgs" id="pt-chat-msgs">
+              <div class="chat-msg sys">Chat clears when the room is empty.</div>
+            </div>
+            <div class="pt-chat-input-row">
+              <input class="pt-chat-input" id="pt-chat-input" placeholder="Message…" maxlength="120"
+                     onkeydown="if(event.key==='Enter')sendChatMsg()" />
+              <button class="pt-chat-send" onclick="sendChatMsg()">Send</button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /#tab-table -->
+
+      <!-- ══ TAB: SHOP ════════════════════════════════════ -->
+      <div class="tab-pane" id="tab-shop">
+
+        <!-- Cloud Sync -->
+        <div class="section-box">
+          <div class="section-title">☁️ Cloud Sync</div>
+          <div id="sync-login-note" style="font-size:0.76rem;color:var(--subtext-2);margin-bottom:0.6rem;">Login to 67 TCG to sync your chips.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem">
+            <button class="c-btn c-btn-ghost c-btn-full c-btn-sm" onclick="uploadChipsToCloud()">⬆ Save</button>
+            <button class="c-btn c-btn-ghost c-btn-full c-btn-sm" onclick="loadChipsFromCloud()">⬇ Load</button>
+          </div>
+        </div>
+
+        <!-- Chip Shop -->
+        <div class="section-box">
+          <div class="section-title">🏪 Chip Shop</div>
+          <div class="shop-rate">Exchange rate: <b>1.000 TCG Coins = 1 Chip 🔴</b><br>Daily limit: <b>500 chips/day</b></div>
+
+          <div class="limit-wrap">
+            <div class="limit-label">
+              <span>Daily (<span id="limit-used">0</span> / 1000 chips used)</span>
+              <span id="limit-pct">0%</span>
+            </div>
+            <div class="limit-bar-bg"><div class="limit-bar-fill" id="limit-bar" style="width:0%"></div></div>
+            <div class="limit-timer" id="limit-timer-txt" style="display:none"></div>
+          </div>
+
+          <div class="bundle-grid" id="bundle-grid"><!-- JS --></div>
+
+          <div id="vip-section" style="display:none">
+            <div class="vip-divider"><span>👑 VIP — No Daily Limit</span></div>
+            <div style="display:flex;gap:0.5rem">
+              <input type="number" class="c-input" id="vip-chip-input" placeholder="Amount…" min="1" style="font-size:0.88rem" />
+              <button class="c-btn c-btn-gold c-btn-sm" onclick="buyVipChips()" style="flex-shrink:0">Buy</button>
+            </div>
+            <div style="font-size:0.69rem;color:var(--subtext);margin-top:0.3rem">1.000 coins = 1 chip · No limit</div>
+          </div>
+        </div>
+
+        <!-- Casino Exclusive Packs -->
+        <div class="section-box">
+          <div class="section-title">🎰 Casino Packs <span style="font-size:0.65rem;color:var(--subtext);font-weight:400;margin-left:0.3rem">Exclusive · 12h Cooldown</span></div>
+          <div style="font-size:0.72rem;color:var(--subtext-2);margin-bottom:0.3rem">Spend chips — get massive TCG coin rewards. Casino-exclusive, not available in the main shop.</div>
+          <div class="cpak-grid" id="cpak-grid"><!-- JS --></div>
+        </div>
+
+        <!-- Underground Ticket -->
+        <div class="section-box">
+          <div class="ug-ticket-box">
+            <div class="ug-ticket-title">🕳️ Underground Table Ticket</div>
+            <div class="ug-ticket-desc">Grants access to the underground table. Higher minimum bets (10,000 chips), but Win pays <b style="color:#c084fc">1.5×</b> and 21 pays <b style="color:#c084fc">3×</b>. Ticket consumed on entry.</div>
+            <div class="ug-stats">Tickets owned: <b id="ug-ticket-count">0</b></div>
+            <button class="c-btn c-btn-sm" style="width:100%;border-color:rgba(200,100,255,0.4);color:#c084fc;background:rgba(150,50,200,0.1)" onclick="buyUndergroundTicket()">
+              Buy Ticket — 🔴 5,000 Chips
+            </button>
+          </div>
+        </div>
+
+        <!-- Table Themes -->
+        <div class="section-box">
+          <div class="section-title">🎨 Table Themes</div>
+          <div class="theme-shop-grid" id="theme-shop-grid"><!-- JS --></div>
+        </div>
+
+        <!-- Redeem Code -->
+        <div class="section-box">
+          <div class="section-title">🎟️ Redeem Code</div>
+          <div style="font-size:0.74rem;color:var(--subtext-2);margin-bottom:0.6rem;">Enter a casino code to claim chips or bonuses.</div>
+          <div class="code-row">
+            <input type="text" class="c-input" id="casino-code-input" placeholder="CODE…" maxlength="30"
+              style="text-transform:uppercase;font-family:'DM Mono',monospace;letter-spacing:0.08em" />
+            <button class="c-btn c-btn-gold c-btn-sm" onclick="redeemCasinoCode()">Redeem</button>
+          </div>
+        </div>
+
+      </div><!-- /#tab-shop -->
+
+      <!-- ══ TAB: STATS ════════════════════════════════════ -->
+      <div class="tab-pane" id="tab-stats">
+
+        <!-- Your Stats -->
+        <div class="section-box">
+          <div class="section-title">🎲 Your Stats</div>
+          <div class="stats-grid" style="margin-bottom:0">
+            <div class="stat-tile"><div class="stat-val" id="st-rounds">0</div><div class="stat-lbl">Rounds</div></div>
+            <div class="stat-tile"><div class="stat-val" id="st-wins">0</div><div class="stat-lbl">Wins</div></div>
+            <div class="stat-tile"><div class="stat-val" id="st-losses">0</div><div class="stat-lbl">Losses</div></div>
+            <div class="stat-tile"><div class="stat-val" id="st-bj">0</div><div class="stat-lbl">21s (×1.5)</div></div>
+            <div class="stat-tile"><div class="stat-val" id="st-pushes">0</div><div class="stat-lbl">Pushes</div></div>
+            <div class="stat-tile"><div class="stat-val" id="st-bigwin">0</div><div class="stat-lbl">Best Win</div></div>
+          </div>
+        </div>
+
+        <!-- Casino Profile — OBEN über Stats -->
+        <div class="section-box">
+          <div class="section-title">🎰 Casino Profile</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem">
+            <div>
+              <div style="font-size:0.68rem;color:var(--subtext-2);margin-bottom:0.2rem">Active Casino Title</div>
+              <div id="casino-equipped-title-display" style="font-size:0.85rem;font-weight:700;color:var(--gold);min-height:1.3rem">— None —</div>
+            </div>
+            <button class="c-btn c-btn-ghost c-btn-sm" onclick="openCasinoTitleModal()" style="flex-shrink:0;font-size:0.7rem">
+              🎖️ Choose
+            </button>
+          </div>
+          <button class="c-btn c-btn-ghost c-btn-sm c-btn-full" onclick="saveCasinoProfile()" style="font-size:0.7rem;margin-top:0.6rem">
+            ☁️ Sync to Cloud
+          </button>
+        </div>
+
+        <!-- Radar Chart -->
+        <div class="section-box">
+          <div class="section-title">📊 Performance Radar</div>
+          <div id="chart-container">
+            <div class="chart-no-data">Noch keine Runden gespielt.</div>
+          </div>
+        </div>
+
+        <!-- Prismatic Card Effects -->
+        <div class="section-box">
+          <div class="section-title">💠 Prismatic Buff</div>
+          <div style="font-size:0.72rem;color:var(--subtext-2);margin-bottom:0.5rem">
+            Choose <b style="color:var(--gold)">a</b> Prismatic Card as the active casino buff. Shiny = 1.5× power.
+          </div>
+          <div id="active-prism-display" style="margin-bottom:0.5rem;min-height:1.5rem"></div>
+          <div class="prism-panel" id="prism-panel">
+            <div class="prism-no">No Prismatic Cards found in your collection.</div>
+          </div>
+        </div>
+
+        <!-- Active Table Theme Toggle -->
+        <div class="section-box">
+          <div class="section-title">🎨 Active Theme</div>
+          <div style="font-size:0.72rem;color:var(--subtext-2);margin-bottom:0.55rem">Toggle your purchased themes on/off.</div>
+          <div class="theme-shop-grid" id="theme-toggle-grid"><!-- JS --></div>
+        </div>
+
+        <!-- Leaderboard -->
+        <div class="section-box">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.55rem">
+            <div class="section-title" style="margin-bottom:0">🏆 Global Leaderboard</div>
+            <button id="lb-push-btn" class="c-btn c-btn-ghost c-btn-sm" onclick="manualPushLeaderboard()" style="font-size:0.7rem;padding:0.28rem 0.65rem;display:none">📤 Eintragen</button>
+          </div>
+          <div style="font-size:0.72rem;color:var(--subtext);font-style:italic;margin-bottom:0.5rem">Updates nach jeder Runde</div>
+          <div id="lb-list"><div style="text-align:center;color:var(--subtext);font-size:0.82rem;padding:1rem">Loading…</div></div>
+        </div>
+
+      </div><!-- /#tab-stats -->
+
+    </div><!-- /.casino-body -->
+  <!-- Casino Title Modal -->
+  <div class="modal-overlay center" id="casino-title-modal" style="display:none">
+    <div class="modal-box" style="max-width:340px">
+      <button class="modal-close" onclick="closeModal('casino-title-modal')">✕</button>
+      <div class="modal-title">🎖️ Casino Title</div>
+      <div style="font-size:0.72rem;color:var(--subtext-2);margin-bottom:0.7rem">
+        Only unlocked titles are shown. Tap one to equip it.
+      </div>
+      <div id="casino-title-modal-list" style="display:flex;flex-direction:column;gap:0.35rem;max-height:320px;overflow-y:auto">
+        <!-- JS -->
+      </div>
+    </div>
+  </div>
+
+  </div><!-- /#casino-app -->
+
+  <!-- ══ ADMIN PANEL MODAL ══════════════════════════════ -->
+  <div class="modal-overlay center" id="admin-modal">
+    <div class="modal-box" style="border-color:rgba(200,169,106,0.3);max-width:380px">
+      <button class="modal-close" onclick="closeModal('admin-modal')">✕</button>
+      <div class="modal-title">👑 Admin Panel</div>
+
+      <!-- God Mode -->
+      <button class="god-mode-toggle" id="gm-toggle-btn" onclick="toggleGodMode()">👁 God Mode: OFF</button>
+      <button class="god-mode-toggle" style="margin-top:0.45rem;border-color:rgba(100,180,255,0.35);background:rgba(100,180,255,0.08);color:#88aaff" onclick="adminRefreshLeaderboard()">🔄 Leaderboard Refresh</button>
+      <button class="god-mode-toggle" style="margin-top:0.45rem;border-color:rgba(180,100,255,0.35);background:rgba(180,100,255,0.08);color:#c47aff" onclick="adminUnlockAllTitles()">🏅 Unlock All Titles (Self)</button>
+
+      <div class="adm-section-title">Self Controls</div>
+      <div class="adm-grid">
+        <div class="adm-field">
+          <label>Set My Chips</label>
+          <input type="number" class="adm-input" id="adm-set-chips" placeholder="e.g. 99999" min="0" />
+        </div>
+        <div class="adm-field">
+          <label>Add Chips</label>
+          <input type="number" class="adm-input" id="adm-add-chips" placeholder="e.g. 5000" min="0" />
+        </div>
+      </div>
+      <button class="c-btn c-btn-gold c-btn-full c-btn-sm" onclick="adminApplySelf()" style="margin-bottom:0.4rem">⚡ Apply to Self</button>
+      <div style="display:flex;gap:0.4rem;margin-bottom:0.75rem">
+        <button class="c-btn c-btn-ghost c-btn-sm c-btn-full" onclick="adminSelfChips(1000)">+1k</button>
+        <button class="c-btn c-btn-ghost c-btn-sm c-btn-full" onclick="adminSelfChips(5000)">+5k</button>
+        <button class="c-btn c-btn-ghost c-btn-sm c-btn-full" onclick="adminSelfChips(50000)">+50k</button>
+      </div>
+
+      <div class="adm-section-title">Give to Player</div>
+      <div class="adm-field" style="margin-bottom:0.5rem">
+        <label>Username</label>
+        <input type="text" class="adm-input" id="adm-target-user" placeholder="Username…" style="color:var(--text)" />
+      </div>
+      <div class="adm-grid">
+        <div class="adm-field">
+          <label>Casino Chips 🔴 <span style="color:var(--rose);font-size:0.65rem">(neg = deduct)</span></label>
+          <input type="number" class="adm-input" id="adm-give-chips" placeholder="0" />
+        </div>
+        <div class="adm-field">
+          <label>TCG Coins 🪙 <span style="color:var(--rose);font-size:0.65rem">(neg = deduct)</span></label>
+          <input type="number" class="adm-input" id="adm-give-coins" placeholder="0" />
+        </div>
+      </div>
+      <div class="adm-grid" style="margin-bottom:0.75rem">
+        <div class="adm-field">
+          <label>Pack 📦</label>
+          <select class="adm-input" id="adm-give-pack" style="color:var(--text)">
+            <option value="">— none —</option>
+          </select>
+        </div>
+        <div class="adm-field">
+          <label>Pack Qty</label>
+          <input type="number" class="adm-input" id="adm-give-pack-qty" placeholder="1" min="1" max="99" value="1" />
+        </div>
+      </div>
+      <div class="adm-field" style="margin-bottom:0.75rem">
+        <label>Title 🏅</label>
+        <select class="adm-input" id="adm-give-title" style="color:var(--text)">
+          <option value="">— none —</option>
+        </select>
+      </div>
+      <div class="adm-field" style="margin-bottom:0.6rem">
+        <label>Message (optional)</label>
+        <input type="text" class="adm-input" id="adm-give-msg" placeholder="Optional note…" style="color:var(--text)" />
+      </div>
+      <button class="c-btn c-btn-gold c-btn-full c-btn-sm" onclick="adminGiveToPlayer()">📬 Send Gift via Mailbox</button>
+
+      <div class="adm-section-title">Stats Tweak</div>
+      <div class="adm-grid">
+        <div class="adm-field">
+          <label>Set Wins</label>
+          <input type="number" class="adm-input" id="adm-set-wins" placeholder="0" min="0" />
+        </div>
+        <div class="adm-field">
+          <label>Set Rounds</label>
+          <input type="number" class="adm-input" id="adm-set-rounds" placeholder="0" min="0" />
+        </div>
+      </div>
+      <button class="c-btn c-btn-ghost c-btn-full c-btn-sm" onclick="adminApplyStats()" style="margin-top:0.1rem">Apply Stats</button>
+    </div>
+  </div>
+
+  <!-- ══ JOIN TABLE MODAL ═══════════════════════════════ -->
+  <div class="modal-overlay" id="join-modal">
+    <div class="modal-box" style="border-radius:var(--r-xl) var(--r-xl) 0 0">
+      <button class="modal-close" onclick="closeModal('join-modal')">✕</button>
+      <div class="modal-title">🚪 Join Private Table</div>
+      <input type="text" class="c-input" id="join-code-input" placeholder="Room code…" maxlength="6"
+             style="margin-bottom:0.75rem;text-align:center;font-size:1.3rem;letter-spacing:0.2em;text-transform:uppercase" />
+      <div style="display:flex;gap:0.5rem">
+        <button class="c-btn c-btn-ghost c-btn-full" onclick="closeModal('join-modal')">Cancel</button>
+        <button class="c-btn c-btn-gold c-btn-full" onclick="joinPrivateTable()">Join</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════
+       SCRIPT
+  ════════════════════════════════════════════════════ -->
+  <script>
+  'use strict';
+  /* ── CONSTANTS ─────────────────────────────────────── */
+  const ADMIN_EMAIL     = 'alimalik67065@gmail.com';
+  const CHIPS_START     = 1500;
+  const DAILY_LIMIT     = 1000;
+  const COINS_PER_CHIP  = 1000;
+  const VIP_TITLE_IDS   = ['title_vip', 'admin_title', 'quest_title_5'];
+  const MONSEUR_QUEST_CARDS = [10,11,12,205,207,208,213,406,603,752,906];
+
+  /* Bundle definitions */
+  const BUNDLES = [
+    { chips: 10,  coins: 10000,  label: '' },
+    { chips: 25,  coins: 25000,  label: '' },
+    { chips: 50,  coins: 50000,  label: '🔥 Popular' },
+    { chips: 100, coins: 100000, label: '' },
+    { chips: 250, coins: 250000, label: '' },
+    { chips: 500, coins: 500000, label: '📅 Daily Max' },
+  ];
+
+  /* Casino-exclusive coin packs removed — TCG card packs from packs.js are used instead */
+  const CASINO_PACKS = [];
+
+  /* Table themes shop */
+  const TABLE_THEMES = [
+    {
+      id: 'velvet', name: '🌙 Midnight Velvet',
+      desc: 'Deep purple luxury. Silk, shadows and high stakes.',
+      cost: 5000,
+      preview: 'linear-gradient(135deg,#1a0030,#6b21a8)',
+    },
+    {
+      id: 'blood', name: '🩸 Blood Money',
+      desc: 'Crimson darkness. For players who play for keeps.',
+      cost: 8000,
+      preview: 'linear-gradient(135deg,#200008,#dc1e3c)',
+    },
+    {
+      id: 'felt', name: '🎱 Green Felt Classic',
+      desc: 'The iconic casino green. Old school prestige.',
+      cost: 3000,
+      preview: 'linear-gradient(135deg,#012a14,#016030)',
+    },
+  ];
+
+  /* Casino Titles */
+  const CASINO_TITLES = [
+    { id:'ct_newcomer',   label:'🎲 Newcomer',        rarity:'common',    req:{ rounds:1 },                 reqText:'Play 1 round' },
+    { id:'ct_regular',    label:'♠ Regular',           rarity:'common',    req:{ rounds:25 },                reqText:'Play 25 rounds' },
+    { id:'ct_gambler',    label:'🃏 Gambler',           rarity:'rare',      req:{ rounds:100 },               reqText:'Play 100 rounds' },
+    { id:'ct_hotstreak',  label:'🔥 Hot Streak',        rarity:'rare',      req:{ wins:50 },                  reqText:'Win 50 rounds' },
+    { id:'ct_highroller', label:'💰 High Roller',       rarity:'epic',      req:{ chips:10000 },              reqText:'Own 10,000 chips' },
+    { id:'ct_bjmaster',   label:'⭐ 21 Master',         rarity:'epic',      req:{ blackjacks:10 },            reqText:'Get 10 Blackjacks' },
+    { id:'ct_underground',label:'🕳️ Shadow Dealer',    rarity:'mythical',  req:{ underground:10 },           reqText:'Win 10 Underground rounds' },
+    { id:'ct_veteran',    label:'🎩 Casino Veteran',    rarity:'mythical',  req:{ rounds:500 },               reqText:'Play 500 rounds' },
+    { id:'ct_whale',      label:'🐋 Whale',             rarity:'legendary', req:{ chips:100000 },             reqText:'Own 100,000 chips' },
+    { id:'ct_monseur',    label:'👑 Le Monseur',        rarity:'hidden',    req:{ rounds:1000, wins:500 },    reqText:'1000 rounds · 500 wins' },
+  ];
+
+  // Codes werden vollständig aus codes.js (window.CODE_HASHES) geladen
+  const CASINO_CODE_HASHES = {};
+
+  /* ── STATE ─────────────────────────────────────────── */
+  let chips       = 0;
+  let tcgCoins    = 0;
+  let casinoStats = { rounds:0, wins:0, losses:0, blackjacks:0, pushes:0, bigwin:0 };
+  let isVIP       = false;
+  let isAdmin     = false;
+  let godModeOn   = false;
+  let currentUser = null; // firebase user
+  let currentUsername = null;
+
+  // Deck state — LOCAL deck (no API dependency)
+  let localDeck    = [];
+  let deckIdx      = 0;
+
+  // Blackjack state
+  let gameActive   = false;
+  let currentBet   = 10;
+  let playerHand   = [];
+  let dealerHand   = [];
+  let splitHand    = [];
+  let playingSplit  = false;
+  let insuranceBet = 0;
+  let hasInsurance = false;
+  let doubledDown  = false;
+  let roundEnded   = false;
+
+  // Private tables
+  let tableUnsubscribe = null;
+  let chatUnsubscribe  = null;
+  let privateTableId   = null;
+  let tableRole        = null;
+
+  // Round history (last 10 rounds)
+  let roundHistory = []; // [{result:'win'|'lose'|'push'|'bj', chips, net, bet}]
+
+  // ── NEW FEATURE STATE ───────────────────────────────────
+  // Underground mode
+  let isUnderground      = false;
+  let undergroundTickets = 0;
+
+  // Table themes
+  let ownedThemes  = []; // e.g. ['spongebob']
+  let activeTheme  = '';
+
+  // Prismatic card effects (cooldowns stored in localStorage)
+  let prismaticCards = []; // [{id, name, effect, cooldownMs}]
+
+  // Casino pack last-purchase timestamps (key = packId → timestamp)
+  let casinoPacks_cd = {};
+
+  // Prismatic bonus flags (set per-round by active effects)
+  let prismDiscardActive = false; // "discard 1 drawn card"
+  let prismNextBJBonus   = false; // "next BJ pays 5x"
+
+  /* ═══════════════════════════════════════════════════════
+     LOCAL DECK ENGINE (no external API — instant, reliable)
+  ═══════════════════════════════════════════════════════ */
+  const SUITS  = ['HEARTS','DIAMONDS','CLUBS','SPADES'];
+  const VALUES = ['2','3','4','5','6','7','8','9','10','JACK','QUEEN','KING','ACE'];
+  const SUIT_SYMBOLS = { HEARTS:'♥', DIAMONDS:'♦', CLUBS:'♣', SPADES:'♠' };
+
+  function buildDeck(numDecks = 6) {
+    const cards = [];
+    for (let d = 0; d < numDecks; d++) {
+      for (const suit of SUITS) {
+        for (const value of VALUES) {
+          cards.push({ suit, value, image: null, images: { png: null } });
+        }
+      }
+    }
+    return cards;
+  }
+
+  function shuffleDeck(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function initDeck() {
+    localDeck = shuffleDeck(buildDeck(6));
+    deckIdx   = 0;
+  }
+
+  function ensureDeck() {
+    // Reshuffle when less than 75 cards remain
+    if (deckIdx >= localDeck.length - 75) {
+      initDeck();
+    }
+  }
+
+  function drawCards(count) {
+    ensureDeck();
+    const drawn = localDeck.slice(deckIdx, deckIdx + count);
+    deckIdx += count;
+    return drawn;
+  }
+
+  function peekNext(count) {
+    ensureDeck();
+    return localDeck.slice(deckIdx, deckIdx + count);
+  }
+
+  /* ── Card helpers ── */
+  function cardValue(c) {
+    if (['JACK','QUEEN','KING'].includes(c.value)) return 10;
+    if (c.value === 'ACE') return 11;
+    return parseInt(c.value);
+  }
+
+  function handValue(hand) {
+    let total = 0, aces = 0;
+    for (const c of hand) { total += cardValue(c); if (c.value === 'ACE') aces++; }
+    while (total > 21 && aces > 0) { total -= 10; aces--; }
+    return total;
+  }
+
+  const isBust = h => handValue(h) > 21;
+  const is21   = h => handValue(h) === 21;
+
+  function canSplit(hand) {
+    return hand.length === 2 && cardValue(hand[0]) === cardValue(hand[1]) && chips >= currentBet;
+  }
+
+  function shouldOfferInsurance(hand) {
+    return hand[0] && (hand[0].value === 'ACE' || cardValue(hand[0]) === 10);
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     AUTH & INIT
+  ═══════════════════════════════════════════════════════ */
+  window.onCasinoAuthChange = function(user) {
+    currentUser = user;
+    isAdmin = !!(user && user.email === ADMIN_EMAIL);
+    if (user) {
+      currentUsername = localStorage.getItem('cztcg5_user') || user.email.split('@')[0];
+      document.getElementById('auth-dot').classList.remove('off');
+      document.getElementById('auth-name').textContent = currentUsername;
+      if (isAdmin) {
+        document.getElementById('admin-crown-btn').style.display = 'flex';
+        document.getElementById('lb-push-btn').style.display = '';
+        isVIP = true;
+        document.getElementById('vip-section').style.display = '';
+      }
+      checkVIP();
+      collectCasinoGifts(); // check mailbox for chip gifts
+    } else {
+      currentUsername = null;
+      document.getElementById('auth-dot').classList.add('off');
+      document.getElementById('auth-name').textContent = 'Guest';
+      document.getElementById('admin-crown-btn').style.display = 'none';
+    }
+    updateChipDisplay();
+    updateLimitUI();
+  };
+
+  function init() {
+    loadCasinoData();
+    checkVIP();
+    updateChipDisplay();
+    updateLimitUI();
+    renderStats();
+    renderBundles();
+    renderCasinoPacks();       // Casino Coin-Packs + TCG Packs aus packs.js
+    renderCasinoTcgPacks();    // TCG card packs (casinoStarter/Royale/jackpotVault)
+    renderThemeShop('theme-shop-grid', false);   // SpongeBob etc.
+    renderThemeShop('theme-toggle-grid', true);
+    renderPrismaticPanel();    // Prismatic Cards aus TCG Collection
+    renderLeaderboard();
+    startLimitTimer();
+    initDeck();
+  }
+
+  function hideLocked() {
+    document.getElementById('locked-screen').style.display = 'none';
+  }
+
+  /* ── Quest check (only for multiplayer) ── */
+  function hasQuestAccess() {
+    try {
+      const col = JSON.parse(localStorage.getItem('cztcg5_col') || '[]');
+      if (MONSEUR_QUEST_CARDS.every(id => col.some(c => c.id === id && c.count > 0))) return true;
+      const q = JSON.parse(localStorage.getItem('cztcg5_quests') || '{}');
+      if ((q.claimed || []).includes('q_monseur_collection')) return true;
+    } catch {}
+    return false;
+  }
+
+  function requireLogin(cb) {
+    if (!currentUser) {
+      toast('⚠️ Please log in to 67 TCG first!');
+      return false;
+    }
+    cb();
+    return true;
+  }
+
+  /* ── VIP ── */
+  function checkVIP() {
+    try {
+      const unlocked = JSON.parse(localStorage.getItem('cztcg5_unlocked_titles') || '[]');
+      if (VIP_TITLE_IDS.some(id => unlocked.includes(id)) || isAdmin) {
+        isVIP = true;
+        document.getElementById('vip-section').style.display = '';
+      }
+    } catch {}
+  }
+
+  /* ── Persist ── */
+  function loadCasinoData() {
+    try {
+      chips = parseInt(localStorage.getItem('casino_chips') ?? '-1');
+      if (chips < 0) { chips = CHIPS_START; localStorage.setItem('casino_chips', chips); }
+      tcgCoins    = parseFloat(localStorage.getItem('cztcg5_coins') || '0');
+      casinoStats = { rounds:0, wins:0, losses:0, blackjacks:0, pushes:0, bigwin:0, ugWins:0,
+                      ...JSON.parse(localStorage.getItem('casino_stats') || '{}') };
+      roundHistory = JSON.parse(localStorage.getItem('casino_history') || '[]');
+      // Load new feature data
+      ownedThemes      = JSON.parse(localStorage.getItem('casino_owned_themes') || '[]');
+      activeTheme      = localStorage.getItem('casino_active_theme') || '';
+      undergroundTickets = parseInt(localStorage.getItem('casino_ug_tickets') || '0');
+      casinoPacks_cd   = JSON.parse(localStorage.getItem('casino_packs_cd') || '{}');
+    } catch {
+      chips = CHIPS_START; tcgCoins = 0;
+      casinoStats = { rounds:0, wins:0, losses:0, blackjacks:0, pushes:0, bigwin:0 };
+    }
+  }
+
+  function saveChips()     { localStorage.setItem('casino_chips', chips); updateChipDisplay(); }
+  function saveStats()     {
+    localStorage.setItem('casino_stats', JSON.stringify(casinoStats));
+    localStorage.setItem('casino_history', JSON.stringify(roundHistory));
+  }
+  function saveTheme()     {
+    localStorage.setItem('casino_owned_themes', JSON.stringify(ownedThemes));
+    localStorage.setItem('casino_active_theme', activeTheme);
+    applyTheme();
+  }
+  function saveUGTickets() { localStorage.setItem('casino_ug_tickets', undergroundTickets); }
+  function savePacksCd()   { localStorage.setItem('casino_packs_cd', JSON.stringify(casinoPacks_cd)); }
+
+  function applyTheme() {
+    const ga = document.getElementById('game-area');
+    if (!ga) return;
+    ['velvet','blood','felt'].forEach(t => ga.classList.remove('theme-'+t));
+    if (activeTheme && ownedThemes.includes(activeTheme)) {
+      ga.classList.add('theme-' + activeTheme);
+    }
+    if (isUnderground) ga.classList.add('underground-active');
+    else ga.classList.remove('underground-active');
+  }
+  function saveTcgCoins(n) { localStorage.setItem('cztcg5_coins', n); tcgCoins = n; }
+
+  function updateChipDisplay() {
+    document.getElementById('chip-count').textContent = chips.toLocaleString();
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     TABS
+  ═══════════════════════════════════════════════════════ */
+  function switchTab(name) {
+    document.querySelectorAll('.c-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+    if (name === 'stats') { renderStats(); renderChart(); renderPrismaticPanel(); renderCasinoTitlePicker(); renderCasinoTitles(); _lbLoaded = false; renderLeaderboard(); }
+    if (name === 'shop')  { renderCasinoPacks(); renderCasinoTcgPacks(); renderThemeShop('theme-shop-grid', false); renderThemeShop('theme-toggle-grid', true); }
+    if (name === 'shop')  { tcgCoins = parseFloat(localStorage.getItem('cztcg5_coins') || '0'); updateLimitUI(); }
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     BLACKJACK ENGINE
+  ═══════════════════════════════════════════════════════ */
+  function setBet(n)       { document.getElementById('bet-input').value = n; }
+  function setBetHalf()    { document.getElementById('bet-input').value = Math.max(1, Math.floor(chips / 2)); }
+  function setBetAllIn()   { document.getElementById('bet-input').value = chips; }
+
+  function dealHand() {
+    if (gameActive) return;
+    currentBet = parseInt(document.getElementById('bet-input').value) || 10;
+    if (currentBet < 1)     { toast('⚠️ Minimum bet is 1 chip!'); return; }
+    if (currentBet > chips) { toast('⚠️ Not enough chips!'); return; }
+
+    chips -= currentBet;
+    saveChips();
+
+    gameActive   = true;
+    roundEnded   = false;
+    playerHand   = [];
+    dealerHand   = [];
+    splitHand    = [];
+    playingSplit  = false;
+    hasInsurance  = false;
+    insuranceBet  = 0;
+    doubledDown   = false;
+
+    document.getElementById('round-result').style.display  = 'none';
+    document.getElementById('split-hand-area').style.display = 'none';
+    document.getElementById('insurance-bar').style.display = 'none';
+    document.getElementById('action-bar').style.display    = 'grid';
+    document.getElementById('bet-area').style.pointerEvents = 'none';
+    document.getElementById('deal-btn').disabled = true;
+
+    // Reset insurance bar
+    document.getElementById('insurance-bar').classList.add('ins-disabled');
+    document.getElementById('insurance-bar').style.display = '';
+
+    // Draw 4 cards synchronously from local deck
+    const drawn   = drawCards(4);
+    playerHand    = [drawn[0], drawn[2]];
+    dealerHand    = [drawn[1], drawn[3]];
+
+    renderHands(true);
+    updateGodModeSpyLive();
+    updateInsuranceBar(dealerHand[0]);
+
+    if (shouldOfferInsurance(dealerHand)) {
+      // bar is enabled by updateInsuranceBar, just wait for user
+    } else {
+      checkGameStart();
+    }
+    updateSplitBtn();
+    enableActions(); // stellt sicher dass HIT/STAND nach Next Hand wieder aktiv sind
+  }
+
+  function checkGameStart() {
+    if (is21(playerHand)) endRound();
+    updateSplitBtn();
+  }
+
+  function playerHit() {
+    if (!gameActive || roundEnded) return;
+    disableActions();
+    const card = drawCards(1)[0];
+    if (playingSplit) splitHand.push(card);
+    else              playerHand.push(card);
+    renderHands(true);
+    enableActions();
+
+    const hand = playingSplit ? splitHand : playerHand;
+    if (isBust(hand) || is21(hand)) { endRound(); return; }
+    updateActionBtns();
+    updateGodModeSpyLive();
+  }
+
+  function playerStand() {
+    if (!gameActive || roundEnded) return;
+    if (!playingSplit && splitHand.length > 0) {
+      playingSplit = true;
+      document.getElementById('split-hand-area').style.display = '';
+      toast('Now playing Split Hand');
+    } else {
+      endRound();
+    }
+  }
+
+  function playerDouble() {
+    if (!gameActive || roundEnded) return;
+    if (chips < currentBet) { toast('⚠️ Not enough chips to double!'); return; }
+    chips -= currentBet;
+    currentBet *= 2;
+    saveChips();
+    doubledDown = true;
+    const card = drawCards(1)[0];
+    playerHand.push(card);
+    renderHands(true);
+    endRound();
+  }
+
+  function playerSplit() {
+    if (!canSplit(playerHand)) return;
+    chips -= currentBet;
+    saveChips();
+    splitHand = [playerHand.pop()];
+    const cards = drawCards(2);
+    playerHand.push(cards[0]);
+    splitHand.push(cards[1]);
+    document.getElementById('split-hand-area').style.display = '';
+    renderHands(true);
+    updateSplitBtn();
+    toast('✂️ Split! Play your first hand.');
+    updateGodModeSpyLive();
+  }
+
+  function takeInsurance() {
+    const bar = document.getElementById('insurance-bar');
+    if (bar.classList.contains('ins-disabled')) return;
+    insuranceBet = Math.floor(currentBet * 0.5);
+    if (chips < insuranceBet) { toast('⚠️ Not enough chips!'); return; }
+    chips -= insuranceBet;
+    hasInsurance = true;
+    saveChips();
+    bar.classList.add('ins-disabled');
+    document.getElementById('ins-yes-btn').disabled = true;
+    toast(`🛡 Insurance taken for ${insuranceBet} chips`);
+    checkGameStart();
+  }
+
+  function declineInsurance() {
+    document.getElementById('insurance-bar').classList.add('ins-disabled');
+    checkGameStart();
+  }
+
+  function updateInsuranceBar(dealerUpCard) {
+    const bar = document.getElementById('insurance-bar');
+    const isAceOrTen = dealerUpCard && (['ACE','10','JACK','QUEEN','KING'].includes(dealerUpCard.value));
+    const cost = Math.floor(currentBet * 0.5);
+    document.getElementById('ins-cost').textContent = cost;
+    if (isAceOrTen && !hasInsurance) {
+      bar.classList.remove('ins-disabled');
+      document.getElementById('ins-sub-text').textContent = `Dealer shows ${dealerUpCard.value} — Cost: ${cost} chips`;
+      document.getElementById('ins-yes-btn').disabled = false;
+    } else {
+      bar.classList.add('ins-disabled');
+    }
+  }
+
+  async function dealerPlay() {
+    renderHands(false);
+    await sleep(500);
+    while (handValue(dealerHand) < 17) {
+      const card = drawCards(1)[0];
+      dealerHand.push(card);
+      renderHands(false);
+      await sleep(420);
+    }
+  }
+
+  async function endRound() {
+    if (roundEnded) return;
+    roundEnded = true;
+    disableActions();
+    document.getElementById('action-bar').style.display      = 'none';
+    document.getElementById('insurance-bar').classList.add('ins-disabled');
+
+    const pBust = isBust(playerHand);
+    const pv    = handValue(playerHand);
+    const sv    = handValue(splitHand);
+    const anyAlive = !pBust || (splitHand.length > 0 && !isBust(splitHand));
+    if (anyAlive) await dealerPlay();
+    const dv = handValue(dealerHand);
+    const dBust = isBust(dealerHand);
+
+    function resolveHand(val, bet, bustHand) {
+      if (bustHand) return { net: 0, cls: 'lose', title: '💀 Bust', pay: `-${bet}` };
+      if (val === 21) {
+        const mult = (isUnderground ? 3 : 1.5) * (prismNextBJBonus ? (isUnderground ? 1 : 10/3) : 1);
+        const bjMult = prismNextBJBonus ? 5 : (isUnderground ? 3 : 1.5);
+        const win = Math.floor(bet * bjMult);
+        casinoStats.blackjacks++;
+        if (isUnderground) casinoStats.ugWins = (casinoStats.ugWins||0) + 1;
+        prismNextBJBonus = false;
+        return { net: bet + win, cls: 'bj', title: `⭐ 21!${bjMult>2?' ('+bjMult+'×)':''}`, pay: `+${win}` };
+      }
+      if (dBust || val > dv) {
+        const winBet = isUnderground ? Math.floor(bet * 1.5) : bet;
+        if (isUnderground) casinoStats.ugWins = (casinoStats.ugWins||0) + 1;
+        return { net: bet + winBet, cls: 'win', title: `✅ Win${isUnderground?' (1.5×)':''}`, pay: `+${winBet}` };
+      }
+      if (val === dv) return { net: bet, cls: 'push', title: '🤝 Push', pay: `±0` };
+      return { net: 0, cls: 'lose', title: '❌ Lose', pay: `-${bet}` };
+    }
+
+    const main   = resolveHand(pv, currentBet, pBust);
+    let payout   = main.net;
+    let splitRes = null;
+
+    if (splitHand.length > 0) {
+      splitRes = resolveHand(sv, currentBet, isBust(splitHand));
+      payout  += splitRes.net;
+      casinoStats.wins   += (splitRes.cls === 'win' || splitRes.cls === 'bj') ? 1 : 0;
+      casinoStats.losses += splitRes.cls === 'lose' ? 1 : 0;
+      casinoStats.pushes += splitRes.cls === 'push' ? 1 : 0;
+    }
+
+    if (hasInsurance && handValue(dealerHand) === 21 && dealerHand.length === 2) {
+      payout += insuranceBet * 3;
+    }
+
+    casinoStats.rounds++;
+    casinoStats.wins   += (main.cls === 'win' || main.cls === 'bj') ? 1 : 0;
+    casinoStats.losses += main.cls === 'lose' ? 1 : 0;
+    casinoStats.pushes += main.cls === 'push' ? 1 : 0;
+
+    // ── Passive Prismatic Buffs ─────────────────────────────
+    loadPrismaticCards();
+    let finalPayout = payout;
+
+    // coinmult: Win-Payout erhöhen
+    const coinMult = getPrismBuff('coinmult', 'passiveMult');
+    if (coinMult > 0 && payout > currentBet) {
+      const bonus = Math.floor((payout - currentBet) * coinMult);
+      finalPayout += bonus;
+      if (bonus > 0) toast(`💰 Prismatic Bonus: +${bonus} chips!`, 'ok');
+    }
+
+    // bjboost: Blackjack Payout erhöhen
+    const bjBoost = getPrismBuff('bjboost', 'bjMult');
+    if (bjBoost > 0 && main.cls === 'bj') {
+      const bonus = Math.floor(currentBet * bjBoost);
+      finalPayout += bonus;
+      if (bonus > 0) toast(`⭐ Prismatic BJ Boost: +${bonus} chips!`, 'ok');
+    }
+
+    // cashback: Bei Verlust Chips zurückbekommen
+    const cashback = getPrismBuff('cashback', 'cashbackPct');
+    if (cashback > 0 && main.cls === 'lose') {
+      const refund = Math.floor(currentBet * cashback);
+      finalPayout += refund;
+      if (refund > 0) toast(`🔄 Cashback: +${refund} chips returned!`, 'ok');
+    }
+
+    // luckfee / push saver: Bei Push anteil zurück
+    const pushSave = getPrismBuff('luckfee', 'pushSave');
+    if (pushSave > 0 && main.cls === 'push') {
+      const bonus = Math.floor(currentBet * pushSave);
+      finalPayout += bonus;
+      if (bonus > 0) toast(`🍀 Push Saver: +${bonus} chips!`, 'ok');
+    }
+    // ── End Prismatic Buffs ────────────────────────────────
+
+    const netGain = finalPayout - currentBet - (hasInsurance ? insuranceBet : 0);
+    if (netGain > 0 && netGain > (casinoStats.bigwin || 0)) casinoStats.bigwin = netGain;
+
+    chips += finalPayout;
+    roundHistory.push({ result: main.cls, chips, net: netGain, bet: currentBet });
+    if (roundHistory.length > 10) roundHistory.shift();
+    saveChips();
+    saveStats();
+    pushChipsToLeaderboard();
+
+    const rEl = document.getElementById('round-result');
+    const titleStr = splitRes ? `${main.title} / ${splitRes.title}` : main.title;
+    const payStr   = netGain >= 0 ? `+${netGain} chips` : `${netGain} chips`;
+    const detStr   = `Dealer: ${dv}${dBust ? ' (Bust)' : ''} · You: ${pv}${splitHand.length ? ` / ${sv}` : ''}`;
+
+    rEl.style.display = 'flex';
+    rEl.className = `round-result ${main.cls}`;
+    document.getElementById('result-title').textContent  = titleStr;
+    document.getElementById('result-payout').textContent = payStr;
+    document.getElementById('result-detail').textContent = detStr;
+
+    document.getElementById('bet-area').style.pointerEvents = '';
+    document.getElementById('deal-btn').disabled = false;
+    gameActive = false;
+  }
+
+  function _hardResetState() {
+    gameActive   = false;
+    roundEnded   = false;
+    playerHand   = []; dealerHand = []; splitHand = [];
+    hasInsurance = false; insuranceBet = 0;
+    doubledDown  = false; playingSplit = false;
+  }
+
+  function _clearTable() {
+    document.getElementById('round-result').style.display    = 'none';
+    document.getElementById('action-bar').style.display      = 'none';
+    document.getElementById('split-hand-area').style.display = 'none';
+    document.getElementById('gm-spy-live').style.display     = 'none';
+    document.getElementById('insurance-bar').classList.add('ins-disabled');
+    ['dealer-cards','player-cards','split-cards'].forEach(id => document.getElementById(id).innerHTML = '');
+    ['dealer-val','player-val','split-val'].forEach(id => {
+      const el = document.getElementById(id); el.textContent = '—'; el.className = 'hand-value';
+    });
+    document.getElementById('bet-area').style.pointerEvents = '';
+    document.getElementById('deal-btn').disabled = false;
+    // Absolut sicherstellen: alle Action-Buttons enabled
+    document.querySelectorAll('#action-bar .c-btn').forEach(b => b.disabled = false);
+    enableActions();
+  }
+
+  function resetGame() {
+    _hardResetState();
+    _clearTable();
+    renderStats();
+  }
+
+  function _showShuffleOverlay() {
+    const table = document.getElementById('card-table');
+    if (!table) return;
+    let ov = document.getElementById('shuffle-overlay');
+    if (!ov) {
+      ov = document.createElement('div');
+      ov.id = 'shuffle-overlay';
+      ov.style.cssText = 'position:absolute;inset:0;z-index:99;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.6rem;background:rgba(6,13,24,0.9);border-radius:inherit;backdrop-filter:blur(4px);pointer-events:all;';
+      ov.innerHTML = `
+        <div style="font-size:2rem;animation:shuffleSpin 0.8s linear infinite">🃏</div>
+        <div style="font-size:0.82rem;color:var(--gold);font-weight:700;letter-spacing:0.09em">Dealer Shuffling…</div>
+        <div style="display:flex;gap:0.3rem;margin-top:0.3rem">
+          <span style="width:6px;height:6px;border-radius:50%;background:var(--gold);animation:shuffleDot 1s 0.0s ease-in-out infinite"></span>
+          <span style="width:6px;height:6px;border-radius:50%;background:var(--gold);animation:shuffleDot 1s 0.2s ease-in-out infinite"></span>
+          <span style="width:6px;height:6px;border-radius:50%;background:var(--gold);animation:shuffleDot 1s 0.4s ease-in-out infinite"></span>
+        </div>`;
+      table.style.position = 'relative';
+      table.appendChild(ov);
+    }
+    ov.style.display = 'flex';
+    document.getElementById('deal-btn').disabled = true;
+    setTimeout(() => { ov.style.display = 'none'; document.getElementById('deal-btn').disabled = false; }, 1400);
+  }
+
+  function exitGame() {
+    _hardResetState();
+    _clearTable();
+    document.getElementById('game-area').style.display  = 'none';
+    document.getElementById('table-menu').style.display = '';
+    renderStats();
+  }
+
+  // Wird von den Round-Result Buttons aufgerufen — immer zurück ins Menu
+  function goToMenuAfterRound() {
+    // Underground-Modus beenden falls aktiv
+    if (typeof isUnderground !== 'undefined' && isUnderground) {
+      isUnderground = false;
+      document.getElementById('casino-app')?.classList.remove('underground-active');
+    }
+    exitGame();
+  }
+
+  // Bleibt am Tisch — bereitet neue Runde vor ohne ins Menu zu gehen
+  function playAgain() {
+    _hardResetState();
+    _clearTable();
+    document.getElementById('bet-area').style.pointerEvents = '';
+    document.getElementById('deal-btn').disabled = false;
+    enableActions();
+    _showShuffleOverlay();
+  }
+
+  function smartBack() {
+    const ga = document.getElementById('game-area');
+    if (ga && ga.style.display !== 'none') {
+      exitGame(); // Im Spiel → zurück zum Table-Menü
+    } else {
+      history.back(); // Sonst → Browser zurück (zurück zu 67 TCG)
+    }
+  }
+
+  /* ── Render Hands ── */
+  function renderHands(hideHole) {
+    const dc = document.getElementById('dealer-cards');
+    dc.innerHTML = '';
+    dealerHand.forEach((card, i) => {
+      const el = makeCardEl(card, i === 1 && hideHole);
+      dc.appendChild(el);
+    });
+
+    const dShow = hideHole ? cardValue(dealerHand[0]) : handValue(dealerHand);
+    const dEl   = document.getElementById('dealer-val');
+    dEl.textContent = dShow;
+    dEl.className   = 'hand-value' + (isBust(dealerHand) && !hideHole ? ' bust' : '') + (is21(dealerHand) && !hideHole ? ' bj' : '');
+
+    renderCardRow(document.getElementById('player-cards'), playerHand);
+    const pv = handValue(playerHand);
+    const pEl = document.getElementById('player-val');
+    pEl.textContent = pv;
+    pEl.className   = 'hand-value' + (pv > 21 ? ' bust' : '') + (pv === 21 ? ' bj' : '');
+
+    if (splitHand.length > 0) {
+      renderCardRow(document.getElementById('split-cards'), splitHand);
+      const sv = handValue(splitHand);
+      const sEl = document.getElementById('split-val');
+      sEl.textContent = sv;
+      sEl.className   = 'hand-value' + (sv > 21 ? ' bust' : '') + (sv === 21 ? ' bj' : '');
+    }
+  }
+
+  function renderCardRow(container, hand) {
+    container.innerHTML = '';
+    hand.forEach(c => container.appendChild(makeCardEl(c, false)));
+  }
+
+  function makeCardEl(card, faceDown) {
+    const el = document.createElement('div');
+    el.className = 'playing-card';
+    if (faceDown) {
+      el.classList.add('face-down');
+      return el;
+    }
+    const isRed = card.suit === 'HEARTS' || card.suit === 'DIAMONDS';
+    const sym   = SUIT_SYMBOLS[card.suit] || '?';
+    const label = card.value === '10' ? '10' : card.value[0]; // J/Q/K/A or digit
+    el.classList.add(isRed ? 'card-red' : 'card-black');
+    el.innerHTML = `
+      <div class="card-inner">
+        <div><div class="card-rank">${label}</div><div class="card-suit">${sym}</div></div>
+        <div class="card-center">${sym}</div>
+        <div class="card-bottom"><div class="card-rank">${label}</div><div class="card-suit">${sym}</div></div>
+      </div>`;
+    return el;
+  }
+
+  /* ── Action buttons ── */
+  function updateActionBtns() {
+    document.getElementById('btn-double').disabled = playerHand.length > 2 || chips < currentBet;
+    document.getElementById('btn-split').style.display = canSplit(playerHand) && !playingSplit ? '' : 'none';
+  }
+  function updateSplitBtn() {
+    const show = canSplit(playerHand) && !playingSplit;
+    document.getElementById('btn-split').style.display = show ? '' : 'none';
+    document.getElementById('action-bar').classList.toggle('split-active', show);
+  }
+  function disableActions() { document.querySelectorAll('#action-bar .c-btn').forEach(b => b.disabled = true); }
+  function enableActions()  { document.querySelectorAll('#action-bar .c-btn').forEach(b => b.disabled = false); updateActionBtns(); }
+
+  /* ═══════════════════════════════════════════════════════
+     GAME START
+  ═══════════════════════════════════════════════════════ */
+  function startLocalGame() {
+    document.getElementById('table-menu').style.display       = 'none';
+    document.getElementById('game-area').style.display        = 'block';
+    document.getElementById('private-table-area').style.display = 'none';
+    resetGame();
+    ensureDeck();
+    if (isAdmin && godModeOn) document.getElementById('gm-spy-live').style.display = '';
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     PRIVATE TABLES (Firestore)
+     NOTE: Add these Firestore rules:
+       match /casino_tables/{tableId} {
+         allow read, write: if request.auth != null;
+         match /chat/{msgId} {
+           allow read, write: if request.auth != null;
+         }
+       }
+       match /casino_players/{userId} {
+         allow read: if true;
+         allow write: if request.auth != null && request.auth.uid == userId;
+       }
+       match /casino_leaderboard/{userId} {
+         allow read: if true;
+         allow write: if request.auth != null && request.auth.uid == userId;
+       }
+  ═══════════════════════════════════════════════════════ */
+  function genCode() { return Math.random().toString(36).slice(2,6).toUpperCase(); }
+
+  async function openCreateTable() {
+    if (!requireLogin(() => {})) return;
+    const code  = genCode();
+    const uname = currentUsername;
+    try {
+      const { collection: col, addDoc, serverTimestamp: st } = window.fbFuncs;
+      const ref = await addDoc(col(window.fbDb, 'casino_tables'), {
+        code, host: uname, players: [uname], state: 'waiting', createdAt: st(), maxPlayers: 5
+      });
+      privateTableId = ref.id;
+      tableRole      = 'host';
+      showPrivateTableRoom(code, ref.id, uname, true);
+    } catch(e) { toast('❌ Failed: ' + e.message); }
+  }
+
+  function openJoinTable() {
+    if (!requireLogin(() => {})) return;
+    document.getElementById('join-code-input').value = '';
+    openModal('join-modal');
+  }
+
+  async function joinPrivateTable() {
+    const code  = document.getElementById('join-code-input').value.trim().toUpperCase();
+    if (!code)  { toast('⚠️ Enter a room code!'); return; }
+    const uname = currentUsername;
+    try {
+      const { collection: col, query: q, where, getDocs: gd, doc, updateDoc, arrayUnion } = window.fbFuncs;
+      const snap = await gd(q(col(window.fbDb, 'casino_tables'), where('code','==',code)));
+      if (snap.empty) { toast('⚠️ Room not found!'); return; }
+      const tableDoc = snap.docs[0];
+      const data     = tableDoc.data();
+      if (data.players.length >= (data.maxPlayers || 5)) { toast('⚠️ Room is full! (max 5)'); return; }
+      await updateDoc(doc(window.fbDb,'casino_tables',tableDoc.id), { players: arrayUnion(uname) });
+      privateTableId = tableDoc.id;
+      tableRole      = 'guest';
+      closeModal('join-modal');
+      showPrivateTableRoom(code, tableDoc.id, uname, false);
+    } catch(e) { toast('❌ Failed: ' + e.message); }
+  }
+
+  function showPrivateTableRoom(code, tableId, myName, isHost) {
+    document.getElementById('table-menu').style.display       = 'none';
+    document.getElementById('game-area').style.display        = 'none';
+    document.getElementById('private-table-area').style.display = 'block';
+    document.getElementById('pt-room-code').textContent  = code;
+    document.getElementById('pt-room-title').textContent = isHost ? '🏰 Your Room' : '🚪 Joined Room';
+    document.getElementById('pt-start-btn').style.display = isHost ? '' : 'none';
+
+    if (tableUnsubscribe) tableUnsubscribe();
+    const { doc, onSnapshot: snap } = window.fbFuncs;
+    tableUnsubscribe = snap(doc(window.fbDb,'casino_tables',tableId), d => {
+      if (!d.exists()) { leavePrivateTable(); return; }
+      const data = d.data();
+      renderPtPlayers(data.players, myName);
+      document.getElementById('pt-status').textContent =
+        data.state === 'playing' ? '🟢 Game in progress' :
+        `⏳ Waiting (${data.players.length}/${data.maxPlayers||5})`;
+    });
+
+    // Subscribe to chat
+    subscribeChatRoom(tableId);
+  }
+
+  function renderPtPlayers(players, me) {
+    document.getElementById('pt-players').innerHTML = players.map(p =>
+      `<div class="pt-player ${p===me?'me':''}">${p===me?'👤 ':''}${p}</div>`
+    ).join('');
+  }
+
+  async function startPrivateGame() {
+    if (!privateTableId || tableRole !== 'host') return;
+    try {
+      const { doc, updateDoc } = window.fbFuncs;
+      await updateDoc(doc(window.fbDb,'casino_tables',privateTableId), { state: 'playing' });
+      toast('🎲 Multiplayer game mode coming soon!');
+    } catch(e) { toast('❌ ' + e.message); }
+  }
+
+  async function leavePrivateTable() {
+    if (tableUnsubscribe) { tableUnsubscribe(); tableUnsubscribe = null; }
+    if (chatUnsubscribe)  { chatUnsubscribe();  chatUnsubscribe  = null; }
+
+    if (privateTableId && currentUser && window.fbFuncs) {
+      try {
+        const { doc, updateDoc, arrayRemove, getDocs, collection: col, deleteDoc, query: q } = window.fbFuncs;
+        const uname = currentUsername;
+        const tableRef = doc(window.fbDb,'casino_tables',privateTableId);
+        await updateDoc(tableRef, { players: arrayRemove(uname) });
+
+        // If room now empty, delete table + chat
+        const { getDoc } = window.fbFuncs;
+        const snap = await getDoc(tableRef);
+        if (snap.exists() && (snap.data().players || []).length === 0) {
+          // Delete all chat messages
+          const chatSnap = await getDocs(col(window.fbDb, `casino_tables/${privateTableId}/chat`));
+          for (const d of chatSnap.docs) await deleteDoc(d.ref);
+          await deleteDoc(tableRef);
+        }
+      } catch {}
+    }
+    privateTableId = null; tableRole = null;
+    document.getElementById('private-table-area').style.display = 'none';
+    document.getElementById('table-menu').style.display = '';
+  }
+
+  /* ── Live Chat ── */
+  function subscribeChatRoom(tableId) {
+    if (chatUnsubscribe) chatUnsubscribe();
+    const { collection: col, query: q, orderBy: ob, onSnapshot: snap, limit: lim } = window.fbFuncs;
+    const chatRef = col(window.fbDb, `casino_tables/${tableId}/chat`);
+    chatUnsubscribe = snap(q(chatRef, ob('ts'), lim(50)), snapshot => {
+      const el = document.getElementById('pt-chat-msgs');
+      el.innerHTML = '';
+      if (snapshot.empty) {
+        el.innerHTML = '<div class="chat-msg sys">Chat clears when the room is empty.</div>';
+        return;
+      }
+      snapshot.forEach(d => {
+        const data = d.data();
+        const div  = document.createElement('div');
+        div.className = 'chat-msg';
+        if (data.sys) {
+          div.classList.add('sys');
+          div.textContent = data.text;
+        } else {
+          div.innerHTML = `<span class="chat-user">${data.user}:</span>${data.text}`;
+        }
+        el.appendChild(div);
+      });
+      el.scrollTop = el.scrollHeight;
+    });
+  }
+
+  async function sendChatMsg() {
+    if (!privateTableId || !currentUser) return;
+    const input = document.getElementById('pt-chat-input');
+    const text  = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    try {
+      const { collection: col, addDoc, serverTimestamp: st } = window.fbFuncs;
+      await addDoc(col(window.fbDb, `casino_tables/${privateTableId}/chat`), {
+        user: currentUsername, text, ts: st()
+      });
+    } catch(e) { toast('❌ Chat error: ' + e.message); }
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     SHOP
+  ═══════════════════════════════════════════════════════ */
+  function renderBundles() {
+    const grid = document.getElementById('bundle-grid');
+    grid.innerHTML = '';
+    BUNDLES.forEach(b => {
+      const div = document.createElement('div');
+      div.className = 'bundle-card' + (b.label === '🔥 Popular' ? ' featured' : '');
+      div.innerHTML = `
+        <div class="bundle-info">
+          <div class="bundle-chips">🔴 ${b.chips.toLocaleString()} Chips
+            ${b.label ? `<span class="bundle-badge tag tag-gold">${b.label}</span>` : ''}
+          </div>
+          <div class="bundle-cost">🪙 ${b.coins.toLocaleString()} Coins</div>
+        </div>
+        <button class="c-btn c-btn-gold c-btn-sm" id="bnd-${b.chips}" onclick="buyBundle(${b.chips},${b.coins})">Buy</button>`;
+      grid.appendChild(div);
+    });
+  }
+
+  function getDailyLimit() {
+    try {
+      const raw  = JSON.parse(localStorage.getItem('casino_daily_limit') || '{}');
+      const now  = new Date();
+      const rst  = raw.resetAt ? new Date(raw.resetAt) : null;
+      if (!rst || now >= rst) {
+        const next = new Date(now); next.setDate(next.getDate()+1); next.setHours(0,0,0,0);
+        const fresh = { used: 0, resetAt: next.toISOString() };
+        localStorage.setItem('casino_daily_limit', JSON.stringify(fresh));
+        return fresh;
+      }
+      return { used: raw.used || 0, resetAt: raw.resetAt };
+    } catch { return { used: 0, resetAt: null }; }
+  }
+  function saveDailyLimit(d) { localStorage.setItem('casino_daily_limit', JSON.stringify(d)); }
+
+  function updateLimitUI() {
+    const limit = getDailyLimit();
+    const used  = isVIP ? 0 : limit.used;
+    const pct   = isVIP ? 0 : Math.min(100, (used / DAILY_LIMIT) * 100);
+    const full  = !isVIP && used >= DAILY_LIMIT;
+
+    document.getElementById('limit-used').textContent = isVIP ? '∞' : used;
+    document.getElementById('limit-pct').textContent  = isVIP ? 'VIP ∞' : pct.toFixed(0) + '%';
+    document.getElementById('limit-bar').style.width  = pct + '%';
+
+    const timerEl = document.getElementById('limit-timer-txt');
+    if (full && limit.resetAt) {
+      const ms = new Date(limit.resetAt) - new Date();
+      timerEl.textContent  = `Resets in ${Math.floor(ms/3600000)}h ${Math.floor((ms%3600000)/60000)}m`;
+      timerEl.style.display = '';
+    } else { timerEl.style.display = 'none'; }
+
+    BUNDLES.forEach(b => {
+      const btn = document.getElementById(`bnd-${b.chips}`);
+      if (btn) btn.disabled = full && !isVIP;
+    });
+  }
+
+  function buyBundle(chipsAmt, coinCost) {
+    const limit = getDailyLimit();
+    tcgCoins = parseFloat(localStorage.getItem('cztcg5_coins') || '0');
+    if (tcgCoins < coinCost) { toast(`⚠️ Need 🪙 ${coinCost.toLocaleString()} coins!`); return; }
+    if (!isVIP) {
+      const remaining = DAILY_LIMIT - limit.used;
+      if (remaining <= 0) { toast('⚠️ Daily limit reached! Reset at midnight.'); return; }
+      if (chipsAmt > remaining) { toast(`⚠️ Only ${remaining} more chips available today.`); return; }
+    }
+    saveTcgCoins(tcgCoins - coinCost);
+    chips += chipsAmt;
+    saveChips();
+    if (!isVIP) { limit.used += chipsAmt; saveDailyLimit(limit); }
+    updateLimitUI();
+    toast(`🔴 +${chipsAmt} chips! (🪙 -${coinCost.toLocaleString()})`, 'ok');
+  }
+
+  function buyVipChips() {
+    if (!isVIP) { toast('⚠️ VIP only!'); return; }
+    const amt  = parseInt(document.getElementById('vip-chip-input').value) || 0;
+    if (amt < 1) { toast('⚠️ Enter amount!'); return; }
+    const cost = amt * COINS_PER_CHIP;
+    tcgCoins = parseFloat(localStorage.getItem('cztcg5_coins') || '0');
+    if (tcgCoins < cost) { toast(`⚠️ Need 🪙 ${cost.toLocaleString()} coins!`); return; }
+    saveTcgCoins(tcgCoins - cost);
+    chips += amt; saveChips();
+    document.getElementById('vip-chip-input').value = '';
+    toast(`🔴 +${amt} chips! (🪙 -${cost.toLocaleString()})`, 'ok');
+  }
+
+  function startLimitTimer() { setInterval(updateLimitUI, 60000); }
+
+  /* ═══════════════════════════════════════════════════════
+     CLOUD SYNC
+  ═══════════════════════════════════════════════════════ */
+  async function uploadChipsToCloud() {
+    if (!currentUser || !window.fbDb) { toast('⚠️ Login first!'); return; }
+    try {
+      const { doc, setDoc, serverTimestamp: st } = window.fbFuncs;
+      await setDoc(doc(window.fbDb,'casino_players',currentUser.uid), {
+        username: currentUsername, chips, stats: casinoStats, syncedAt: st()
+      }, { merge: true });
+      toast('☁️ Chips saved!', 'ok');
+    } catch(e) { toast('❌ ' + e.message); }
+  }
+
+  async function loadChipsFromCloud() {
+    if (!currentUser || !window.fbDb) { toast('⚠️ Login first!'); return; }
+    try {
+      const { doc, getDoc } = window.fbFuncs;
+      const snap = await getDoc(doc(window.fbDb,'casino_players',currentUser.uid));
+      if (!snap.exists()) { toast('⚠️ No cloud data found.'); return; }
+      const d = snap.data();
+      if (d.chips != null) { chips = d.chips; saveChips(); }
+      if (d.stats)         { casinoStats = { ...casinoStats, ...d.stats }; saveStats(); }
+      renderStats();
+      toast('☁️ Chips loaded!', 'ok');
+    } catch(e) { toast('❌ ' + e.message); }
+  }
+
+  /* Collect casino chip gifts from mailbox */
+  async function collectCasinoGifts() {
+    if (!currentUser || !window.fbDb || !currentUsername) return;
+    try {
+      const { collection: col, query: q, where, getDocs, updateDoc, doc } = window.fbFuncs;
+      const snap = await getDocs(q(col(window.fbDb,'mailbox'), where('receiver','==',currentUsername), where('collected','==',false)));
+      let totalChips = 0;
+      for (const d of snap.docs) {
+        const data = d.data();
+        // Abgelaufene Casino-Rewards ignorieren (12 h TTL)
+        if (data.expiresAt && Date.now() > data.expiresAt) {
+          await updateDoc(doc(window.fbDb,'mailbox',d.id), { collected: true });
+          continue;
+        }
+        const att  = data.attachments || {};
+        if (att.casino_chips && att.casino_chips !== 0) {
+          totalChips += att.casino_chips;
+          await updateDoc(doc(window.fbDb,'mailbox',d.id), { collected: true });
+        }
+      }
+      if (totalChips !== 0) {
+        chips = Math.max(0, chips + totalChips); saveChips();
+        const sign = totalChips > 0 ? '+' : '';
+        toast(`👑 Admin: ${sign}${totalChips.toLocaleString()} casino chips!`, totalChips > 0 ? 'epic' : 'error');
+      }
+    } catch {}
+  }
+
+  async function pushChipsToLeaderboard(force = false) {
+    if (!currentUser || !window.fbDb || !currentUsername) return;
+    if (!force) {
+      const lastPush = parseInt(localStorage.getItem('lb_last_push') || '0');
+      const now = Date.now();
+      if (now - lastPush < 3600000) return; // max. 1x pro Stunde
+      localStorage.setItem('lb_last_push', now);
+    }
+    try {
+      const { doc, setDoc, serverTimestamp: st } = window.fbFuncs;
+      await setDoc(doc(window.fbDb,'casino_leaderboard',currentUser.uid), {
+        username: currentUsername, chips, updatedAt: st()
+      }, { merge: true });
+    } catch(e) { console.warn('Leaderboard push failed:', e.message); }
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     RADAR / SPIDER CHART
+  ═══════════════════════════════════════════════════════ */
+  function renderChart() {
+    const el = document.getElementById('chart-container');
+    const s  = casinoStats;
+    if (!s.rounds || s.rounds < 1) {
+      el.innerHTML = '<div class="chart-no-data">Noch keine Runden gespielt.</div>';
+      return;
+    }
+
+    const r = s.rounds;
+    // 5 axes (all 0–1 normalized)
+    const axes = [
+      { label: 'Win Rate',    val: Math.min(1, (s.wins||0) / r),                               pct: Math.round(((s.wins||0)/r)*100) + '%' },
+      { label: 'Blackjacks',  val: Math.min(1, ((s.blackjacks||0) / r) * 4),                   pct: s.blackjacks || 0 },
+      { label: 'Best Win',    val: Math.min(1, (s.bigwin||0) / Math.max(1, chips, 1000)),       pct: (s.bigwin||0).toLocaleString() },
+      { label: 'UG Wins',     val: Math.min(1, (s.ugWins||0) / 20),                            pct: s.ugWins || 0 },
+      { label: 'Consistency', val: Math.min(1, Math.max(0, 1 - (s.losses||0) / r)),            pct: Math.round((1-(s.losses||0)/r)*100) + '%' },
+    ];
+
+    const N = axes.length;
+    const CX = 100, CY = 100, R = 78;
+    const levels = 4;
+
+    // Calculate polygon points for a level (0–1)
+    function polyPts(scale) {
+      return axes.map((_, i) => {
+        const angle = (Math.PI * 2 * i / N) - Math.PI / 2;
+        return `${CX + Math.cos(angle) * R * scale},${CY + Math.sin(angle) * R * scale}`;
+      }).join(' ');
+    }
+
+    // Data polygon points
+    const dataPts = axes.map((a, i) => {
+      const angle = (Math.PI * 2 * i / N) - Math.PI / 2;
+      return { x: CX + Math.cos(angle) * R * a.val, y: CY + Math.sin(angle) * R * a.val };
+    });
+    const dataPolyStr = dataPts.map(p => `${p.x},${p.y}`).join(' ');
+
+    // Label positions (slightly outside)
+    const labelPts = axes.map((a, i) => {
+      const angle = (Math.PI * 2 * i / N) - Math.PI / 2;
+      const lr = R + 18;
+      return { x: CX + Math.cos(angle) * lr, y: CY + Math.sin(angle) * lr, label: a.label, pct: a.pct };
+    });
+
+    // Value labels (on the data polygon vertices)
+    const valLabelPts = axes.map((a, i) => {
+      const angle = (Math.PI * 2 * i / N) - Math.PI / 2;
+      const vr = R * a.val + 10;
+      return { x: CX + Math.cos(angle) * vr, y: CY + Math.sin(angle) * vr, pct: a.pct };
+    });
+
+    // Grid lines (axes from center)
+    const axisLines = axes.map((_, i) => {
+      const angle = (Math.PI * 2 * i / N) - Math.PI / 2;
+      return `<line class="radar-axis" x1="${CX}" y1="${CY}" x2="${CX + Math.cos(angle)*R}" y2="${CY + Math.sin(angle)*R}"/>`;
+    }).join('');
+
+    // Grid polygons
+    const gridPolys = Array.from({length: levels}, (_, li) =>
+      `<polygon class="radar-grid-poly" points="${polyPts((li+1)/levels)}"/>`
+    ).join('');
+
+    el.innerHTML = `
+      <div class="radar-wrap">
+        <svg class="radar-svg" width="200" height="200" viewBox="0 0 200 200">
+          ${gridPolys}
+          ${axisLines}
+          <polygon class="radar-data-poly" points="0,0" id="radar-data"/>
+          ${dataPts.map(p => `<circle class="radar-dot" cx="${p.x}" cy="${p.y}" r="4"/>`).join('')}
+          ${labelPts.map(p => `<text class="radar-label" x="${p.x}" y="${p.y}">${p.label}</text>`).join('')}
+          ${valLabelPts.map(p => `<text class="radar-val-label" x="${p.x}" y="${p.y}">${p.pct}</text>`).join('')}
+        </svg>
+        <div class="radar-legend">
+          <span>🎯 Wins <b>${s.wins||0}</b></span>
+          <span>⭐ 21s <b>${s.blackjacks||0}</b></span>
+          <span>❌ Losses <b>${s.losses||0}</b></span>
+          <span>🕳️ UG Wins <b>${s.ugWins||0}</b></span>
+          <span>🏆 Best <b>+${(s.bigwin||0).toLocaleString()}</b></span>
+        </div>
+      </div>`;
+
+    // Animate data polygon in
+    requestAnimationFrame(() => {
+      const poly = document.getElementById('radar-data');
+      if (poly) {
+        poly.setAttribute('points', `${CX},${CY} `.repeat(N));
+        requestAnimationFrame(() => {
+          poly.style.transition = 'points 0s'; // reset
+          setTimeout(() => {
+            poly.style.transition = '';
+            poly.setAttribute('points', dataPolyStr);
+          }, 30);
+        });
+      }
+    });
+  }
+
+  function showChartTip() {}  // no-op (kept for safety)
+  function hideChartTip() {}
+
+  /* ═══════════════════════════════════════════════════════
+     STATS & LEADERBOARD
+  ═══════════════════════════════════════════════════════ */
+  function renderStats() {
+    const s = casinoStats;
+    document.getElementById('st-rounds').textContent = s.rounds || 0;
+    document.getElementById('st-wins').textContent   = s.wins   || 0;
+    document.getElementById('st-losses').textContent = s.losses || 0;
+    document.getElementById('st-bj').textContent     = s.blackjacks || 0;
+    document.getElementById('st-pushes').textContent = s.pushes || 0;
+    document.getElementById('st-bigwin').textContent = (s.bigwin || 0).toLocaleString();
+  }
+
+  let _lbLoaded = false;
+  async function renderLeaderboard() {
+    if (_lbLoaded) return;
+    if (!window.fbDb || !window.fbFuncs) { setTimeout(renderLeaderboard, 2000); return; }
+    const el = document.getElementById('lb-list');
+    el.innerHTML = '<div style="text-align:center;color:var(--subtext);font-size:0.75rem;padding:1rem;font-style:italic;animation:lbPulse 1.2s ease-in-out infinite">Loading leaderboard…</div>';
+    try {
+      const { collection: col, query: q, orderBy: ob, limit: lim, getDocs: gd } = window.fbFuncs;
+      const snap = await gd(q(col(window.fbDb,'casino_leaderboard'), ob('chips','desc'), lim(10)));
+      if (snap.empty) { el.innerHTML = '<div style="text-align:center;color:var(--subtext);padding:1.5rem;font-size:0.82rem">No entries yet. Be first! 🏆</div>'; return; }
+
+      const entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const maxChips = Math.max(...entries.map(e => e.chips || 0), 1);
+      const medals = ['🥇','🥈','🥉'];
+
+      el.innerHTML = `
+        <div class="lb-chart" id="lb-chart">
+          ${entries.map((e, i) => {
+            const isMe  = e.username === currentUsername;
+            const pct   = Math.max(4, Math.round((e.chips||0) / maxChips * 100));
+            const medal = medals[i] || `<span style="font-size:0.65rem;opacity:0.5">#${i+1}</span>`;
+            const barColor = i === 0 ? 'linear-gradient(90deg,#c8a96a,#f0d080)'
+                           : i === 1 ? 'linear-gradient(90deg,#8fa0b0,#b8ccd8)'
+                           : i === 2 ? 'linear-gradient(90deg,#8a5c3a,#c8845a)'
+                           : isMe    ? 'linear-gradient(90deg,#2a6090,#4a90c8)'
+                           :           'linear-gradient(90deg,#1a2a3a,#2a4060)';
+            return `
+            <div class="lb-bar-row" style="animation-delay:${i*0.07}s" data-chips="${e.chips||0}" data-user="${e.username||'???'}">
+              <div class="lb-bar-medal">${medal}</div>
+              <div class="lb-bar-info">
+                <div class="lb-bar-name ${isMe?'lb-me':''}">${e.username||'???'}${isMe?' <span style="font-size:0.6rem;color:#4a90c8">(you)</span>':''}</div>
+                <div class="lb-bar-track">
+                  <div class="lb-bar-fill" style="width:0%;background:${barColor};transition:width 0.9s cubic-bezier(0.34,1.56,0.64,1) ${i*0.07+0.15}s" data-target="${pct}"></div>
+                </div>
+              </div>
+              <div class="lb-bar-chips">🔴 ${(e.chips||0).toLocaleString()}</div>
+            </div>`;
+          }).join('')}
+        </div>`;
+
+      // Animate bars after render
+      requestAnimationFrame(() => {
+        el.querySelectorAll('.lb-bar-fill').forEach(bar => {
+          bar.style.width = bar.dataset.target + '%';
+        });
+        el.querySelectorAll('.lb-bar-row').forEach((row, i) => {
+          row.style.animationDelay = (i * 0.07) + 's';
+          // Hover tooltip mit Chips
+          row.addEventListener('mouseenter', () => {
+            row.querySelector('.lb-bar-chips').style.opacity = '1';
+            row.querySelector('.lb-bar-chips').style.transform = 'scale(1.1)';
+          });
+          row.addEventListener('mouseleave', () => {
+            row.querySelector('.lb-bar-chips').style.opacity = '';
+            row.querySelector('.lb-bar-chips').style.transform = '';
+          });
+        });
+      });
+
+      _lbLoaded = true;
+    } catch(e) {
+      el.innerHTML = `<div style="text-align:center;color:#ff7a7a;padding:1rem;font-size:0.82rem">Error: ${e.message}</div>`;
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     ADMIN PANEL
+  ═══════════════════════════════════════════════════════ */
+  function openAdminModal() {
+    if (!isAdmin) return;
+
+    // Pack-Dropdown befüllen
+    const packSel = document.getElementById('adm-give-pack');
+    if (packSel && typeof SPECIAL_PACK_CFG !== 'undefined' && packSel.options.length <= 1) {
+      Object.entries(SPECIAL_PACK_CFG).forEach(([key, pk]) => {
+        const o = document.createElement('option');
+        o.value = key;
+        o.textContent = `${pk.icon || '📦'} ${pk.label || pk.name || key}`;
+        packSel.appendChild(o);
+      });
+    }
+
+    // Title-Dropdown befüllen
+    const titleSel = document.getElementById('adm-give-title');
+    if (titleSel && typeof window.TITLES_DATABASE !== 'undefined' && titleSel.options.length <= 1) {
+      window.TITLES_DATABASE.forEach(t => {
+        const o = document.createElement('option');
+        o.value = t.id;
+        o.textContent = `${t.icon || '🏅'} ${t.name} (${t.id})`;
+        titleSel.appendChild(o);
+      });
+    } else if (titleSel && titleSel.options.length <= 1) {
+      // Fallback: hardcoded known IDs falls titles.js noch nicht geladen
+      const knownTitles = [
+        'admin_title','title_vip','title_chosen_one','title_insider',
+        'title_casino_felt_life','quest_title_5',
+        'casino_title_0','casino_title_1','casino_title_2','casino_title_3',
+        'casino_title_4','casino_title_5','casino_title_6',
+      ];
+      knownTitles.forEach(id => {
+        const o = document.createElement('option');
+        o.value = id; o.textContent = id;
+        titleSel.appendChild(o);
+      });
+    }
+
+    openModal('admin-modal');
+  }
+
+  function adminRefreshLeaderboard() {
+    if (!isAdmin) return;
+    _lbLoaded = false;
+    document.getElementById('lb-list').innerHTML = '<div style="text-align:center;color:var(--subtext);font-size:0.82rem;padding:1rem">Refreshing…</div>';
+    pushChipsToLeaderboard(true).then(() => renderLeaderboard());
+    toast('🔄 Leaderboard wird aktualisiert…', 'ok');
+  }
+
+  async function manualPushLeaderboard() {
+    if (!currentUser) { toast('⚠️ Bitte zuerst einloggen!'); return; }
+    await pushChipsToLeaderboard(true);
+    _lbLoaded = false;
+    document.getElementById('lb-list').innerHTML = '<div style="text-align:center;color:var(--subtext);font-size:0.82rem;padding:1rem">Wird geladen…</div>';
+    await renderLeaderboard();
+    toast('✅ Leaderboard aktualisiert!', 'ok');
+  }
+
+  function toggleGodMode() {
+    if (!isAdmin) return;
+    godModeOn = !godModeOn;
+    const btn = document.getElementById('gm-toggle-btn');
+    btn.textContent = `👁 God Mode: ${godModeOn ? 'ON' : 'OFF'}`;
+    btn.classList.toggle('on', godModeOn);
+    if (godModeOn && gameActive) {
+      document.getElementById('gm-spy-live').style.display = '';
+      updateGodModeSpyLive();
+    } else {
+      document.getElementById('gm-spy-live').style.display = 'none';
+    }
+    toast(godModeOn ? '👑 God Mode ON — cards revealed!' : 'God Mode OFF');
+  }
+
+  function updateGodModeSpyLive() {
+    if (!isAdmin || !godModeOn) return;
+    const live = document.getElementById('gm-spy-live');
+    live.style.display = gameActive ? '' : 'none';
+    const next = peekNext(3);
+    document.getElementById('spy-next-cards').innerHTML =
+      next.map(c => `<span class="spy-card">${c.value} ${SUIT_SYMBOLS[c.suit]}</span>`).join('') ||
+      '<span style="color:var(--subtext);font-size:0.72rem">—</span>';
+    const hole = dealerHand[1];
+    document.getElementById('spy-dealer-hole').innerHTML = hole
+      ? `<span class="spy-card">${hole.value} ${SUIT_SYMBOLS[hole.suit]} (${cardValue(hole)})</span>`
+      : '<span style="color:var(--subtext);font-size:0.72rem">—</span>';
+  }
+
+  function adminApplySelf() {
+    if (!isAdmin) return;
+    const setVal = parseInt(document.getElementById('adm-set-chips').value);
+    const addVal = parseInt(document.getElementById('adm-add-chips').value);
+    if (!isNaN(setVal) && setVal >= 0) { chips  = setVal; }
+    if (!isNaN(addVal) && addVal > 0)  { chips += addVal; }
+    saveChips();
+    pushChipsToLeaderboard(true);
+    toast('👑 Chips updated!', 'ok');
+  }
+
+  function adminUnlockAllTitles() {
+    if (!isAdmin) return;
+    // Casino-eigene Titles (ct_* IDs) freischalten
+    CASINO_TITLES.forEach(t => {
+      if (window.unlockedTitles instanceof Set) window.unlockedTitles.add(t.id);
+    });
+    // TCG Titles aus titles.js freischalten (falls geladen)
+    if (window.TITLES_DATABASE) {
+      window.TITLES_DATABASE.forEach(t => window.unlockedTitles?.add(t.id));
+    }
+    if (typeof saveTitleData === 'function') saveTitleData();
+    const total = CASINO_TITLES.length + (window.TITLES_DATABASE?.length || 0);
+    toast(`🏅 All ${total} titles unlocked!`, 'epic');
+  }
+
+  function adminSelfChips(n) {
+    if (!isAdmin) return;
+    chips += n; saveChips();
+    pushChipsToLeaderboard(true);
+    toast(`👑 +${n.toLocaleString()} chips!`);
+  }
+
+  function adminApplyStats() {
+    if (!isAdmin) return;
+    const w = parseInt(document.getElementById('adm-set-wins').value);
+    const r = parseInt(document.getElementById('adm-set-rounds').value);
+    if (!isNaN(w) && w >= 0) casinoStats.wins   = w;
+    if (!isNaN(r) && r >= 0) casinoStats.rounds  = r;
+    saveStats(); renderStats();
+    toast('👑 Stats updated!', 'ok');
+  }
+
+  async function adminGiveToPlayer() {
+    if (!isAdmin || !window.fbDb) return;
+    const target    = document.getElementById('adm-target-user').value.trim();
+    const giveChips = parseInt(document.getElementById('adm-give-chips').value) || 0;
+    const giveCoins = parseInt(document.getElementById('adm-give-coins').value) || 0;
+    const givePackKey = document.getElementById('adm-give-pack').value;
+    const givePackQty = Math.max(1, parseInt(document.getElementById('adm-give-pack-qty').value) || 1);
+    const giveTitleId = document.getElementById('adm-give-title').value;
+    const msg         = document.getElementById('adm-give-msg').value.trim() || '🎁 A gift from the Casino Admin!';
+
+    if (!target) { toast('⚠️ Enter a username!'); return; }
+    if (giveChips === 0 && giveCoins === 0 && !givePackKey && !giveTitleId) {
+      toast('⚠️ Nothing to send — fill in at least one field!'); return;
+    }
+
+    const attachments = {};
+    if (giveChips !== 0) attachments.casino_chips = giveChips;
+    if (giveCoins !== 0) attachments.coins         = giveCoins;
+    if (givePackKey) {
+      const cfg = (typeof SPECIAL_PACK_CFG !== 'undefined' && SPECIAL_PACK_CFG[givePackKey]) || {};
+      attachments.pack = {
+        packKey:   givePackKey,
+        name:      cfg.label || cfg.name || givePackKey,
+        icon:      cfg.icon  || '📦',
+        bg:        cfg.bg    || '',
+        sellValue: cfg.sellValue || 0,
+        qty:       givePackQty,
+      };
+    }
+    if (giveTitleId) attachments.titleId = giveTitleId;
+
+    try {
+      const { collection: col, addDoc, serverTimestamp: st } = window.fbFuncs;
+      await addDoc(col(window.fbDb,'mailbox'), {
+        sender:      '👑 Casino Admin',
+        receiver:    target,
+        message:     msg,
+        attachments,
+        timestamp:   st(),
+        collected:   false,
+        isAdminGift: true,
+      });
+      toast(`✅ Gift sent to ${target}!`, 'ok');
+      document.getElementById('adm-give-chips').value    = '';
+      document.getElementById('adm-give-coins').value    = '';
+      document.getElementById('adm-give-pack').value     = '';
+      document.getElementById('adm-give-pack-qty').value = '1';
+      document.getElementById('adm-give-title').value    = '';
+      document.getElementById('adm-give-msg').value      = '';
+    } catch(e) { toast('❌ ' + e.message); }
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     UNDERGROUND TABLE
+  ═══════════════════════════════════════════════════════ */
+  function enterUnderground() {
+    if (undergroundTickets < 1) { toast('⚠️ No Underground Ticket! Buy one in the Shop.'); return; }
+    undergroundTickets--;
+    saveUGTickets();
+    isUnderground = true;
+    applyTheme();
+    document.getElementById('ug-badge').textContent = 'Underground Active';
+    document.getElementById('ug-ticket-count').textContent = undergroundTickets;
+    startLocalGame();
+    // Force min bet
+    const betInput = document.getElementById('bet-input');
+    if (parseInt(betInput.value) < 10000) betInput.value = 10000;
+    toast('🕳️ Underground Table — Win 1.5× · 21 = 3× · Min 10,000 chips!', 'epic');
+  }
+
+  function exitUndergroundMode() {
+    isUnderground = false;
+    applyTheme();
+    document.getElementById('ug-badge').textContent = undergroundTickets > 0 ? `${undergroundTickets} Ticket(s)` : 'Ticket Required (Shop)';
+  }
+
+  function buyUndergroundTicket() {
+    const cost = 5000;
+    if (chips < cost) { toast(`⚠️ Need 🔴 ${cost.toLocaleString()} chips!`); return; }
+    chips -= cost;
+    undergroundTickets++;
+    saveChips();
+    saveUGTickets();
+    document.getElementById('ug-ticket-count').textContent = undergroundTickets;
+    document.getElementById('ug-badge').textContent = `${undergroundTickets} Ticket(s)`;
+    toast('🕳️ Underground Ticket purchased!', 'ok');
+  }
+
+  /* Override exitGame to also exit underground mode */
+  const _origExitGame = exitGame;
+  function exitGame() {
+    if (isUnderground) exitUndergroundMode();
+    _origExitGame();
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     TABLE THEMES
+  ═══════════════════════════════════════════════════════ */
+  function renderThemeShop(containerId, showToggle) {
+    const grid = document.getElementById(containerId);
+    if (!grid) return;
+    grid.innerHTML = '';
+    TABLE_THEMES.forEach(t => {
+      const owned = ownedThemes.includes(t.id);
+      const isActive = activeTheme === t.id;
+      const div = document.createElement('div');
+      div.className = 'theme-shop-item' + (owned ? ' owned-t' : '');
+      div.innerHTML = `
+        <div class="tp-preview" style="background:${t.preview}"></div>
+        <div class="tp-info">
+          <div class="tp-name">${t.name}${owned ? ' <span style="color:#70e070;font-size:0.65rem">✓ Owned</span>' : ''}</div>
+          <div class="tp-desc">${t.desc}</div>
+        </div>
+        <div>
+          ${owned && showToggle
+            ? `<button class="tp-toggle ${isActive?'active':''}" onclick="toggleTheme('${t.id}')">${isActive ? 'Active' : 'Apply'}</button>`
+            : (!owned
+              ? `<button class="c-btn c-btn-gold tp-buy-btn" onclick="buyTheme('${t.id}',${t.cost})">🔴 ${t.cost.toLocaleString()}</button>`
+              : '<span style="font-size:0.65rem;color:var(--subtext)">Off</span>'
+            )
+          }
+        </div>`;
+      grid.appendChild(div);
+    });
+  }
+
+  function buyTheme(id, cost) {
+    if (chips < cost) { toast(`⚠️ Need 🔴 ${cost.toLocaleString()} chips!`); return; }
+    if (ownedThemes.includes(id)) { toast('⚠️ Already owned!'); return; }
+    chips -= cost;
+    ownedThemes.push(id);
+    saveChips();
+    saveTheme();
+    renderThemeShop('theme-shop-grid', false);
+    renderThemeShop('theme-toggle-grid', true);
+    toast('🎨 Theme purchased!', 'ok');
+  }
+
+  function toggleTheme(id) {
+    activeTheme = activeTheme === id ? '' : id;
+    saveTheme();
+    applyActiveTheme();
+    renderThemeShop('theme-shop-grid', false);
+    renderThemeShop('theme-toggle-grid', true);
+    applyActiveTheme();
+    toast(activeTheme ? `🎨 Theme "${id}" activated!` : '🎨 Theme deactivated.', 'ok');
+  }
+
+  function applyActiveTheme() {
+    const app = document.getElementById('casino-app');
+    if (!app) return;
+
+    // Entfernt alte Themes und setzt das aktuelle basierend auf activeTheme
+    ['velvet', 'blood', 'felt'].forEach(t => {
+        app.classList.toggle('theme-' + t, activeTheme === t);
+    });
+}
+
+  /* ═══════════════════════════════════════════════════════
+     CASINO EXCLUSIVE PACKS
+  ═══════════════════════════════════════════════════════ */
+  function getCasinoPackCd(packId) {
+    const ts = casinoPacks_cd[packId] || 0;
+    return Math.max(0, ts + 12*3600000 - Date.now());
+  }
+
+  function renderCasinoPacks() {
+  const grid = document.getElementById('cpak-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  CASINO_PACKS.forEach(pk => {
+    const cdMs   = getCasinoPackCd(pk.id);
+    const onCd   = cdMs > 0;
+    const h      = Math.floor(cdMs / 3600000);
+    const m      = Math.floor((cdMs % 3600000) / 60000);
+    const cdText = onCd ? `⏳ ${h}h ${m}m` : 'Ready';
+    const div    = document.createElement('div');
+    div.className = 'cpak-card';
+    div.innerHTML = `
+      <div class="cpak-icon">${pk.icon}</div>
+      <div class="cpak-info">
+        <div class="cpak-name">${pk.name}</div>
+        <div class="cpak-desc">${pk.desc}</div>
+        <div class="cpak-meta">
+          <span class="cpak-cost">🔴 ${pk.chips.toLocaleString()} chips</span>
+          <span class="cpak-cd">${cdText}</span>
+        </div>
+      </div>
+      <button class="c-btn c-btn-sm" ${onCd ? 'disabled' : ''} onclick="buyCasinoPack('${pk.id}')"
+        style="flex-shrink:0;border-color:var(--teal-border);color:var(--teal-2);background:var(--teal-dim)">
+        ${onCd ? '⏳' : 'Open'}
+      </button>`;
+    grid.appendChild(div);
+  });
+
+  if (typeof SPECIAL_PACK_CFG !== 'undefined') {
+    const tcgPacks = Object.values(SPECIAL_PACK_CFG).filter(p => p.casinoExclusive && p.chipCost);
+    if (tcgPacks.length > 0) {
+      const sep = document.createElement('div');
+      sep.style.cssText = 'font-size:0.68rem;color:var(--gold);font-weight:700;letter-spacing:0.05em;padding:0.4rem 0 0.1rem;opacity:0.7';
+      sep.textContent = '🃏 TCG CARD PACKS — Unlocks real card packs in 67 TCG';
+      grid.appendChild(sep);
+
+      tcgPacks.forEach(pk => {
+        const cdKey  = `casino_tcg_cd_${pk.id}`;
+        const cdTs   = parseInt(localStorage.getItem(cdKey) || '0');
+        const cdMs   = Math.max(0, cdTs + 12 * 3600000 - Date.now());
+        const onCd   = cdMs > 0;
+        const h      = Math.floor(cdMs / 3600000);
+        const m      = Math.floor((cdMs % 3600000) / 60000);
+        const cdText = onCd ? `⏳ ${h}h ${m}m` : 'Ready';
+        const div    = document.createElement('div');
+        div.className = 'cpak-card';
+        div.style.borderColor = 'rgba(200,169,106,0.25)';
+        div.innerHTML = `
+          <div class="cpak-icon">${pk.icon}</div>
+          <div class="cpak-info">
+            <div class="cpak-name">${pk.name}</div>
+            <div class="cpak-desc">${pk.description}</div>
+            <div class="cpak-meta">
+              <span class="cpak-cost">🔴 ${pk.chipCost.toLocaleString()} chips</span>
+              <span class="cpak-cd" style="color:rgba(200,169,106,0.6)">${pk.displayOdds}</span>
+              <span class="cpak-cd">${cdText}</span>
+            </div>
+          </div>
+          <button class="c-btn c-btn-sm" ${onCd ? 'disabled' : ''} onclick="buyCasinoTcgPack('${pk.id}')"
+            style="flex-shrink:0;border-color:rgba(200,169,106,0.4);color:var(--gold);background:rgba(200,169,106,0.08)">
+            ${onCd ? '⏳' : 'Buy'}
+          </button>`;
+        grid.appendChild(div);
+      });
+    }
+  }
+
+  clearTimeout(renderCasinoPacks._t);
+  renderCasinoPacks._t = setTimeout(renderCasinoPacks, 60000);
+}
+
+  /* Rendert die casino-exklusiven TCG-Packs aus packs.js (casinoStarter, casinoRoyale, jackpotVault) */
+  function renderCasinoTcgPacks() {
+  }
+
+  function buyCasinoTcgPack(packId) {
+  if (typeof SPECIAL_PACK_CFG === 'undefined') { toast('❌ packs.js not loaded!'); return; }
+  const pk = SPECIAL_PACK_CFG[packId];
+  if (!pk || !pk.casinoExclusive) return;
+
+  const cdKey = `casino_tcg_cd_${packId}`;
+  const cdTs  = parseInt(localStorage.getItem(cdKey) || '0');
+  if (cdTs && Date.now() < cdTs + 12 * 3600000) { toast('⚠️ Pack on cooldown!'); return; }
+  if (chips < pk.chipCost) { toast(`⚠️ Need 🔴 ${pk.chipCost.toLocaleString()} chips!`); return; }
+
+  chips -= pk.chipCost;
+  saveChips();
+
+  localStorage.setItem(cdKey, Date.now());
+  renderCasinoPacks();
+  toast(`${pk.icon} ${pk.name} added to your TCG inventory!`, 'epic');
+
+  // Firestore: Pack in users/{uid}.packs speichern + Mailbox-Eintrag für index.html Inbox
+  if (window.fbDb && window.fbFuncs && window.fbUser && currentUsername) {
+    const { doc, getDoc, setDoc, collection: col2, addDoc, serverTimestamp: st } = window.fbFuncs;
+    const uid = window.fbUser.uid;
+
+    // 1) users/{uid}.packs aktualisieren
+    getDoc(doc(window.fbDb, 'users', uid)).then(snap => {
+      const data = snap.exists() ? snap.data() : {};
+      let p = data.packs || {};
+      if (typeof p !== 'object' || p === null || Array.isArray(p)) p = {};
+      p[packId] = (p[packId] || 0) + 1;
+      setDoc(doc(window.fbDb, 'users', uid), { packs: p }, { merge: true });
+    }).catch(e => console.warn('Pack sync failed:', e));
+
+    // 2) Mailbox-Eintrag anlegen → index.html Inbox zeigt das Pack (12 h TTL)
+    addDoc(col2(window.fbDb, 'mailbox'), {
+      sender:      '🎰 Casino Shop',
+      receiver:    currentUsername,
+      message:     `${pk.icon} ${pk.name} gekauft! Öffne es im TCG.`,
+      attachments: { pack: { packKey: packId, name: pk.name, icon: pk.icon, bg: pk.bg || '', sellValue: pk.sellValue || 0, qty: 1 } },
+      type:        'casino_pack',
+      timestamp:   st(),
+      collected:   false,
+      expiresAt:   Date.now() + 12 * 3600 * 1000,   // 12 h
+    }).catch(e => console.warn('Mailbox write failed:', e));
+  }
+}
+
+  function buyCasinoPack(packId) {
+    const pk = CASINO_PACKS.find(p => p.id === packId);
+    if (!pk) return;
+    if (getCasinoPackCd(packId) > 0) { toast('⚠️ Pack on cooldown!'); return; }
+    if (chips < pk.chips) { toast(`⚠️ Need 🔴 ${pk.chips.toLocaleString()} chips!`); return; }
+    chips -= pk.chips;
+    saveChips();
+    // Apply rewards
+    if (pk.reward.coins) {
+      const cur = parseFloat(localStorage.getItem('cztcg5_coins') || '0');
+      localStorage.setItem('cztcg5_coins', cur + pk.reward.coins);
+      toast(`${pk.icon} +${pk.reward.coins.toLocaleString()} TCG Coins!`, 'epic');
+    }
+    if (pk.reward.nextBJBonus) { prismNextBJBonus = true; toast('⭐ Next Blackjack pays 5×!', 'epic'); }
+    if (pk.reward.freeInsurance) { toast('🛡 Free insurance on next hand!', 'ok'); /* TODO: implement free insurance flag */ }
+    // Set cooldown
+    casinoPacks_cd[packId] = Date.now();
+    savePacksCd();
+    renderCasinoPacks();
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     CASINO CHIP CODES
+  ═══════════════════════════════════════════════════════ */
+  async function sha1(str) {
+    const buf = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+
+  async function redeemCasinoCode() {
+  const input = document.getElementById('casino-code-input').value.trim().toUpperCase();
+  if (!input) return;
+
+  // 1. Hash berechnen
+  const hashedInput = Array.from(new Uint8Array(
+    await crypto.subtle.digest('SHA-1', new TextEncoder().encode(input))
+  )).map(b => b.toString(16).padStart(2, '0')).join('');
+
+  // 2. Bereits benutzt? — SHARED mit index.html über cztcg5_codes_v2
+  let usedCodes = [];
+  try { usedCodes = JSON.parse(localStorage.getItem('cztcg5_codes_v2') || '[]'); } catch {}
+  if (usedCodes.includes(hashedInput)) {
+    toast('❌ Code bereits verwendet.', 'error');
+    document.getElementById('casino-code-input').value = '';
+    return;
+  }
+
+  // 3. Reward-Objekt aus codes.js holen
+  const reward = window.CODE_HASHES?.[hashedInput];
+  if (!reward) { toast('❌ Ungültiger Code.', 'epic'); return; }
+
+  // 4. Login prüfen
+  const uid = window.fbAuth?.currentUser?.uid;
+  if (!uid || !window.fbDb || !window.fbFuncs) {
+    toast('⚠️ Zuerst in 67 TCG einloggen!', 'error');
+    return;
+  }
+  const { doc, setDoc, getDoc, updateDoc, arrayUnion } = window.fbFuncs;
+
+  // 5. Code-Typ verarbeiten (nur Casino-Typen; Rest gehört in index.html)
+  if (reward.type === 'chips') {
+    // Chips in Firestore (casino_players) addieren
+    const playerRef = doc(window.fbDb, 'casino_players', uid);
+    const snap      = await getDoc(playerRef);
+    const current   = snap.exists() ? (snap.data().chips || 0) : 0;
+    await setDoc(playerRef, { chips: current + (reward.chips || 0) }, { merge: true });
+    chips += (reward.chips || 0);
+    saveChips();
+
+    // Optionales Casino-Pack ebenfalls ins TCG-Inventory schreiben
+    if (reward.casinoPack) {
+      const cfg = (typeof SPECIAL_PACK_CFG !== 'undefined' && SPECIAL_PACK_CFG[reward.casinoPack]) || {};
+      try {
+        let packs = JSON.parse(localStorage.getItem('cztcg5_unopened_packs') || '[]');
+        if (!Array.isArray(packs)) packs = [];
+        packs.push({
+          packKey:   reward.casinoPack,
+          name:      cfg.label     || cfg.name  || reward.casinoPack,
+          icon:      cfg.icon      || '🎴',
+          bg:        cfg.bg        || '',
+          sellValue: cfg.sellValue || 0,
+          acquiredAt: new Date().toISOString(),
+        });
+        localStorage.setItem('cztcg5_unopened_packs', JSON.stringify(packs));
+      } catch {}
+    }
+  } else if (reward.type === 'casino_title') {
+    // Titel in casino_players freischalten
+    const playerRef = doc(window.fbDb, 'casino_players', uid);
+    await setDoc(playerRef, { unlockedTitles: arrayUnion(reward.titleId) }, { merge: true });
+  } else {
+    // Nicht-Casino-Code → Hinweis, aber trotzdem als benutzt markieren NICHT (user-friendly)
+    toast('⚠️ Dieser Code muss in der 67 TCG App eingelöst werden.', 'error');
+    return;  // Code NICHT als benutzt markieren!
+  }
+
+  // 6. Code als benutzt markieren — in localStorage UND Firestore (für index.html)
+  usedCodes.push(hashedInput);
+  localStorage.setItem('cztcg5_codes_v2', JSON.stringify(usedCodes));
+  // Non-blocking Firestore sync → index.html sieht Code beim nächsten Cloud-Load
+  updateDoc(doc(window.fbDb, 'users', uid), {
+    usedCodes: arrayUnion(hashedInput)
+  }).catch(() => {});
+
+  toast(reward.msg || '✅ Code eingelöst!', 'ok');
+  document.getElementById('casino-code-input').value = '';
+  updateUI();
+}
+
+  /* ═══════════════════════════════════════════════════════
+     CASINO TITLES
+  ═══════════════════════════════════════════════════════ */
+  function checkCasinoTitle(title) {
+    if (isAdmin) return true;
+    if (window.unlockedTitles instanceof Set && window.unlockedTitles.has(title.id)) return true;
+    const s = casinoStats;
+    const r = title.req;
+    if (r.rounds     && (s.rounds     || 0) < r.rounds)     return false;
+    if (r.wins       && (s.wins       || 0) < r.wins)       return false;
+    if (r.blackjacks && (s.blackjacks || 0) < r.blackjacks) return false;
+    if (r.chips      && chips < r.chips)                    return false;
+    if (r.underground && (s.ugWins    || 0) < r.underground) return false;
+    return true;
+  }
+
+  function renderCasinoTitles() {
+    const grid     = document.getElementById('ctitle-grid');
+    if (!grid) return;
+    const equipped = localStorage.getItem(CASINO_TITLE_KEY) || '';
+    grid.innerHTML  = '';
+    CASINO_TITLES.forEach(t => {
+      const unlocked = checkCasinoTitle(t);
+      const isEq     = equipped === t.id;
+      const div = document.createElement('div');
+      div.className = 'ctitle-row ' + (isEq ? 'unlocked' : (unlocked ? 'unlocked' : 'locked'));
+      // Hintergrundfarbe für aktiven Titel
+      if (isEq) div.style.cssText = 'border:1px solid rgba(200,169,106,0.55);background:rgba(200,169,106,0.1);';
+      // Klick-Handler: Radio-Logik (nur einer aktiv)
+      if (unlocked) {
+        div.style.cursor = 'pointer';
+        div.title = isEq ? 'Klicke zum Entfernen' : 'Klicke zum Ausrüsten';
+        div.onclick = () => {
+          if (isEq) {
+            localStorage.removeItem(CASINO_TITLE_KEY);
+            _syncCasinoTitleToFirestore(null, null);
+          } else {
+            localStorage.setItem(CASINO_TITLE_KEY, t.id);
+            toast(`🎖️ Title set: ${t.label}`, 'ok');
+            _syncCasinoTitleToFirestore(t.id, t.label);
+          }
+          renderCasinoTitles();
+          renderCasinoTitlePicker();
+        };
+      }
+      div.innerHTML = `
+        <div>
+          <div class="ctitle-label">${isEq ? '✓ ' : ''}${t.label}</div>
+          <div class="ctitle-req">${t.reqText}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.4rem">
+          <span class="ctitle-rarity cr-${t.rarity}">${t.rarity.toUpperCase()}</span>
+          <span class="ctitle-check">${isEq ? '🎖️' : (unlocked ? '✅' : '🔒')}</span>
+        </div>`;
+      grid.appendChild(div);
+    });
+  }
+
+  // Hilfsfunktion: Firestore + localStorage-Broadcast
+  function _syncCasinoTitleToFirestore(titleId, titleLabel) {
+    if (window.fbDb && window.fbFuncs && currentUsername) {
+      const { doc, setDoc } = window.fbFuncs;
+      setDoc(doc(window.fbDb, 'profiles', currentUsername), {
+        casinoEquippedTitleId:    titleId    ?? null,
+        casinoEquippedTitleLabel: titleLabel ?? null,
+      }, { merge: true }).catch(() => {});
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     CASINO PROFILE — Title Picker & Cloud Sync
+  ═══════════════════════════════════════════════════════ */
+  const CASINO_TITLE_KEY    = 'casino_equipped_title';
+
+  function renderCasinoTitlePicker() {
+    // Nur noch das Display-Label updaten — Auswahl passiert im Modal
+    const display  = document.getElementById('casino-equipped-title-display');
+    const equipped = localStorage.getItem(CASINO_TITLE_KEY) || '';
+    if (display) display.textContent = equipped
+      ? (CASINO_TITLES.find(t => t.id === equipped)?.label || '— None —')
+      : '— None —';
+  }
+
+  function openCasinoTitleModal() {
+  const modalEl = document.getElementById('casino-title-modal');
+  if (modalEl) modalEl.style.display = '';
+
+  const list     = document.getElementById('casino-title-modal-list');
+  const equipped = localStorage.getItem(CASINO_TITLE_KEY) || '';
+  if (!list) return;
+  list.innerHTML = '';
+
+  const none = document.createElement('div');
+  none.style.cssText = `cursor:pointer;padding:0.45rem 0.65rem;border-radius:6px;font-size:0.74rem;
+    background:${!equipped ? 'rgba(200,169,106,0.12)' : 'rgba(255,255,255,0.03)'};
+    border:1px solid ${!equipped ? 'rgba(200,169,106,0.5)' : 'rgba(255,255,255,0.07)'};
+    color:var(--subtext);transition:background 0.15s`;
+  none.textContent = !equipped ? '✓  — None —' : '— None —';
+  none.onclick = () => {
+    localStorage.removeItem(CASINO_TITLE_KEY);
+    renderCasinoTitlePicker();
+    renderCasinoTitles();
+    closeModal('casino-title-modal');
+    _syncCasinoTitleToFirestore(null, null);
+  };
+  list.appendChild(none);
+
+  let anyUnlocked = false;
+  CASINO_TITLES.forEach(t => {
+    const unlocked = checkCasinoTitle(t);
+    const isEq     = equipped === t.id;
+    const div = document.createElement('div');
+    div.style.cssText = `cursor:pointer;padding:0.45rem 0.65rem;border-radius:6px;font-size:0.74rem;
+      background:${isEq ? 'rgba(200,169,106,0.14)' : (unlocked ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.01)')};
+      border:1px solid ${isEq ? 'rgba(200,169,106,0.55)' : (unlocked ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)')};
+      color:${isEq ? 'var(--gold)' : (unlocked ? 'var(--text)' : 'var(--subtext)')};
+      opacity:${unlocked ? '1' : '0.45'};pointer-events:${unlocked ? 'auto' : 'none'}`;
+    div.innerHTML = `
+      <span>${isEq ? '✓ ' : ''}${t.label}</span>
+      <span style="font-size:0.6rem;opacity:0.6;margin-left:0.4rem">
+        ${unlocked ? t.rarity.toUpperCase() : '🔒 ' + t.reqText}
+      </span>`;
+    div.onclick = () => {
+      localStorage.setItem(CASINO_TITLE_KEY, t.id);
+      renderCasinoTitlePicker();
+      renderCasinoTitles();
+      closeModal('casino-title-modal');
+      toast(`🎖️ Title set: ${t.label}`, 'ok');
+      _syncCasinoTitleToFirestore(t.id, t.label);
+    };
+    list.appendChild(div);
+    if (unlocked) anyUnlocked = true;
+  });
+
+  if (!anyUnlocked) {
+    const hint = document.createElement('div');
+    hint.style.cssText = 'font-size:0.68rem;color:var(--subtext);text-align:center;padding:0.5rem;font-style:italic';
+    hint.textContent = 'Play more rounds to unlock Casino Titles.';
+    list.appendChild(hint);
+  }
+
+  openModal('casino-title-modal');
+}
+
+  async function saveCasinoProfile() {
+    if (!window.fbDb || !window.fbFuncs || !currentUsername) {
+      toast('⚠️ Log in to sync your profile.'); return;
+    }
+    const { doc, setDoc } = window.fbFuncs;
+    const data = {
+      casinoEquippedTitleId: localStorage.getItem(CASINO_TITLE_KEY) || null,
+      chips,
+      stats: casinoStats,
+    };
+    try {
+      await setDoc(doc(window.fbDb, 'profiles', currentUsername), data, { merge: true });
+      toast('☁️ Casino profile synced!', 'ok');
+    } catch(e) {
+      toast('❌ Sync failed: ' + e.message);
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     PRISMATIC CARD EFFECTS
+  ═══════════════════════════════════════════════════════ */
+  // Passive buffs — always active as long as card is owned, no cooldown needed
+  // Prismatic: base buff. If card isShiny: 1.5× the bonus.
+  const PRISM_EFFECTS = [
+    { key: 'coinmult', icon: '💰', name: 'Coin Multiplier', passiveMult: 0.08,
+      desc:      'Passive: +8% bonus chips on every winning hand.',
+      shinyDesc: 'Passive: +12% bonus chips on every winning hand. ✨ Shiny power.' },
+    { key: 'cashback', icon: '🔄', name: 'Cashback',        cashbackPct: 0.05,
+      desc:      'Passive: Recover 5% of lost chips each round.',
+      shinyDesc: 'Passive: Recover 7.5% of lost chips each round. ✨ Shiny power.' },
+    { key: 'bjboost',  icon: '⭐', name: 'Blackjack Boost', bjMult: 0.25,
+      desc:      'Passive: Blackjack pays +25% extra chips.',
+      shinyDesc: 'Passive: Blackjack pays +37.5% extra chips. ✨ Shiny power.' },
+    { key: 'luckfee',  icon: '🍀', name: 'Push Saver',      pushSave: 0.5,
+      desc:      'Passive: On Push, recover 50% of your bet.',
+      shinyDesc: 'Passive: On Push, recover 75% of your bet. ✨ Shiny power.' },
+  ];
+
+function loadPrismaticCards() {
+    try {
+      const col = JSON.parse(localStorage.getItem('cztcg5_col') || '[]');
+      const allPrisms = col.filter(c =>
+        c.rarity === 'Prismatic' || c.foil === 'prismatic' || c.prismatic === true ||
+        (c.variant && c.variant.includes('prismatic'))
+      );
+
+      // KEINE Deduplication — jede Karte separat anzeigen (Normal + Shiny als eigene Optionen)
+      prismaticCards = allPrisms.map((c, i) => {
+        const isShiny = !!c.isShiny || (typeof c.id === 'number' && c.id >= 6000);
+        const baseId  = c.baseId || (isShiny ? c.id - 5000 : c.id);
+        const fromCard = c.casinoEffect && PRISM_EFFECTS.find(e => e.key === c.casinoEffect)
+          ? c.casinoEffect : null;
+        const stableIdx = typeof baseId === 'number' ? baseId % PRISM_EFFECTS.length : i;
+        return {
+          id:        c.id,
+          name:      c.name || `Card #${c.id}`,
+          effectKey: fromCard || PRISM_EFFECTS[stableIdx].key,
+          isShiny,
+        };
+      });
+    } catch { prismaticCards = []; }
+  }
+
+  const ACTIVE_PRISM_KEY = 'casino_active_prism_id';
+
+  function getActivePrismCard() {
+    const activeId = parseInt(localStorage.getItem(ACTIVE_PRISM_KEY) || '0');
+    return prismaticCards.find(pc => pc.id === activeId) || null;
+  }
+
+  function getPrismBuff(key, field) {
+    // Nur die eine aktiv gewählte Karte gibt Buff
+    const active = getActivePrismCard();
+    if (!active || active.effectKey !== key) return 0;
+    const eff = PRISM_EFFECTS.find(e => e.key === key);
+    if (!eff || eff[field] === undefined) return 0;
+    return eff[field] * (active.isShiny ? 1.5 : 1);
+  }
+  function selectPrismCard(id) {
+    const current = parseInt(localStorage.getItem(ACTIVE_PRISM_KEY) || '0');
+    // Nochmal klicken → deaktiviert
+    if (current === id) {
+      localStorage.removeItem(ACTIVE_PRISM_KEY);
+      toast('💠 Prismatic Buff deactivated.', 'ok');
+    } else {
+      localStorage.setItem(ACTIVE_PRISM_KEY, id);
+      const pc  = prismaticCards.find(c => c.id === id);
+      const eff = pc ? PRISM_EFFECTS.find(e => e.key === pc.effectKey) : null;
+      const power = pc?.isShiny ? 1.5 : 1;
+      const valKey = eff ? Object.keys(eff).find(k => typeof eff[k] === 'number' && eff[k] > 0 && eff[k] < 1) : null;
+      const pct = (eff && valKey) ? Math.round(eff[valKey] * power * 100) : 0;
+      toast(`${pc?.isShiny ? '✨' : '💠'} ${eff?.name || 'Buff'} +${pct}% activated!${pc?.isShiny ? ' (Shiny ×1.5)' : ''}`, 'epic');
+    }
+    renderPrismaticPanel();
+  }
+
+  function renderPrismaticPanel() {
+    loadPrismaticCards();
+    const panel = document.getElementById('prism-panel');
+    const display = document.getElementById('active-prism-display');
+    if (!panel) return;
+
+    if (prismaticCards.length === 0) {
+      panel.innerHTML = '<div class="prism-no">Keine Prismatic Cards gefunden.<br><small>Öffne Prismatic Vault Packs im TCG!</small></div>';
+      if (display) display.innerHTML = '';
+      return;
+    }
+
+    const activeId = parseInt(localStorage.getItem(ACTIVE_PRISM_KEY) || '0');
+
+    // Active-Card-Banner oben
+    if (display) {
+      const active = prismaticCards.find(c => c.id === activeId);
+      if (active) {
+        const eff    = PRISM_EFFECTS.find(e => e.key === active.effectKey) || PRISM_EFFECTS[0];
+        const power  = active.isShiny ? 1.5 : 1;
+        const valKey = Object.keys(eff).find(k => typeof eff[k] === 'number' && eff[k] > 0 && eff[k] < 1);
+        const pct    = valKey ? Math.round(eff[valKey] * power * 100) : 0;
+        display.innerHTML = `
+          <div style="font-size:0.7rem;padding:0.35rem 0.6rem;border-radius:6px;
+            background:${active.isShiny ? 'rgba(255,215,0,0.12)' : 'rgba(160,100,255,0.12)'};
+            border:1px solid ${active.isShiny ? 'rgba(255,215,0,0.4)' : 'rgba(160,100,255,0.4)'};
+            color:${active.isShiny ? '#ffd700' : '#c084fc'};font-weight:700">
+            ${active.isShiny ? '✨' : '💠'} Active: ${active.name} — ${eff.icon} ${eff.name} +${pct}%
+          </div>`;
+      } else {
+        display.innerHTML = '<div style="font-size:0.7rem;color:var(--subtext);font-style:italic">No buff active — tap a card to select.</div>';
+      }
+    }
+
+    panel.innerHTML = '';
+    prismaticCards.forEach(pc => {
+      const eff    = PRISM_EFFECTS.find(e => e.key === pc.effectKey) || PRISM_EFFECTS[0];
+      const power  = pc.isShiny ? 1.5 : 1;
+      const valKey = Object.keys(eff).find(k => typeof eff[k] === 'number' && eff[k] > 0 && eff[k] < 1);
+      const pct    = valKey ? Math.round(eff[valKey] * power * 100) : 0;
+      const isActive = pc.id === activeId;
+
+      const div = document.createElement('div');
+      div.className = 'prism-card' + (isActive ? ' active-eff' : '');
+      div.style.cssText = `cursor:pointer;
+        border-color:${isActive
+          ? (pc.isShiny ? 'rgba(255,215,0,0.7)' : 'rgba(160,100,255,0.7)')
+          : (pc.isShiny ? 'rgba(255,215,0,0.25)' : 'rgba(160,100,255,0.2)')};
+        opacity:${isActive ? '1' : '0.6'};
+        transition:opacity 0.2s,border-color 0.2s;`;
+      div.innerHTML = `
+        <div class="prism-icon" style="font-size:1.4rem">${pc.isShiny ? '✨' : '💠'}</div>
+        <div class="prism-info">
+          <div class="prism-name" style="color:${pc.isShiny ? '#ffd700' : '#c084fc'};font-size:0.76rem;font-weight:700">
+            ${pc.name}${pc.isShiny ? ' ✦' : ''}
+          </div>
+          <div class="prism-eff" style="font-size:0.7rem">
+            <b style="color:${pc.isShiny?'#ffd700':'#a78bfa'}">${eff.icon} ${eff.name} +${pct}%</b>
+          </div>
+          <div class="prism-eff" style="font-size:0.62rem;opacity:0.65">${pc.isShiny && eff.shinyDesc ? eff.shinyDesc : eff.desc}</div>
+        </div>
+        <div style="font-size:0.63rem;font-weight:700;text-align:center;min-width:38px;
+          color:${isActive ? '#70e070' : 'var(--subtext)'}">
+          ${isActive ? 'ACTIVE' : 'Select'}
+        </div>`;
+      div.onclick = () => selectPrismCard(pc.id);
+      panel.appendChild(div);
+    });
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     PROFILE CASINO STATS (for other users)
+  ═══════════════════════════════════════════════════════ */
+  async function loadCasinoStatsForUser(uid) {
+    if (!window.fbDb || !window.fbFuncs) return null;
+    try {
+      const { doc, getDoc } = window.fbFuncs;
+      const snap = await getDoc(doc(window.fbDb,'casino_players', uid));
+      if (snap.exists()) return snap.data();
+    } catch {}
+    return null;
+  }
+
+  // Called from index.html profile viewer — attach to window
+  window.getCasinoStatsForProfile = async function(uid, targetEl) {
+    const data = await loadCasinoStatsForUser(uid);
+    if (!data || !targetEl) return;
+    const s = data.stats || {};
+    targetEl.innerHTML = `
+      <div style="font-size:0.75rem;font-weight:700;color:#c8a96a;margin:0.5rem 0 0.3rem">🎰 Casino Stats</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.35rem;font-size:0.72rem">
+        <div style="text-align:center"><b style="color:#e2c47a">${data.chips||0}</b><div style="color:#5c5448">Chips</div></div>
+        <div style="text-align:center"><b style="color:#e2c47a">${s.rounds||0}</b><div style="color:#5c5448">Rounds</div></div>
+        <div style="text-align:center"><b style="color:#e2c47a">${s.wins||0}</b><div style="color:#5c5448">Wins</div></div>
+        <div style="text-align:center"><b style="color:#e2c47a">${s.blackjacks||0}</b><div style="color:#5c5448">21s</div></div>
+        <div style="text-align:center"><b style="color:#e2c47a">${s.bigwin||0}</b><div style="color:#5c5448">Best Win</div></div>
+        <div style="text-align:center"><b style="color:#e2c47a">${s.ugWins||0}</b><div style="color:#5c5448">UG Wins</div></div>
+      </div>`;
+  };
+
+  /* ═══════════════════════════════════════════════════════
+     UTILITY
+  ═══════════════════════════════════════════════════════ */
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  function toast(msg, type = '') {
+    const wrap = document.getElementById('toast-wrap');
+    const el   = document.createElement('div');
+    el.className = 'c-toast' + (type === 'epic' ? ' c-toast-epic' : type === 'ok' ? ' c-toast-ok' : '');
+    el.textContent = msg;
+    wrap.appendChild(el);
+    setTimeout(() => el.remove(), 3200);
+  }
+
+  function openModal(id)  { document.getElementById(id)?.classList.add('open'); }
+  function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
+
+  /* Close modals on backdrop click */
+  document.querySelectorAll('.modal-overlay').forEach(el => {
+    el.addEventListener('click', e => { if (e.target === el) closeModal(el.id); });
+  });
+
+  /* ── Boot sequence ── */
+  (function boot() {
+    if (typeof window.fbUser === 'undefined') {
+      setTimeout(boot, 600);
+    } else {
+      init();
+    }
+  })();
+
+  function goToMenuAfterRound() {
+  // Versteckt das Spielfeld
+  document.getElementById('game-area').style.display = 'none';
+  // Zeigt das Modus-Menü wieder an
+  document.getElementById('table-menu').style.display = 'block';
+  
+  // Blendet das Result-Overlay für das nächste Spiel aus
+  document.getElementById('round-result').style.display = 'none';
+}
+
+/* ── Cross-Tab Sync: index.html → casino.html ── */
+window.addEventListener('storage', (e) => {
+  // TCG-Coins geändert (z.B. Pack-Kauf in index.html) → Shop-Anzeige aktualisieren
+  if (e.key === 'cztcg5_coins' && e.newValue !== null) {
+    tcgCoins = parseFloat(e.newValue) || 0;
+    updateLimitUI();
+  }
+  // Codes von index.html eingelöst → kein UI-Update nötig, nur Logging
+  if (e.key === 'cztcg5_codes_v2') {
+    console.log('[Casino] usedCodes updated from TCG page.');
+  }
+});
+  </script>
+</body>
+</html>

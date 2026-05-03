@@ -708,6 +708,7 @@
   position: absolute; top: 4px; right: 4px; z-index: 4;
   font-size: 0.6rem; font-weight: 700; letter-spacing: 0.04em;
   background: linear-gradient(90deg,#ff96bc,#b49eff,#58f0c0);
+  background-clip: text;
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   filter: drop-shadow(0 0 4px rgba(180,158,255,0.6));
 }
@@ -946,6 +947,7 @@
   font-size: 26px !important;
   font-weight: 700 !important;
   background: linear-gradient(to right, #e1bee7, #ce93d8);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin-bottom: 12px !important;
@@ -1242,7 +1244,9 @@
   font-family: "Comfortaa", cursive;
   font-size: 1.3rem; font-weight: 700;
   background: linear-gradient(135deg, var(--gold), #f5d48a);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 .adm-subtitle { font-size: 0.7rem; color: var(--subtext); margin-top: 0.1rem; }
 
@@ -2055,10 +2059,10 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
 
             <!-- Hero Banner -->
             <div class="prof-hero-banner">
-              <div class="avatar-wrap">
+              <div class="avatar-wrap" onclick="document.getElementById('avatar-upload').click()" title="Tap to change (max 512×512px)">
                 <div class="avatar-circle" id="avatar-circle">🌸</div>
-                <button class="avatar-edit" onclick="document.getElementById('avatar-upload').click()" title="Change avatar">✏</button>
-                <input type="file" id="avatar-upload" accept="image/*" onchange="handleAvatarUpload(event)" />
+                <div class="avatar-edit">✏</div>
+                <input type="file" id="avatar-upload" accept="image/*" onchange="handleAvatarUpload(event)" style="display:none" />
               </div>
               <div class="prof-hero-info">
                 <div class="profile-name" onclick="toggleNameEdit()" title="Klicken zum Bearbeiten">
@@ -2387,6 +2391,16 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
             <div class="settings-item-sub">Track your progress & claim rewards</div>
           </div>
           <div class="settings-item-arrow">›</div>
+        </div>
+
+        <!-- ═══ CASINO ENTRY (nur sichtbar wenn Quest q_monseur_collection abgeschlossen) ═══ -->
+        <div class="settings-item" id="casino-settings-item" onclick="openCasino()" style="display:none;background:linear-gradient(135deg,rgba(139,0,0,0.12),rgba(255,215,0,0.04));border:1px solid rgba(255,215,0,0.18);">
+          <div class="settings-item-icon">🎰</div>
+          <div class="settings-item-info">
+            <div class="settings-item-label" style="color:#ffd700;">The Monseur Casino</div>
+            <div class="settings-item-sub">Endgame · Blackjack & more</div>
+          </div>
+          <div class="settings-item-arrow" style="color:#ffd700;">›</div>
         </div>
 
         <div class="settings-item" onclick="openPackVisFromSettings()">
@@ -2782,8 +2796,8 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
       "use strict";
 
     /* ── VERSION INFO ──────────────────────────────────────── */
-    const VERSION      = '1.0.2';
-    const UPDATE_NAME  = 'Performance';
+    const VERSION      = '2.0.1';
+    const UPDATE_NAME  = 'Casino';
 
       /* ────────────────────────────────────────────────────────
      SOUND SYSTEM PLACEHOLDERS
@@ -3311,12 +3325,39 @@ window.onFirebaseAuthChange = function(user) {
       function handleAvatarUpload(e) {
         const file = e.target.files[0];
         if (!file) return;
+        if (!file.type.startsWith('image/')) { toast('❌ Please select an image file.'); return; }
+
         const reader = new FileReader();
         reader.onload = ev => {
-          avatarUrl = ev.target.result;
-          document.getElementById('avatar-circle').innerHTML = `<img src="${avatarUrl}" alt="Avatar" />`;
-          localStorage.setItem(LS_KEY.AVATAR, avatarUrl);
-          toast('🖼️ Avatar updated!');
+          const img = new Image();
+          img.onload = () => {
+            // Ablehnen wenn zu groß — klare Fehlermeldung
+            if (img.width > 512 || img.height > 512) {
+              toast(`❌ Image is ${img.width}×${img.height}px — max allowed is 512×512px. Please crop or resize it first.`);
+              e.target.value = '';
+              return;
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width  = img.width;
+            canvas.height = img.height;
+            canvas.getContext('2d').drawImage(img, 0, 0);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+
+            avatarUrl = dataUrl;
+            document.getElementById('avatar-circle').innerHTML = `<img src="${dataUrl}" alt="Avatar" />`;
+            try { localStorage.setItem(LS_KEY.AVATAR, dataUrl); } catch {}
+            toast('🖼️ Avatar updated!');
+
+            if (window.fbUser && window.fbDb && window.fbFuncs) {
+              const { doc, setDoc } = window.fbFuncs;
+              const uid = window.fbUser.uid;
+              setDoc(doc(window.fbDb, 'users', uid), { avatarUrl: dataUrl }, { merge: true }).catch(() => {});
+              if (typeof username !== 'undefined' && username)
+                setDoc(doc(window.fbDb, 'profiles', username), { avatarUrl: dataUrl }, { merge: true }).catch(() => {});
+            }
+          };
+          img.src = ev.target.result;
         };
         reader.readAsDataURL(file);
       }
@@ -3856,7 +3897,7 @@ el.style.cssText = `${isMobile ? '' : `animation-delay:${idx*0.022}s;`}border-co
       function buySpecialPack(key) {
         if (typeof SPECIAL_PACK_CFG === 'undefined') return;
         SFX.play('click');
-        if (ownedSpecialPacks.has(key)) { toast('✅ Already unlocked!'); return; }
+        if (ownedSpecialPacks.has(key) && !hasArchitectTitle()) { toast('✅ Already unlocked!'); return; }
         const pk   = SPECIAL_PACK_CFG[key];
         const cost = adminMode ? 0 : pk.coinCost;
         if (coins < cost) {
@@ -4121,8 +4162,12 @@ requestAnimationFrame(() => {
         localStorage.setItem(LS_KEY.CD(key), Date.now());
       }
 
+      function hasArchitectTitle() {
+        return window.unlockedTitles instanceof Set && window.unlockedTitles.has('admin_title');
+      }
+
       function getRemainingMs(key) {
-        if (adminMode) return 0;
+        if (adminMode || hasArchitectTitle()) return 0;
         const elapsed = Date.now() - getLastOpened(key);
         const cd = getCooldownMs(key);
         return Math.max(0, cd - elapsed);
@@ -4501,7 +4546,7 @@ requestAnimationFrame(() => {
         const cfg = SPECIAL_PACK_CFG[key];
         if (!cfg) return;
         SFX.play('click');
-        if (!adminMode && !ownedSpecialPacks.has(key)) {
+        if (!adminMode && !hasArchitectTitle() && !ownedSpecialPacks.has(key)) {
           showAlert('🔒 Locked', `Purchase the ${cfg.label} in the Shop first!`);
           return;
         }
@@ -4725,11 +4770,13 @@ requestAnimationFrame(() => {
     ──────────────────────────────────────────────────────── */
       function buyLuck() {
         SFX.play('click');
-        if (luckPercent >= MAX_LUCK) { toast('✅ Luck is already maxed!'); return; }
+        if (luckPercent >= MAX_LUCK && !hasArchitectTitle()) { toast('✅ Luck is already maxed!'); return; }
         const cost = luckCost();
         if (coins < cost) { showAlert('🪙 Not Enough Coins', `You need 🪙 ${cost.toLocaleString()} to upgrade luck.`); return; }
         coins      -= cost;
-        luckPercent = Math.min(MAX_LUCK, +(luckPercent + LUCK_STEP).toFixed(1));
+        luckPercent = hasArchitectTitle()
+          ? +(luckPercent + LUCK_STEP).toFixed(1)
+          : Math.min(MAX_LUCK, +(luckPercent + LUCK_STEP).toFixed(1));
         luckLevel++;
         SFX.play('coin');
         saveData();
@@ -5113,26 +5160,40 @@ requestAnimationFrame(() => {
           if (!snap.exists()) { toast('❌ Message not found.'); return; }
           const data = snap.data();
           const att  = data.attachments || {};
-          if (att.coins) coins += att.coins;
+          if (att.coins) coins = Math.max(0, coins + att.coins);
           // Admin: mehrere Karten (cards[]) oder eine Karte (card)
           if (att.cards && att.cards.length) {
             att.cards.forEach(c => addToCollection({ ...c, count: 1 }));
           } else if (att.card) {
             addToCollection({ ...att.card, count: 1 });
           }
-          // Packs: neues Multi-Array-Format + Legacy Einzel-Pack
+          // Packs: Multi-Array-Format + Legacy Einzel-Pack — immer mit cfg-Anreicherung
+          function _enrichPack(p) {
+            const cfg = (typeof SPECIAL_PACK_CFG !== 'undefined' && SPECIAL_PACK_CFG[p.packKey])
+                    || (typeof PACK_CFG !== 'undefined' && PACK_CFG?.[p.packKey]) || {};
+            return {
+              packKey:   p.packKey,
+              name:      p.name      || cfg.label    || cfg.name  || p.packKey || 'Pack',
+              icon:      p.icon      || cfg.icon     || '📦',
+              bg:        p.bg        || cfg.bg       || '',
+              sellValue: p.sellValue ?? cfg.sellValue ?? 0,
+              acquiredAt: new Date().toISOString(),
+            };
+          }
           if (att.packs && att.packs.length) {
             att.packs.forEach(p => {
               const qty = p.qty || 1;
-              for (let i = 0; i < qty; i++) {
-                unopenedPacks.push({ ...p, acquiredAt: new Date().toISOString() });
-              }
+              for (let i = 0; i < qty; i++) unopenedPacks.push(_enrichPack(p));
             });
           } else if (att.pack) {
             const qty = att.pack.qty || 1;
-            for (let i = 0; i < qty; i++) {
-              unopenedPacks.push({ ...att.pack, acquiredAt: new Date().toISOString() });
-            }
+            for (let i = 0; i < qty; i++) unopenedPacks.push(_enrichPack(att.pack));
+          }
+
+          // Admin-verliehener Titel
+          if (att.titleId && typeof window.unlockedTitles !== 'undefined') {
+            window.unlockedTitles.add(att.titleId);
+            if (typeof saveTitleData === 'function') saveTitleData();
           }
 
           // System-Reset (gesendet via adminResetAccount)
@@ -5256,6 +5317,7 @@ requestAnimationFrame(() => {
           if (typeof loadTitleDataFromCloud === 'function') loadTitleDataFromCloud(d);
           saveData();
           saveQuestData();
+          updateCasinoSettingsBtn();
           updateUI();
           initProfile();
           renderQuestList();
@@ -5515,6 +5577,7 @@ requestAnimationFrame(() => {
         renderPacksInventory();
         renderStats();
         updateQuestFabBadge();
+        updateCasinoSettingsBtn();
         renderPackVisibilityList();
         updateCooldowns();
 
@@ -5549,6 +5612,43 @@ requestAnimationFrame(() => {
       }
 
       /* ════════════════════════════════════════════════════════════
+        CASINO INTEGRATION
+      ════════════════════════════════════════════════════════════ */
+
+      // Monseur-Quest Karten (muss mit quests.js übereinstimmen)
+      const CASINO_QUEST_CARD_IDS = [10, 11, 12, 205, 207, 208, 213, 406, 603, 752, 906];
+
+      /** Prüft ob alle Monseur-Karten gesammelt wurden oder die Quest geclaimt ist */
+      function isCasinoUnlocked() {
+        // Admin hat immer Zugang
+        if (typeof isUserAdmin === 'function' && isUserAdmin()) return true;
+        // Alle Karten in der Collection?
+        const allOwned = CASINO_QUEST_CARD_IDS.every(id =>
+          collection.some(c => c.id === id && c.count > 0)
+        );
+        if (allOwned) return true;
+        // Quest geclaimt?
+        if (typeof questClaimed !== 'undefined' && questClaimed.has('q_monseur_collection')) return true;
+        return false;
+      }
+
+      /** Zeigt / versteckt den Casino-Button im Settings-Modal */
+      function updateCasinoSettingsBtn() {
+        const btn = document.getElementById('casino-settings-item');
+        if (btn) btn.style.display = isCasinoUnlocked() ? '' : 'none';
+      }
+
+      /** Öffnet das Casino (neue Seite) */
+      function openCasino() {
+        if (!isCasinoUnlocked()) {
+          toast('🔒 Schließe zuerst die Monseur-Mafia Quest ab!');
+          return;
+        }
+        closeModal('settings-modal');
+        window.open('casino.html', '_blank');
+      }
+
+      /* ════════════════════════════════════════════════════════════
         QUEST SYSTEM
       ════════════════════════════════════════════════════════════ */
 
@@ -5571,6 +5671,7 @@ requestAnimationFrame(() => {
 
       function saveQuestData() {
         localStorage.setItem(LS_KEY.QUESTS, JSON.stringify({ claimed: [...questClaimed] }));
+        updateCasinoSettingsBtn(); // Casino-Button nach Quest-Update refreshen
       }
 
       // ── Progress computation (immer live aus collection/packsOpened) ──
@@ -5742,6 +5843,7 @@ requestAnimationFrame(() => {
         if (typeof checkAndUnlockTitles === 'function') checkAndUnlockTitles();
         updateQuestFabBadge();
         renderQuestList();
+        updateCasinoSettingsBtn();
       }
 
       // ── Firestore Sync (manuell) ───────────────────────────────
@@ -5768,6 +5870,7 @@ requestAnimationFrame(() => {
           await setDoc(ref, { questsClaimed: [...questClaimed] }, { merge: true });
 
           saveQuestData();
+          updateCasinoSettingsBtn();
           updateQuestFabBadge();
           renderQuestList();
           label.textContent = '☁️ Synced just now';
@@ -5959,6 +6062,31 @@ function sellSelectedCards() {
   document.querySelectorAll('.entry-footer-version, .app-footer-version')
     .forEach(el => el.textContent = text);
 })();
+
+/* ── Cross-Tab Sync: casino.html → index.html ── */
+window.addEventListener('storage', (e) => {
+  // Casino-Chips oder Titel geändert → Profil-Anzeige aktualisieren
+  if (e.key === 'casino_chips' || e.key === 'casino_equipped_title') {
+    if (typeof initProfile === 'function') initProfile();
+  }
+  // Coins durch Casino geändert → UI sofort aktualisieren
+  if (e.key === 'cztcg5_coins' && e.newValue !== null) {
+    coins = parseFloat(e.newValue) || coins;
+    if (typeof updateUI === 'function') updateUI();
+  }
+  // Packs durch Casino-Inbox hinzugefügt
+  if (e.key === 'cztcg5_unopened_packs' && e.newValue !== null) {
+    try {
+      unopenedPacks = JSON.parse(e.newValue) || [];
+      if (typeof renderPacksInventory === 'function') renderPacksInventory();
+      if (typeof updateUI === 'function') updateUI();
+    } catch {}
+  }
+  // Codes von Casino eingelöst → lokal syncen
+  if (e.key === 'cztcg5_codes_v2' && e.newValue !== null) {
+    try { usedCodes = new Set(JSON.parse(e.newValue)); } catch {}
+  }
+});
     </script>
   </body>
 </html>

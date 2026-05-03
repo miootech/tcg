@@ -141,7 +141,7 @@ const SPECIAL_PACK_CFG = {
     bg: "linear-gradient(145deg,#102018,#1a2c1a)",
   },
 
-  // ── ROTATING — SLOT 0  (00:00 – 12:00) ─────────────────
+  // ── ALWAYS VISIBLE ──────────────────────────────────────
 
   highRoller: {
     id: "highRoller",
@@ -274,6 +274,7 @@ const SPECIAL_PACK_CFG = {
     },
     bg: "linear-gradient(145deg,#0e1828,#0e1e38)",
   },
+
   shinyPack: {
     id: "shinyPack",
     name: "Shiny Pack",
@@ -291,6 +292,7 @@ const SPECIAL_PACK_CFG = {
     type: "shinyPack",
     bg: "linear-gradient(145deg,#1a1208,#2a1e08)",
   },
+
   prismaticVault: {
     id: "prismaticVault",
     name: "Prismatic Vault",
@@ -326,7 +328,7 @@ const SPECIAL_PACK_CFG = {
     luckBonus: 20,
     rotation: "always",
     type: "collectorsChoice",
-    shopHidden: true,              // ← nie im Shop anzeigen
+    shopHidden: true,
     weightMod: {
       Common:    0.05,
       Rare:      0.10,
@@ -336,5 +338,97 @@ const SPECIAL_PACK_CFG = {
       SSSR:      15,
     },
     bg: "linear-gradient(145deg,#1a0a00,#2e1400)",
+  },
+
+  // ══════════════════════════════════════════════════════════
+  //  CASINO EXCLUSIVE PACKS
+  //  Purchased with Casino Chips in casino.html.
+  //  On purchase, coins are deducted from TCG wallet and
+  //  the pack is added to the player's TCG pack inventory.
+  //  chipCost = price in casino chips (2500 / 5000 / 10000)
+  //  coinCost = equivalent TCG coins (25000 / 50000 / 100000)
+  //  casinoExclusive: true → only purchasable via casino shop
+  // ══════════════════════════════════════════════════════════
+
+  casinoStarter: {
+    id: "casinoStarter",
+    name: "Casino Starter",
+    label: "Casino Starter",
+    icon: "🃏",
+    description:
+      "Born at the felt table. 5 cards with boosted Epic odds — the house's welcome gift.",
+    displayOdds: "5 cards · Epic ×2 · +3% Luck",
+    cardCount: 5,
+    timedCooldown: 0,
+    coinCost: 25000,
+    price: 25000,
+    chipCost: 2500,
+    sellValue: 5000,
+    luckBonus: 3,
+    rotation: "always",
+    type: "epicPlus",
+    casinoExclusive: true,
+    shopHidden: true,
+    bg: "linear-gradient(145deg,#1a0e08,#2e1a08)",
+  },
+
+  casinoRoyale: {
+    id: "casinoRoyale",
+    name: "Casino Royale",
+    label: "Casino Royale",
+    icon: "🎴",
+    description:
+      "Only the finest cards survive the cut. 4 cards, all Mythical or higher — straight from the vault.",
+    displayOdds: "4 cards · 100% Mythical+ · Legendary ×2 · +6% Luck",
+    cardCount: 4,
+    timedCooldown: 0,
+    coinCost: 50000,
+    price: 50000,
+    chipCost: 5000,
+    sellValue: 12000,
+    luckBonus: 6,
+    rotation: "always",
+    type: "mythicalPlus",
+    casinoExclusive: true,
+    shopHidden: true,
+    weightMod: {
+      Common:    0,
+      Rare:      0,
+      Epic:      0,
+      Mythical:  1.5,
+      Legendary: 2.0,
+      SSSR:      1.8,
+    },
+    bg: "linear-gradient(145deg,#1c0a00,#300e00)",
+  },
+
+  jackpotVault: {
+    id: "jackpotVault",
+    name: "Jackpot Vault",
+    label: "Jackpot Vault",
+    icon: "🏆",
+    description:
+      "The grand prize. 3 cards with SSSR odds ×10 and Legendary ×6. Only the biggest winners dare.",
+    displayOdds: "3 cards · SSSR ×10 · Legendary ×6 · +12% Luck",
+    cardCount: 3,
+    timedCooldown: 0,
+    coinCost: 100000,
+    price: 100000,
+    chipCost: 10000,
+    sellValue: 30000,
+    luckBonus: 12,
+    rotation: "always",
+    type: "collectorsChoice",
+    casinoExclusive: true,
+    shopHidden: true,
+    weightMod: {
+      Common:    0.02,
+      Rare:      0.05,
+      Epic:      0.20,
+      Mythical:  0.80,
+      Legendary: 6,
+      SSSR:      10,
+    },
+    bg: "linear-gradient(145deg,#100800,#241400)",
   },
 };

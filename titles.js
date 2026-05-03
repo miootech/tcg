@@ -350,7 +350,79 @@ window.TITLES_DATABASE = [
     description: 'You built this world. Every card, every pack, every rule — your design.',
     unlockCondition: { type: 'admin_only' },
     unlockHint: '???',
-    boost: { luck: 2.0, coinMult: 100, packLuck: 100, shinyBoost: 99 },
+    boost: { luck: 100, coinMult: 100, packLuck: 100, shinyBoost: 99 },
+  },
+
+  // ══════════════ CASINO TITLES ═════════════════════════════
+  {
+    id: 'casino_title_0',
+    name: 'Newcomer',
+    rarity: 'Common',
+    icon: '🎲',
+    description: 'You sat down, placed a chip and lost immediately. A proud tradition.',
+    unlockCondition: { type: 'casino_stat', stat: 'rounds', value: 1 },
+    unlockHint: 'Play your first round at the Casino.',
+    boost: { luck: 1.0, coinMult: 1.0, packLuck: 0, shinyBoost: 1.0 },
+  },
+  {
+    id: 'casino_title_1',
+    name: 'Card Shark',
+    rarity: 'Rare',
+    icon: '🦈',
+    description: 'You know the odds. You respect the felt. The dealer is starting to sweat.',
+    unlockCondition: { type: 'casino_stat', stat: 'rounds', value: 100 },
+    unlockHint: 'Play 100 rounds at the Casino.',
+    boost: { luck: 1.02, coinMult: 1.03, packLuck: 0, shinyBoost: 1.0 },
+  },
+  {
+    id: 'casino_title_2',
+    name: 'High Roller',
+    rarity: 'Epic',
+    icon: '💰',
+    description: 'You don\'t count chips. You count victories. The penthouse suite is yours.',
+    unlockCondition: { type: 'casino_stat', stat: 'chips', value: 10000 },
+    unlockHint: 'Accumulate 10,000 chips at the Casino.',
+    boost: { luck: 1.05, coinMult: 1.08, packLuck: 0.02, shinyBoost: 1.02 },
+  },
+  {
+    id: 'casino_title_3',
+    name: 'Casino Veteran',
+    rarity: 'Mythical',
+    icon: '🎩',
+    description: 'Five hundred hands. Five hundred lessons. The Casino has no more secrets for you.',
+    unlockCondition: { type: 'casino_stat', stat: 'rounds', value: 500 },
+    unlockHint: 'Survive 500 rounds at the Casino.',
+    boost: { luck: 1.1, coinMult: 1.12, packLuck: 0.04, shinyBoost: 1.05 },
+  },
+  {
+    id: 'casino_title_4',
+    name: 'Whale',
+    rarity: 'Legendary',
+    icon: '🐋',
+    description: 'The Casino staff knows your name. The ceiling shakes when you bet. You are the market.',
+    unlockCondition: { type: 'casino_stat', stat: 'chips', value: 100000 },
+    unlockHint: 'Accumulate 100,000 chips — a true Casino legend.',
+    boost: { luck: 1.15, coinMult: 1.2, packLuck: 0.07, shinyBoost: 1.08 },
+  },
+  {
+    id: 'casino_title_5',
+    name: 'The House',
+    rarity: 'SSSR',
+    icon: '🏛️',
+    description: 'You didn\'t just beat the odds. You became them. The Casino whispers your name in fear.',
+    unlockCondition: { type: 'casino_stat', stat: 'wins', value: 1000 },
+    unlockHint: 'Win 1,000 rounds. Ascend beyond the felt.',
+    boost: { luck: 1.3, coinMult: 1.5, packLuck: 0.15, shinyBoost: 1.2 },
+  },
+  {
+    id: 'casino_title_6',
+    name: 'Le Monseur',
+    rarity: 'Hidden',
+    icon: '👑',
+    description: 'A thousand hands played. Five hundred victories claimed. The Casino bows.',
+    unlockCondition: { type: 'casino_stat', stat: 'rounds', value: 1000, stat2: 'wins', value2: 500 },
+    unlockHint: '1,000 rounds and 500 wins. The final throne.',
+    boost: { luck: 2.0, coinMult: 2.5, packLuck: 0.4, shinyBoost: 1.8 },
   },
 
 ];
@@ -460,6 +532,8 @@ function loadTitleDataFromCloud(d) {
   localStorage.setItem(TITLE_LS_KEY.SHOWCASE, JSON.stringify(window.showcaseCards));
   // Re-sync mit aktuellen Stats (setTimeout = Collection ist bereits geladen)
   setTimeout(() => _syncTitleToFirebase(), 500);
+  // Inbox: Casino-Packs aus Mailbox einsammeln
+  setTimeout(() => collectCasinoPacksFromMailbox(), 1200);
 }
 
 /* ── 4. BOOST ENGINE ────────────────────────────────────── */
@@ -562,6 +636,25 @@ function checkAndUnlockTitles() {
     } else if (cond.type === 'coins_reached') {
       const currentCoins = (typeof coins !== 'undefined') ? coins : 0;
       met = currentCoins >= cond.value;
+
+    // ── Casino Stat Titles ────────────────────────────────────
+    } else if (cond.type === 'casino_stat') {
+      try {
+        const cs    = JSON.parse(localStorage.getItem('casino_stats') || '{}');
+        const chips = parseInt(localStorage.getItem('casino_chips') || '0');
+        const statVal = (key) => {
+          if (key === 'chips')  return chips;
+          if (key === 'rounds') return cs.rounds || 0;
+          if (key === 'wins')   return cs.wins   || 0;
+          if (key === 'losses') return cs.losses || 0;
+          if (key === 'blackjacks') return cs.blackjacks || 0;
+          if (key === 'ugWins') return cs.ugWins || 0;
+          return 0;
+        };
+        const primary = statVal(cond.stat) >= cond.value;
+        const secondary = cond.stat2 ? statVal(cond.stat2) >= cond.value2 : true;
+        met = primary && secondary;
+      } catch { met = false; }
     }
 
     if (met) {
@@ -874,22 +967,40 @@ async function searchPlayerProfile() {
   }
 }
 
-function openPlayerProfileModal(profileData) {
+async function openPlayerProfileModal(profileData) {
   const modal = document.getElementById('player-profile-modal');
   if (!modal) return;
 
+  // TCG-equipped title
   const title    = profileData.equippedTitleId
     ? window.TITLES_DATABASE.find(t => t.id === profileData.equippedTitleId)
     : null;
   const colorKey = profileData.equippedTitleColor || 'purple';
   const col      = TITLE_COLORS.find(c => c.key === colorKey) || TITLE_COLORS[0];
 
-  const titleHTML = title ? `
+  // Casino-equipped title: erst in TITLES_DATABASE suchen, dann Label-Fallback nutzen
+// (casino.html speichert casino.html-Titel nur als Label, nicht in TITLES_DATABASE)
+const casinoTitleObj = profileData.casinoEquippedTitleId
+  ? window.TITLES_DATABASE.find(t => t.id === profileData.casinoEquippedTitleId)
+  : null;
+// Fallback: casino.html schreibt jetzt casinoEquippedTitleLabel (z.B. "💰 High Roller")
+const casinoTitleDisplay = casinoTitleObj
+  ? `${casinoTitleObj.icon} ${casinoTitleObj.name}`
+  : (profileData.casinoEquippedTitleLabel || null);
+
+const titleHTML = [
+  title ? `
     <div class="pp-title" style="color:${col.hex};text-shadow:0 0 12px ${col.glow},0 0 24px ${col.glow}">
       ${title.icon} ${title.name}
-    </div>` : '';
+    </div>` : '',
+  // Casino-Titel anzeigen, wenn vorhanden und verschieden vom TCG-Titel
+  casinoTitleDisplay && profileData.casinoEquippedTitleId !== profileData.equippedTitleId ? `
+    <div class="pp-title" style="color:#c8a96a;font-size:0.82rem;text-shadow:0 0 8px rgba(200,169,106,0.5);margin-top:2px">
+      🎰 ${casinoTitleDisplay}
+    </div>` : '',
+].join('');
 
-  // Showcase cards — mit Shiny-Effekt
+  // Showcase cards
   const showcaseIds = profileData.showcaseCards || [];
   const showcaseHTML = showcaseIds.length
     ? showcaseIds.map(id => {
@@ -911,10 +1022,10 @@ function openPlayerProfileModal(profileData) {
       }).join('')
     : `<div style="color:var(--subtext);font-size:0.8rem;text-align:center;width:100%;padding:0.5rem">No showcase set</div>`;
 
-  // Stats
+  // TCG Stats
   const s = profileData.stats || {};
   const fmt = n => (n||0).toLocaleString();
-  const statsHTML = `
+  const tcgStatsHTML = `
     <div class="pp-stats-grid">
       <div class="pp-stat"><div class="pp-stat-val">${fmt(s.uniqueCards)}</div><div class="pp-stat-lbl">🎴 Cards</div></div>
       <div class="pp-stat"><div class="pp-stat-val" style="color:var(--gold)">🪙 ${fmt(s.netWorth)}</div><div class="pp-stat-lbl">Net Worth</div></div>
@@ -926,16 +1037,148 @@ function openPlayerProfileModal(profileData) {
 
   const unlockedCount = (profileData.unlockedTitles || []).length;
 
+  // Casino Titles aus unlockedTitles filtern und anzeigen
+  const casinoTitleIds = ['casino_title_0','casino_title_1','casino_title_2','casino_title_3','casino_title_4','casino_title_5','casino_title_6'];
+  const unlockedCasinoTitles = (profileData.unlockedTitles || []).filter(id => casinoTitleIds.includes(id));
+  const casinoTitlesHTML = unlockedCasinoTitles.length ? unlockedCasinoTitles.map(id => {
+    const t = window.TITLES_DATABASE.find(x => x.id === id);
+    return t ? `<span style="font-size:0.72rem;margin-right:0.35rem">${t.icon} ${t.name}</span>` : '';
+  }).join('') : '<span style="font-size:0.72rem;color:var(--subtext)">None</span>';
+
   document.getElementById('pp-username').textContent    = profileData.username || 'Unknown';
   document.getElementById('pp-title-row').innerHTML     = titleHTML;
   document.getElementById('pp-title-count').textContent = `${unlockedCount} title${unlockedCount !== 1 ? 's' : ''} unlocked`;
   document.getElementById('pp-showcase-row').innerHTML  = showcaseHTML;
-  document.getElementById('pp-stats-section').innerHTML = statsHTML;
+  document.getElementById('pp-stats-section').innerHTML = tcgStatsHTML +
+    `<div style="margin-top:0.8rem">
+       <div style="font-size:0.72rem;font-weight:700;color:#c8a96a;margin-bottom:0.35rem">🎰 Casino Titles</div>
+       <div style="margin-bottom:0.6rem">${casinoTitlesHTML}</div>
+       <div id="pp-casino-stats" style="font-size:0.72rem;color:var(--subtext)">Loading casino stats…</div>
+     </div>`;
 
   if (typeof openModal === 'function') openModal('player-profile-modal');
+
+  // Casino Stats + Leaderboard async nachladen
+  if (window.fbDb && window.fbFuncs && profileData.username) {
+    try {
+      const { doc, getDoc, collection, query, orderBy, getDocs } = window.fbFuncs;
+      const casinoEl = document.getElementById('pp-casino-stats');
+
+      // UID via usernames/{username} holen
+      const unameSnap = await getDoc(doc(window.fbDb, 'usernames', profileData.username));
+      if (!unameSnap.exists()) { if (casinoEl) casinoEl.textContent = 'No casino data.'; return; }
+      const uid = unameSnap.data().uid;
+
+      // Casino Player Stats
+      const playerSnap = await getDoc(doc(window.fbDb, 'casino_players', uid));
+      const pData = playerSnap.exists() ? playerSnap.data() : {};
+      const cs    = pData.stats || {};
+
+      // Leaderboard Rang ermitteln
+      let rank = '—';
+      try {
+        const { query: q, orderBy: ob, limit: lim } = window.fbFuncs;
+        const lbSnap = await getDocs(query(collection(window.fbDb, 'casino_leaderboard'), orderBy('chips','desc')));
+        const lbDocs = lbSnap.docs;
+        const pos = lbDocs.findIndex(d => d.id === uid);
+        if (pos !== -1) rank = `#${pos + 1}`;
+      } catch {}
+
+      if (casinoEl) casinoEl.innerHTML = `
+        <div style="font-size:0.72rem;font-weight:700;color:#c8a96a;margin-bottom:0.3rem">
+          🎰 Casino Stats <span style="font-weight:400;color:#a0824a;font-size:0.65rem">Leaderboard: ${rank}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.3rem;font-size:0.7rem">
+          <div style="text-align:center"><b style="color:#e2c47a">${(pData.chips||0).toLocaleString()}</b><div style="color:var(--subtext)">🔴 Chips</div></div>
+          <div style="text-align:center"><b style="color:#e2c47a">${cs.rounds||0}</b><div style="color:var(--subtext)">Rounds</div></div>
+          <div style="text-align:center"><b style="color:#e2c47a">${cs.wins||0}</b><div style="color:var(--subtext)">Wins</div></div>
+          <div style="text-align:center"><b style="color:#e2c47a">${cs.blackjacks||0}</b><div style="color:var(--subtext)">21s</div></div>
+          <div style="text-align:center"><b style="color:#e2c47a">${cs.bigwin||0}</b><div style="color:var(--subtext)">Best Win</div></div>
+          <div style="text-align:center"><b style="color:#e2c47a">${cs.ugWins||0}</b><div style="color:var(--subtext)">UG Wins</div></div>
+        </div>`;
+    } catch(e) {
+      const casinoEl = document.getElementById('pp-casino-stats');
+      if (casinoEl) casinoEl.textContent = 'Casino stats unavailable.';
+    }
+  }
 }
 
 /* ── 11. ADMIN HELPERS ──────────────────────────────────── */
+
+/* ── CASINO PACK INBOX COLLECTOR ─────────────────────────
+   Reads mailbox entries of type 'casino_pack' that were created
+   by casino.html's buyCasinoTcgPack(), adds them to localStorage
+   cztcg5_packs (= TCG pack inventory) and marks them collected.
+   Entries with expiresAt older than 12 h are silently discarded.
+   Call this once after auth is confirmed (e.g. from loadFromCloud).
+─────────────────────────────────────────────────────────── */
+async function collectCasinoPacksFromMailbox() {
+  if (!window.fbUser || !window.fbDb || !window.fbFuncs) return;
+  try {
+    const { collection, query, where, getDocs, updateDoc, doc } = window.fbFuncs;
+
+    // Need the player's username (index.html stores it as window.username or username)
+    const uname = (typeof username !== 'undefined' ? username : null)
+               || (window.currentUsername || null);
+    if (!uname) return;
+
+    const now  = Date.now();
+    const snap = await getDocs(
+      query(
+        collection(window.fbDb, 'mailbox'),
+        where('receiver',  '==', uname),
+        where('collected', '==', false),
+        where('type',      '==', 'casino_pack'),
+      )
+    );
+
+    if (snap.empty) return;
+
+    let collected = [];
+    for (const d of snap.docs) {
+      const data = d.data();
+      // Mark expired entries as collected without giving the pack
+      if (data.expiresAt && now > data.expiresAt) {
+        await updateDoc(doc(window.fbDb, 'mailbox', d.id), { collected: true });
+        continue;
+      }
+      const att = data.attachments || {};
+      if (att.pack && att.packCount) {
+      // KORREKTUR: in cztcg5_unopened_packs (Array) schreiben, nicht cztcg5_packs
+      try {
+        const cfg = (typeof SPECIAL_PACK_CFG !== 'undefined' && SPECIAL_PACK_CFG[att.pack]) || {};
+        let packs = JSON.parse(localStorage.getItem('cztcg5_unopened_packs') || '[]');
+        if (!Array.isArray(packs)) packs = [];
+        for (let i = 0; i < att.packCount; i++) {
+          packs.push({
+            packKey:   att.pack,
+            name:      cfg.label     || cfg.name  || att.pack,
+            icon:      cfg.icon      || '📦',
+            bg:        cfg.bg        || '',
+            sellValue: cfg.sellValue || 0,
+            acquiredAt: new Date().toISOString(),
+          });
+        }
+        localStorage.setItem('cztcg5_unopened_packs', JSON.stringify(packs));
+      } catch(e) { console.warn('[Casino Inbox] pack write failed', e); continue; }
+        await updateDoc(doc(window.fbDb, 'mailbox', d.id), { collected: true });
+        collected.push(att.pack);
+      }  // end: if (att.pack && att.packCount)
+    }  // end: for loop
+
+    if (collected.length > 0 && typeof toast === 'function') {
+      const summary = collected.map(id => {
+        const cfg = (typeof SPECIAL_PACK_CFG !== 'undefined') ? SPECIAL_PACK_CFG[id] : null;
+        return cfg ? `${cfg.icon} ${cfg.name}` : id;
+      }).join(', ');
+      toast(`🎰 Casino Pack${collected.length > 1 ? 's' : ''} received: ${summary}!`, true);
+    }
+  } catch(e) {
+    console.warn('[Casino Inbox] collectCasinoPacksFromMailbox failed:', e.message);
+  }
+}
+
+window.collectCasinoPacksFromMailbox = collectCasinoPacksFromMailbox;
 
 function adminUnlockAllTitles() {
   if (typeof isUserAdmin !== 'function' || !isUserAdmin()) return;
