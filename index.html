@@ -2078,6 +2078,14 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
                 <div style="display:flex;gap:0.4rem;margin-top:0.75rem;flex-wrap:wrap;justify-content:center;">
                   <button class="btn btn-rose btn-sm" onclick="openGiftModal({})">🎁 Send a Gift</button>
                   <button class="btn btn-surface btn-sm" onclick="openTitlesModal()">🏷️ Titles & Showcase</button>
+                  <button class="btn btn-sm" id="casino-profile-btn" onclick="handleCasinoBtn()"
+                    style="background:linear-gradient(135deg,rgba(139,0,0,0.2),rgba(255,215,0,0.08));border:1px solid rgba(255,215,0,0.3);color:#ffd700;font-weight:700;">
+                    🎰 Casino
+                  </button>
+                  <button class="btn btn-sm" onclick="openModal('casino-rules-modal')"
+                    style="background:var(--surface-3);border:1px solid var(--glass-hi);color:var(--subtext);font-size:0.72rem;">
+                    📖 Rules
+                  </button>
                 </div>
               </div>
             </div>
@@ -2348,6 +2356,81 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
       </div>
     </div>
 
+    <!-- ═══ CASINO UNLOCK MODAL ═══════════════════════════════ -->
+    <div class="modal-overlay" id="casino-unlock-modal" role="dialog" aria-modal="true">
+      <div class="modal-box" style="max-width:340px;text-align:center">
+        <button class="modal-close" onclick="closeModal('casino-unlock-modal')" aria-label="Close">×</button>
+        <div style="font-size:2.2rem;margin-bottom:0.5rem">🎰</div>
+        <div class="modal-title" style="color:#ffd700;">The Monseur Casino</div>
+        <p class="modal-msg" style="margin-bottom:1.2rem;line-height:1.6;">
+          Schalte das Casino frei – entweder durch die <b style="color:var(--accent)">Monseur-Quest</b>
+          oder direkt für <b style="color:#ffd700;">🪙 555.000 Coins</b>.
+        </p>
+        <div style="display:flex;flex-direction:column;gap:0.6rem">
+          <button class="btn btn-primary btn-full" onclick="closeModal('casino-unlock-modal'); openQuestsModal()">
+            📜 Zur Monseur Quest
+          </button>
+          <button class="btn btn-gold btn-full" id="casino-buy-btn" onclick="buyCasinoAccess()">
+            🪙 555.000 Coins bezahlen
+          </button>
+          <div id="casino-buy-status" style="font-size:0.74rem;color:var(--subtext);min-height:1em"></div>
+          <button class="btn btn-ghost btn-full btn-sm" onclick="closeModal('casino-unlock-modal')">Abbrechen</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ CASINO REGELN MODAL ════════════════════════════════ -->
+    <div class="modal-overlay" id="casino-rules-modal" role="dialog" aria-modal="true">
+      <div class="modal-box" style="max-width:380px">
+        <button class="modal-close" onclick="closeModal('casino-rules-modal')" aria-label="Close">×</button>
+        <div class="modal-title">📖 Casino rules</div>
+        <div style="display:flex;flex-direction:column;gap:0.9rem;font-size:0.83rem;line-height:1.6;color:var(--text)">
+
+          <div>
+            <div style="font-weight:700;color:var(--accent);margin-bottom:0.25rem">🃏 Basic rules – Blackjack</div>
+            Goal: Get closer to <b>21</b> than the dealer without going over.
+            Cards 2–10 count their face value. Jack / Queen / KKing = 10.
+            Ace = 1 <i>or</i> 11 (automatically the best).
+          </div>
+
+          <div>
+            <div style="font-weight:700;color:var(--accent);margin-bottom:0.25rem">🎮 Actions</div>
+            <b>HIT</b> – Draw another card.<br>
+            <b>STAND</b> – End your turn; dealer plays.<br>
+            <b>DOUBLE</b> – Double your bet, draw exactly 1 card (only with 2 cards).<br>
+            <b>SPLIT</b> – Split two identical cards into two separate hands (costs 2× bet). Only available with identical card values.<br>
+            <b>INSURANCE</b> – If the dealer shows an ace or a 10, you can place insurance bet equal to 50% of your original bet. If the dealer gets a blackjack, you win 2× the insurance bet.
+          </div>
+
+          <div>
+            <div style="font-weight:700;color:var(--accent);margin-bottom:0.25rem">💰 Payouts</div>
+            <b>Blackjack (21 with 2 cards)</b> → ×1.5 Win<br>
+            <b>Normal Win</b> → ×1 Win<br>
+            <b>Push (Tie)</b> → Bet returned<br>
+            <b>Bust (Over 21)</b> → Bet lost
+          </div>
+
+          <div>
+            <div style="font-weight:700;color:var(--accent);margin-bottom:0.25rem">⚡ Underground-Mode</div>
+            Higher risk, higher reward: Wins are multiplied by <b>×1.5</b>,
+            Blackjack pays <b>×3</b>. Dealer plays more aggressively.
+          </div>
+
+          <div>
+            <div style="font-weight:700;color:var(--accent);margin-bottom:0.25rem">💠 Prismatic-Cards</div>
+            Activate Prismatic Cards from your collection to receive passive casino bonuses
+            (e.g., higher BJ payouts, chip bonuses). Only one card can be active at a time.
+          </div>
+
+          <div>
+            <div style="font-weight:700;color:var(--accent);margin-bottom:0.25rem">🏆 Dealer-Rules</div>
+            The dealer draws cards until they reach at least <b>17</b>, then stands. In case of a tie (Push), you get your bet back.
+          </div>
+        </div>
+        <button class="btn btn-primary btn-full" style="margin-top:1.2rem" onclick="closeModal('casino-rules-modal')">Understood!</button>
+      </div>
+    </div>
+
     <!-- ═══ SETTINGS MODAL ══════════════════════════════════════ -->
     <div class="modal-overlay" id="settings-modal" role="dialog" aria-modal="true">
       <div class="modal-box" style="max-width:340px">
@@ -2391,16 +2474,6 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
             <div class="settings-item-sub">Track your progress & claim rewards</div>
           </div>
           <div class="settings-item-arrow">›</div>
-        </div>
-
-        <!-- ═══ CASINO ENTRY (nur sichtbar wenn Quest q_monseur_collection abgeschlossen) ═══ -->
-        <div class="settings-item" id="casino-settings-item" onclick="openCasino()" style="display:none;background:linear-gradient(135deg,rgba(139,0,0,0.12),rgba(255,215,0,0.04));border:1px solid rgba(255,215,0,0.18);">
-          <div class="settings-item-icon">🎰</div>
-          <div class="settings-item-info">
-            <div class="settings-item-label" style="color:#ffd700;">The Monseur Casino</div>
-            <div class="settings-item-sub">Endgame · Blackjack & more</div>
-          </div>
-          <div class="settings-item-arrow" style="color:#ffd700;">›</div>
         </div>
 
         <div class="settings-item" onclick="openPackVisFromSettings()">
@@ -5622,6 +5695,8 @@ requestAnimationFrame(() => {
       function isCasinoUnlocked() {
         // Admin hat immer Zugang
         if (typeof isUserAdmin === 'function' && isUserAdmin()) return true;
+        // Per Kauf freigeschaltet?
+        if (localStorage.getItem('cztcg5_casino_purchased') === '1') return true;
         // Alle Karten in der Collection?
         const allOwned = CASINO_QUEST_CARD_IDS.every(id =>
           collection.some(c => c.id === id && c.count > 0)
@@ -5632,19 +5707,68 @@ requestAnimationFrame(() => {
         return false;
       }
 
-      /** Zeigt / versteckt den Casino-Button im Settings-Modal */
+      /** Aktualisiert den Casino-Button im Profil-Panel */
       function updateCasinoSettingsBtn() {
-        const btn = document.getElementById('casino-settings-item');
-        if (btn) btn.style.display = isCasinoUnlocked() ? '' : 'none';
+        // Kompatibilität: altes settings-item (falls noch irgendwo vorhanden)
+        const oldBtn = document.getElementById('casino-settings-item');
+        if (oldBtn) oldBtn.style.display = 'none';
+        // Neuer Profil-Button
+        const btn = document.getElementById('casino-profile-btn');
+        if (!btn) return;
+        if (isCasinoUnlocked()) {
+          btn.style.background = 'linear-gradient(135deg,rgba(139,0,0,0.28),rgba(255,215,0,0.14))';
+          btn.style.borderColor = 'rgba(255,215,0,0.55)';
+          btn.title = 'Casino öffnen';
+        } else {
+          btn.style.background = 'linear-gradient(135deg,rgba(80,80,80,0.15),rgba(255,215,0,0.04))';
+          btn.style.borderColor = 'rgba(255,215,0,0.18)';
+          btn.title = 'Unlock Casino';
+        }
       }
 
-      /** Öffnet das Casino (neue Seite) */
-      function openCasino() {
-        if (!isCasinoUnlocked()) {
-          toast('🔒 Schließe zuerst die Monseur-Mafia Quest ab!');
+      /** Casino-Button geklickt (im Profil-Panel) */
+      function handleCasinoBtn() {
+        if (isCasinoUnlocked()) {
+          window.open('casino.html', '_blank');
+        } else {
+          // Coins-Anzeige im Unlock-Modal aktualisieren
+          const statusEl = document.getElementById('casino-buy-status');
+          if (statusEl) {
+            const canAfford = coins >= 555000;
+            statusEl.textContent = canAfford
+              ? `You have 🪙 ${coins.toLocaleString()} Coins.`
+              : `You have 🪙 ${coins.toLocaleString()} / 555.000 Coins.`;
+            statusEl.style.color = canAfford ? 'var(--mint)' : 'var(--rose)';
+          }
+          const buyBtn = document.getElementById('casino-buy-btn');
+          if (buyBtn) buyBtn.disabled = coins < 555000;
+          openModal('casino-unlock-modal');
+        }
+      }
+
+      /** Casino für 555k kaufen */
+      function buyCasinoAccess() {
+        const COST = 555000;
+        if (coins < COST) {
+          toast('⚠️ Not enough coins!');
           return;
         }
-        closeModal('settings-modal');
+        coins -= COST;
+        saveData();
+        localStorage.setItem('cztcg5_casino_purchased', '1');
+        updateUI();
+        updateCasinoSettingsBtn();
+        closeModal('casino-unlock-modal');
+        toast('🎰 Casino unlocked! Good Luck!');
+        setTimeout(() => window.open('casino.html', '_blank'), 600);
+      }
+
+      /** Öffnet das Casino (neue Seite) — Kompatibilität */
+      function openCasino() {
+        if (!isCasinoUnlocked()) {
+          handleCasinoBtn();
+          return;
+        }
         window.open('casino.html', '_blank');
       }
 

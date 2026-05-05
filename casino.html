@@ -417,7 +417,8 @@
     #insurance-bar {
       background: var(--surface-3); border: 1px solid rgba(200,169,106,0.22);
       border-radius: var(--r-md); padding: 0.75rem 1rem;
-      display: none; align-items: center; justify-content: space-between; gap: 0.6rem;
+      display: flex; align-items: center; justify-content: space-between; gap: 0.6rem;
+      transition: opacity 0.2s;
     }
     .ins-text { font-size: 0.84rem; font-weight: 700; color: var(--gold); }
     .ins-sub  { font-size: 0.68rem; color: var(--subtext-2); margin-top: 2px; }
@@ -430,6 +431,8 @@
     }
     #btn-hit, #btn-stand { grid-column: auto; }
     #btn-double, #btn-split, #btn-insurance { grid-column: auto; }
+    /* Split immer sichtbar — disabled wenn nicht möglich */
+    #btn-split:disabled { opacity: 0.28; cursor: not-allowed; pointer-events: none; }
     /* Du kannst die grid-column Attribute aus deinem alten CSS entfernen, damit sie sich natürlich anordnen */
 
     /* ════════════════════════════════════════════════════════
@@ -905,8 +908,7 @@
               <button class="c-btn c-btn-gold c-btn-full c-btn-lg"    onclick="playerHit()"    id="btn-hit">HIT</button>
               <button class="c-btn c-btn-crimson c-btn-full c-btn-lg" onclick="playerStand()"  id="btn-stand">STAND</button>
               <button class="c-btn c-btn-ghost c-btn-full"            onclick="playerDouble()" id="btn-double">DOUBLE</button>
-              <button class="c-btn c-btn-ghost c-btn-full"            onclick="playerSplit()"  id="btn-split" disabled>SPLIT</button>
-              <button class="c-btn c-btn-ghost c-btn-full"            onclick="takeInsurance()" id="btn-insurance" disabled>INSURANCE</button>
+              <button class="c-btn c-btn-ghost c-btn-full"            onclick="playerSplit()"  id="btn-split"    disabled>✂️ SPLIT</button>
             </div>
 
             <!-- God Mode live spy -->
@@ -1577,14 +1579,13 @@
 
     document.getElementById('round-result').style.display  = 'none';
     document.getElementById('split-hand-area').style.display = 'none';
-    document.getElementById('insurance-bar').style.display = 'none';
     document.getElementById('action-bar').style.display    = 'grid';
     document.getElementById('bet-area').style.pointerEvents = 'none';
     document.getElementById('deal-btn').disabled = true;
 
-    // Reset insurance bar
+    // Reset insurance bar — via class, kein display-toggle mehr
     document.getElementById('insurance-bar').classList.add('ins-disabled');
-    document.getElementById('insurance-bar').style.display = '';
+    document.getElementById('ins-yes-btn').disabled = false; // reset für nächste Runde
 
     // Draw 4 cards synchronously from local deck
     const drawn   = drawCards(4);
@@ -1975,15 +1976,22 @@
   /* ── Action buttons ── */
   function updateActionBtns() {
     document.getElementById('btn-double').disabled = playerHand.length > 2 || chips < currentBet;
-    document.getElementById('btn-split').style.display = canSplit(playerHand) && !playingSplit ? '' : 'none';
+    // Split: immer sichtbar, nur disabled wenn Bedingung nicht erfüllt
+    document.getElementById('btn-split').disabled = !(canSplit(playerHand) && !playingSplit);
+    document.getElementById('action-bar').classList.toggle('split-active', canSplit(playerHand) && !playingSplit);
   }
   function updateSplitBtn() {
-    const show = canSplit(playerHand) && !playingSplit;
-    document.getElementById('btn-split').style.display = show ? '' : 'none';
-    document.getElementById('action-bar').classList.toggle('split-active', show);
+    const canDo = canSplit(playerHand) && !playingSplit;
+    document.getElementById('btn-split').disabled = !canDo;
+    document.getElementById('action-bar').classList.toggle('split-active', canDo);
   }
-  function disableActions() { document.querySelectorAll('#action-bar .c-btn').forEach(b => b.disabled = true); }
-  function enableActions()  { document.querySelectorAll('#action-bar .c-btn').forEach(b => b.disabled = false); updateActionBtns(); }
+  function disableActions() {
+    document.querySelectorAll('#action-bar .c-btn').forEach(b => b.disabled = true);
+  }
+  function enableActions() {
+    document.querySelectorAll('#action-bar .c-btn').forEach(b => b.disabled = false);
+    updateActionBtns();
+  }
 
   /* ═══════════════════════════════════════════════════════
      GAME START

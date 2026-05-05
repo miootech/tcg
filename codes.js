@@ -80,6 +80,19 @@ window.CODE_HASHES = {
     msg: "🎁 Admins Gift! +670 coins & 4 packs added!",
   },
 
+  // diggawithn
+  "0337c9770aa30e7c33e91cfa92828d6b7b718a6a": {
+    type: "packs",
+    coins: 67000,
+    packs: [
+      { packKey: "shinyPack",      count: 3},
+      { packKey: "godpack",        count: 1},
+      { packKey: "prismaticVault", count: 3},
+    ],
+    msg: "🎁 Ultimate Admin Gift! +67,000 coins & 7 packs added!",
+  },
+
+
   // --- Admin & System ---
   // admin
   "d033e22ae348aeb5660fc2140aec35850c4da997": {
@@ -98,6 +111,12 @@ window.CODE_HASHES = {
   "89a382df7d1987321fb34ce448eb4a06b4ee5d68": {
     coins: 1000,
     msg: "✨ +1000 coins!",
+  },
+
+  //brokevictor
+  "944547fca5239c5211be0308debfb2f69a466365":{
+    coins: 100000,
+    msg: "💸 Broke Victor's Bailout! +100,000 coins.",
   },
 
   // luckboost
