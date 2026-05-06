@@ -1727,6 +1727,10 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
   display: flex; align-items: center; justify-content: center;
   margin: 0 auto 0.75rem; font-size: 1.6rem;
   box-shadow: 0 0 24px var(--accent-glow);
+  overflow: hidden;
+}
+.pp-avatar img {
+  width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
 }
 .pp-username {
   font-family: "Comfortaa", cursive; font-size: 1.25rem; font-weight: 700;
@@ -2720,7 +2724,7 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
 <div class="modal-overlay" id="player-profile-modal" role="dialog" aria-modal="true">
   <div class="modal-box">
     <button class="modal-close" onclick="closeModal('player-profile-modal')" aria-label="Close">×</button>
-    <div class="pp-avatar">✦</div>
+    <div class="pp-avatar" id="pp-avatar">✦</div>
     <div class="pp-username" id="pp-username">—</div>
     <div id="pp-title-row"></div>
     <div class="pp-meta" id="pp-title-count">0 titles unlocked</div>
@@ -3217,7 +3221,8 @@ window.onFirebaseAuthChange = function(user) {
       }
 
       async function sha1hex(str) {
-        const buf  = new TextEncoder().encode(str);
+        // Immer normalisieren — alle Hashes in codes.js sind von lowercase-Strings
+        const buf  = new TextEncoder().encode(str.trim().toLowerCase());
         const hash = await crypto.subtle.digest('SHA-1', buf);
         return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
       }
@@ -4858,104 +4863,118 @@ requestAnimationFrame(() => {
 
       async function redeemCode() {
   const input = document.getElementById('code-input');
-  const raw = input.value.trim().toLowerCase();
-  if (!raw) { toast('❌ Enter a code first.'); return; }
-  
+  const raw = input.value.trim();
+  if (!raw) { 
+    toast('❌ Enter a code first.'); 
+    return; 
+  }
+
   SFX.play('click');
-  const hash = await sha1hex(raw);
-  
-  // Prüfen, ob der Code bereits benutzt wurde
-  if (usedCodes.has(hash)) { 
-    toast('❌ Code already used.'); 
-    input.value = ''; 
-    return; 
+
+  // Der Hash wird generiert (sha1hex sollte intern .toLowerCase() händeln)
+  const hash = await sha1hex(raw.toLowerCase());
+
+  // 1. Prüfen, ob der Code bereits benutzt wurde
+  if (usedCodes.has(hash)) {
+    toast('❌ Code already used.');
+    input.value = '';
+    return;
   }
-  
-  // Holt die Belohnung aus der codes.js (window.CODE_HASHES)
-  const reward = window.CODE_HASHES[hash];
-  
-  if (!reward) { 
-    toast('❌ Invalid code.'); 
-    SFX.play('error'); 
-    input.value = ''; 
-    return; 
+
+  // 2. Belohnung aus der Datenbank (window.CODE_HASHES) abrufen
+  const reward = window.CODE_HASHES?.[hash];
+  if (!reward) {
+    toast('❌ Invalid code.');
+    SFX.play('error');
+    input.value = '';
+    return;
   }
-  
+
+  // 2b. Ablauf-Prüfung (expires: 0 = niemals, sonst Unix-Timestamp in ms)
+  if (window.isCodeExpired?.(reward)) {
+    toast('⌛ This code has expired.');
+    SFX.play('error');
+    input.value = '';
+    return;
+  }
+
   // Code als benutzt markieren
   usedCodes.add(hash);
 
-  // --- BELOHNUNGS-TYPEN PRÜFEN ---
-  let totalAdded = 0; // Initialisieren, damit der Toast am Ende funktioniert
+  // 3. Sofortige Status-Werte (Coins & Luck) anpassen
+  if (reward.coins) {
+    coins += reward.coins;
+  }
+  if (reward.luck) {
+    // Rundung auf eine Nachkommastelle verhindert hässliche Float-Zahlen
+    luckPercent = Math.min(MAX_LUCK, +(luckPercent + reward.luck).toFixed(1));
+    luckLevel++;
+  }
 
+  // 4. Belohnungs-Typen verarbeiten
   if (reward.type === 'hidden') {
-      // Sucht die erste Karte mit Rarity 'Hidden'
-      const hiddenCard = CARD_DATABASE.find(c => c.rarity === 'Hidden');
-      if (hiddenCard) addToCollection(hiddenCard);
+    const hiddenCard = CARD_DATABASE.find(c => c.rarity === 'Hidden');
+    if (hiddenCard) addToCollection(hiddenCard);
   } 
   else if (reward.type === 'id_reward') {
-      // NEU: Sucht Karte nach spezifischer ID (z.B. 6001)
-      const specialCard = CARD_DATABASE.find(c => c.id === reward.cardId);
-      if (specialCard) {
-          addToCollection(specialCard);
-      } else {
-          console.error("Card ID " + reward.cardId + " not found!");
-      }
-  }
-  else if (reward.type === 'admin') {
-      adminMode = true;
+    const specialCard = CARD_DATABASE.find(c => c.id === reward.cardId);
+    if (specialCard) {
+      addToCollection(specialCard);
+    } else {
+      console.error('Card ID ' + reward.cardId + ' not found in Database!');
+    }
   } 
   else if (reward.type === 'godpack') {
-      const godCards = CARD_DATABASE.filter(c => ['Legendary','SSSR'].includes(c.rarity) && !c.isShiny);
-      godCards.forEach(c => addToCollection(c));
+    const godCards = CARD_DATABASE.filter(c => 
+      ['Legendary', 'SSSR'].includes(c.rarity) && !c.isShiny
+    );
+    godCards.forEach(c => addToCollection(c));
   } 
-  // --- NEUER ABSCHNITT FÜR PACKS ---
   else if (reward.type === 'packs') {
-      reward.packs.forEach(({ packKey, count }) => {
-          const cfg = (typeof SPECIAL_PACK_CFG !== 'undefined' && SPECIAL_PACK_CFG[packKey])
-                      || PACK_CFG?.[packKey];
-          if (!cfg) return;
+    (reward.packs || []).forEach(({ packKey, count }) => {
+      // Hier wird geprüft, ob die Pack-Konfiguration existiert
+      const cfg = (typeof SPECIAL_PACK_CFG !== 'undefined' && SPECIAL_PACK_CFG[packKey]) 
+                  || (typeof PACK_CFG !== 'undefined' && PACK_CFG[packKey]);
 
-          for (let i = 0; i < count; i++) {
-              unopenedPacks.push({
-                  packKey,
-                  name:       cfg.label || cfg.name,
-                  icon:       cfg.icon  || '📦',
-                  bg:         cfg.bg    || '',
-                  sellValue:  cfg.sellValue || 0,
-                  acquiredAt: new Date().toISOString(),
-              });
-              totalAdded++;
-          }
-      });
-  }
+      if (!cfg) {
+        console.warn(`Pack config for ${packKey} not found!`);
+        return;
+      }
+
+      for (let i = 0; i < count; i++) {
+        // Fix: Sicherstellen, dass keine "undefined" Werte gepusht werden
+        unopenedPacks.push({
+          packKey:    packKey,
+          name:       cfg.label || cfg.name || packKey,
+          icon:       cfg.icon  || '📦',
+          bg:         cfg.bg    || '',
+          sellValue:  cfg.sellValue || 0,
+          acquiredAt: new Date().toISOString()
+        });
+      }
+    });
+  } 
+  else if (reward.type === 'admin') {
+    adminMode = true;
+  } 
   else if (reward.type === 'title') {
-    // Code-exklusiver Titel — direkt ins unlockedTitles Set
     if (typeof window.unlockedTitles !== 'undefined' && reward.titleId) {
       window.unlockedTitles.add(reward.titleId);
+      // Falls eine separate Speicherfunktion für Titel existiert:
       if (typeof saveTitleData === 'function') saveTitleData();
     }
   }
 
-  // Gemeinsames Speichern und Benachrichtigen
-  saveData();
-
-  // Der Toast nutzt die reward.msg, falls vorhanden, sonst den Standard-Text
-  toast(reward.msg || `🎁 +${totalAdded} Packs added!`, true);
-
-  // Bonus Belohnungen (Coins oder Luck), falls im Code definiert
-  if (reward.coins) coins += reward.coins;
-  if (reward.luck)  { 
-      luckPercent = Math.min(MAX_LUCK, luckPercent + reward.luck); 
-      luckLevel++; 
-  }
-
-  // UI Aktualisieren
+  // 5. Finalisierung: Speichern und UI-Update
   SFX.play('redeem');
-  saveData();
-  renderCollection();
-  renderStats();
-  toast(`✅ ${reward.msg}`);
-  input.value = '';
+  saveData();            // Speichert alle Änderungen im localStorage
+  renderCollection();    // Aktualisiert die Anzeige der Karten/Packs
+  renderStats();         // Aktualisiert Coins/Luck Anzeige
+  
+  // Nur ein finaler Toast mit der Nachricht aus der codes.js oder Standard-Text
+  toast(reward.msg || '✅ Code redeemed successfully!', true);
+  
+  input.value = '';      // Eingabefeld leeren
 }
 
       /* ────────────────────────────────────────────────────────

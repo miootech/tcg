@@ -1104,7 +1104,7 @@
 
     </div><!-- /.casino-body -->
   <!-- Casino Title Modal -->
-  <div class="modal-overlay center" id="casino-title-modal" style="display:none">
+  <div class="modal-overlay center" id="casino-title-modal">
     <div class="modal-box" style="max-width:340px">
       <button class="modal-close" onclick="closeModal('casino-title-modal')">✕</button>
       <div class="modal-title">🎖️ Casino Title</div>
@@ -1264,19 +1264,11 @@
     },
   ];
 
-  /* Casino Titles */
-  const CASINO_TITLES = [
-    { id:'ct_newcomer',   label:'🎲 Newcomer',        rarity:'common',    req:{ rounds:1 },                 reqText:'Play 1 round' },
-    { id:'ct_regular',    label:'♠ Regular',           rarity:'common',    req:{ rounds:25 },                reqText:'Play 25 rounds' },
-    { id:'ct_gambler',    label:'🃏 Gambler',           rarity:'rare',      req:{ rounds:100 },               reqText:'Play 100 rounds' },
-    { id:'ct_hotstreak',  label:'🔥 Hot Streak',        rarity:'rare',      req:{ wins:50 },                  reqText:'Win 50 rounds' },
-    { id:'ct_highroller', label:'💰 High Roller',       rarity:'epic',      req:{ chips:10000 },              reqText:'Own 10,000 chips' },
-    { id:'ct_bjmaster',   label:'⭐ 21 Master',         rarity:'epic',      req:{ blackjacks:10 },            reqText:'Get 10 Blackjacks' },
-    { id:'ct_underground',label:'🕳️ Shadow Dealer',    rarity:'mythical',  req:{ underground:10 },           reqText:'Win 10 Underground rounds' },
-    { id:'ct_veteran',    label:'🎩 Casino Veteran',    rarity:'mythical',  req:{ rounds:500 },               reqText:'Play 500 rounds' },
-    { id:'ct_whale',      label:'🐋 Whale',             rarity:'legendary', req:{ chips:100000 },             reqText:'Own 100,000 chips' },
-    { id:'ct_monseur',    label:'👑 Le Monseur',        rarity:'hidden',    req:{ rounds:1000, wins:500 },    reqText:'1000 rounds · 500 wins' },
-  ];
+  // CASINO_TITLES wird direkt aus window.TITLES_DATABASE gefiltert.
+  // Neue Casino-Titel ausschließlich in titles.js unter category: 'casino' eintragen.
+  const CASINO_TITLES = (window.TITLES_DATABASE || []).filter(t =>
+    t.category === 'casino' || (Array.isArray(t.category) && t.category.includes('casino'))
+  );
 
   // Codes werden vollständig aus codes.js (window.CODE_HASHES) geladen
   const CASINO_CODE_HASHES = {};
@@ -2543,19 +2535,6 @@
         o.textContent = `${t.icon || '🏅'} ${t.name} (${t.id})`;
         titleSel.appendChild(o);
       });
-    } else if (titleSel && titleSel.options.length <= 1) {
-      // Fallback: hardcoded known IDs falls titles.js noch nicht geladen
-      const knownTitles = [
-        'admin_title','title_vip','title_chosen_one','title_insider',
-        'title_casino_felt_life','quest_title_5',
-        'casino_title_0','casino_title_1','casino_title_2','casino_title_3',
-        'casino_title_4','casino_title_5','casino_title_6',
-      ];
-      knownTitles.forEach(id => {
-        const o = document.createElement('option');
-        o.value = id; o.textContent = id;
-        titleSel.appendChild(o);
-      });
     }
 
     openModal('admin-modal');
@@ -2618,7 +2597,7 @@
     toast('👑 Chips updated!', 'ok');
   }
 
-  function adminUnlockAllTitles() {
+  async function adminUnlockAllTitles() {
     if (!isAdmin) return;
     // Casino-eigene Titles (ct_* IDs) freischalten
     CASINO_TITLES.forEach(t => {
@@ -2629,8 +2608,25 @@
       window.TITLES_DATABASE.forEach(t => window.unlockedTitles?.add(t.id));
     }
     if (typeof saveTitleData === 'function') saveTitleData();
-    const total = CASINO_TITLES.length + (window.TITLES_DATABASE?.length || 0);
-    toast(`🏅 All ${total} titles unlocked!`, 'epic');
+
+    // Casino-Titel auch in Firestore casino_players schreiben
+    if (window.fbDb && window.fbFuncs && currentUser) {
+      try {
+        const { doc, setDoc } = window.fbFuncs;
+        const allCasinoIds = CASINO_TITLES.map(t => t.id);
+        await setDoc(
+          doc(window.fbDb, 'casino_players', currentUser.uid),
+          { unlockedTitles: allCasinoIds },
+          { merge: true }
+        );
+        toast(`🏅 All titles unlocked & saved!`, 'epic');
+      } catch(e) {
+        toast(`🏅 Titles unlocked (Firestore sync failed: ${e.message})`, 'ok');
+      }
+    } else {
+      const total = CASINO_TITLES.length + (window.TITLES_DATABASE?.length || 0);
+      toast(`🏅 All ${total} titles unlocked!`, 'epic');
+    }
   }
 
   function adminSelfChips(n) {
@@ -2962,19 +2958,21 @@
   /* ═══════════════════════════════════════════════════════
      CASINO CHIP CODES
   ═══════════════════════════════════════════════════════ */
-  async function sha1(str) {
-    const buf = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(str));
-    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-  }
+  // sha1() — normalisiert Input defensiv, konsistent mit index.html sha1hex()
+async function sha1(str) {
+  const buf = await crypto.subtle.digest(
+    'SHA-1',
+    new TextEncoder().encode(str.trim().toLowerCase()) // ← toLowerCase hier
+  );
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
 
-  async function redeemCasinoCode() {
-  const input = document.getElementById('casino-code-input').value.trim().toUpperCase();
-  if (!input) return;
+async function redeemCasinoCode() {
+  const raw = document.getElementById('casino-code-input').value.trim();
+  if (!raw) return;
 
-  // 1. Hash berechnen
-  const hashedInput = Array.from(new Uint8Array(
-    await crypto.subtle.digest('SHA-1', new TextEncoder().encode(input))
-  )).map(b => b.toString(16).padStart(2, '0')).join('');
+  // 1. Hash via sha1() — normalisiert intern zu lowercase
+  const hashedInput = await sha1(raw); // ← nutzt jetzt den Helper
 
   // 2. Bereits benutzt? — SHARED mit index.html über cztcg5_codes_v2
   let usedCodes = [];
@@ -2987,7 +2985,14 @@
 
   // 3. Reward-Objekt aus codes.js holen
   const reward = window.CODE_HASHES?.[hashedInput];
-  if (!reward) { toast('❌ Ungültiger Code.', 'epic'); return; }
+  if (!reward) { toast('❌ Ungültiger Code.', 'error'); return; }
+
+  // 3b. Ablauf-Prüfung (expires: 0 = niemals, sonst Unix-Timestamp in ms)
+  if (window.isCodeExpired?.(reward)) {
+    toast('⌛ Dieser Code ist abgelaufen.', 'error');
+    document.getElementById('casino-code-input').value = '';
+    return;
+  }
 
   // 4. Login prüfen
   const uid = window.fbAuth?.currentUser?.uid;
@@ -2997,47 +3002,58 @@
   }
   const { doc, setDoc, getDoc, updateDoc, arrayUnion } = window.fbFuncs;
 
-  // 5. Code-Typ verarbeiten (nur Casino-Typen; Rest gehört in index.html)
+  // 5. Code-Typ verarbeiten (Firebase v9 Modular — kein v8 db.collection!)
   if (reward.type === 'chips') {
-    // Chips in Firestore (casino_players) addieren
+    // Chips in Firestore (casino_players) addieren — v9 Syntax
     const playerRef = doc(window.fbDb, 'casino_players', uid);
     const snap      = await getDoc(playerRef);
     const current   = snap.exists() ? (snap.data().chips || 0) : 0;
     await setDoc(playerRef, { chips: current + (reward.chips || 0) }, { merge: true });
+
+    // Lokal aktualisieren
     chips += (reward.chips || 0);
     saveChips();
 
-    // Optionales Casino-Pack ebenfalls ins TCG-Inventory schreiben
+    // Optionales Casino-Pack → TCG-Inventory (localStorage)
     if (reward.casinoPack) {
-      const cfg = (typeof SPECIAL_PACK_CFG !== 'undefined' && SPECIAL_PACK_CFG[reward.casinoPack]) || {};
       try {
         let packs = JSON.parse(localStorage.getItem('cztcg5_unopened_packs') || '[]');
         if (!Array.isArray(packs)) packs = [];
         packs.push({
-          packKey:   reward.casinoPack,
-          name:      cfg.label     || cfg.name  || reward.casinoPack,
-          icon:      cfg.icon      || '🎴',
-          bg:        cfg.bg        || '',
-          sellValue: cfg.sellValue || 0,
+          packKey:    reward.casinoPack,
+          name:       reward.casinoPack,
+          icon:       '🎴',
+          bg:         '',
+          sellValue:  0,
           acquiredAt: new Date().toISOString(),
         });
         localStorage.setItem('cztcg5_unopened_packs', JSON.stringify(packs));
       } catch {}
     }
-  } else if (reward.type === 'casino_title') {
-    // Titel in casino_players freischalten
+  }
+  else if (reward.type === 'casino_title') {
+    // Titel in casino_players freischalten — v9 Syntax mit arrayUnion
     const playerRef = doc(window.fbDb, 'casino_players', uid);
     await setDoc(playerRef, { unlockedTitles: arrayUnion(reward.titleId) }, { merge: true });
-  } else {
-    // Nicht-Casino-Code → Hinweis, aber trotzdem als benutzt markieren NICHT (user-friendly)
+  }
+  else if (reward.type === 'casino_pack') {
+    // Casino-exklusives Pack → direkt in users/{uid} eintragen — v9 Syntax
+    const userRef = doc(window.fbDb, 'users', uid);
+    const snap    = await getDoc(userRef);
+    const packs   = snap.exists() ? (snap.data().packs || {}) : {};
+    packs[reward.packKey] = (packs[reward.packKey] || 0) + 1;
+    await setDoc(userRef, { packs }, { merge: true });
+  }
+  else {
+    // Nicht-Casino-Code → Hinweis, Code NICHT als benutzt markieren
     toast('⚠️ Dieser Code muss in der 67 TCG App eingelöst werden.', 'error');
-    return;  // Code NICHT als benutzt markieren!
+    return;
   }
 
-  // 6. Code als benutzt markieren — in localStorage UND Firestore (für index.html)
+  // 6. Code als benutzt markieren — localStorage + Firestore sync
   usedCodes.push(hashedInput);
   localStorage.setItem('cztcg5_codes_v2', JSON.stringify(usedCodes));
-  // Non-blocking Firestore sync → index.html sieht Code beim nächsten Cloud-Load
+  // Non-blocking Firestore sync (für Cross-Tab-Konsistenz mit index.html)
   updateDoc(doc(window.fbDb, 'users', uid), {
     usedCodes: arrayUnion(hashedInput)
   }).catch(() => {});
@@ -3051,59 +3067,66 @@
      CASINO TITLES
   ═══════════════════════════════════════════════════════ */
   function checkCasinoTitle(title) {
-    if (isAdmin) return true;
-    if (window.unlockedTitles instanceof Set && window.unlockedTitles.has(title.id)) return true;
-    const s = casinoStats;
-    const r = title.req;
-    if (r.rounds     && (s.rounds     || 0) < r.rounds)     return false;
-    if (r.wins       && (s.wins       || 0) < r.wins)       return false;
-    if (r.blackjacks && (s.blackjacks || 0) < r.blackjacks) return false;
-    if (r.chips      && chips < r.chips)                    return false;
-    if (r.underground && (s.ugWins    || 0) < r.underground) return false;
-    return true;
-  }
+  if (isAdmin) return true;
+  // Code-granted & special: nur via window.unlockedTitles freigeschaltet
+  if (window.unlockedTitles instanceof Set && window.unlockedTitles.has(title.id)) return true;
+  const cond = title.unlockCondition;
+  if (!cond || cond.type !== 'casino_stat') return false;
+  const s   = casinoStats;
+  const val = (key) => {
+    if (key === 'chips')      return chips;
+    if (key === 'rounds')     return s.rounds     || 0;
+    if (key === 'wins')       return s.wins       || 0;
+    if (key === 'blackjacks') return s.blackjacks || 0;
+    if (key === 'ugWins')     return s.ugWins     || 0;
+    return 0;
+  };
+  if (val(cond.stat) < cond.value) return false;
+  if (cond.stat2 && val(cond.stat2) < cond.value2) return false;
+  return true;
+}
 
   function renderCasinoTitles() {
-    const grid     = document.getElementById('ctitle-grid');
-    if (!grid) return;
-    const equipped = localStorage.getItem(CASINO_TITLE_KEY) || '';
-    grid.innerHTML  = '';
-    CASINO_TITLES.forEach(t => {
-      const unlocked = checkCasinoTitle(t);
-      const isEq     = equipped === t.id;
-      const div = document.createElement('div');
-      div.className = 'ctitle-row ' + (isEq ? 'unlocked' : (unlocked ? 'unlocked' : 'locked'));
-      // Hintergrundfarbe für aktiven Titel
-      if (isEq) div.style.cssText = 'border:1px solid rgba(200,169,106,0.55);background:rgba(200,169,106,0.1);';
-      // Klick-Handler: Radio-Logik (nur einer aktiv)
-      if (unlocked) {
-        div.style.cursor = 'pointer';
-        div.title = isEq ? 'Klicke zum Entfernen' : 'Klicke zum Ausrüsten';
-        div.onclick = () => {
-          if (isEq) {
-            localStorage.removeItem(CASINO_TITLE_KEY);
-            _syncCasinoTitleToFirestore(null, null);
-          } else {
-            localStorage.setItem(CASINO_TITLE_KEY, t.id);
-            toast(`🎖️ Title set: ${t.label}`, 'ok');
-            _syncCasinoTitleToFirestore(t.id, t.label);
-          }
-          renderCasinoTitles();
-          renderCasinoTitlePicker();
-        };
-      }
-      div.innerHTML = `
-        <div>
-          <div class="ctitle-label">${isEq ? '✓ ' : ''}${t.label}</div>
-          <div class="ctitle-req">${t.reqText}</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:0.4rem">
-          <span class="ctitle-rarity cr-${t.rarity}">${t.rarity.toUpperCase()}</span>
-          <span class="ctitle-check">${isEq ? '🎖️' : (unlocked ? '✅' : '🔒')}</span>
-        </div>`;
-      grid.appendChild(div);
-    });
-  }
+  const grid = document.getElementById('ctitle-grid');
+  if (!grid) return;
+  const equipped = localStorage.getItem(CASINO_TITLE_KEY) || '';
+  grid.innerHTML  = '';
+  CASINO_TITLES.forEach(t => {
+    const unlocked = checkCasinoTitle(t);
+    const isEq     = equipped === t.id;
+    const label    = `${t.icon} ${t.name}`;
+    const rarity   = t.rarity.toLowerCase();
+    const div      = document.createElement('div');
+    div.className  = 'ctitle-row ' + (isEq ? 'unlocked' : (unlocked ? 'unlocked' : 'locked'));
+    if (isEq) div.style.cssText = 'border:1px solid rgba(200,169,106,0.55);background:rgba(200,169,106,0.1);';
+    if (unlocked) {
+      div.style.cursor = 'pointer';
+      div.title = isEq ? 'Klicke zum Entfernen' : 'Klicke zum Ausrüsten';
+      div.onclick = () => {
+        if (isEq) {
+          localStorage.removeItem(CASINO_TITLE_KEY);
+          _syncCasinoTitleToFirestore(null, null);
+        } else {
+          localStorage.setItem(CASINO_TITLE_KEY, t.id);
+          toast(`🎖️ Title set: ${label}`, 'ok');
+          _syncCasinoTitleToFirestore(t.id, label);
+        }
+        renderCasinoTitles();
+        renderCasinoTitlePicker();
+      };
+    }
+    div.innerHTML = `
+      <div>
+        <div class="ctitle-label">${isEq ? '✓ ' : ''}${label}</div>
+        <div class="ctitle-req">${t.reqText || t.unlockHint}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.4rem">
+        <span class="ctitle-rarity cr-${rarity}">${t.rarity.toUpperCase()}</span>
+        <span class="ctitle-check">${isEq ? '🎖️' : (unlocked ? '✅' : '🔒')}</span>
+      </div>`;
+    grid.appendChild(div);
+  });
+}
 
   // Hilfsfunktion: Firestore + localStorage-Broadcast
   function _syncCasinoTitleToFirestore(titleId, titleLabel) {
@@ -3122,18 +3145,16 @@
   const CASINO_TITLE_KEY    = 'casino_equipped_title';
 
   function renderCasinoTitlePicker() {
-    // Nur noch das Display-Label updaten — Auswahl passiert im Modal
-    const display  = document.getElementById('casino-equipped-title-display');
-    const equipped = localStorage.getItem(CASINO_TITLE_KEY) || '';
-    if (display) display.textContent = equipped
-      ? (CASINO_TITLES.find(t => t.id === equipped)?.label || '— None —')
-      : '— None —';
+  const display  = document.getElementById('casino-equipped-title-display');
+  const equipped = localStorage.getItem(CASINO_TITLE_KEY) || '';
+  if (display) {
+    const t = CASINO_TITLES.find(t => t.id === equipped);
+    display.textContent = t ? `${t.icon} ${t.name}` : '— None —';
   }
+}
 
-  function openCasinoTitleModal() {
-  const modalEl = document.getElementById('casino-title-modal');
-  if (modalEl) modalEl.style.display = '';
-
+function openCasinoTitleModal() {
+  openModal('casino-title-modal');
   const list     = document.getElementById('casino-title-modal-list');
   const equipped = localStorage.getItem(CASINO_TITLE_KEY) || '';
   if (!list) return;
@@ -3158,24 +3179,25 @@
   CASINO_TITLES.forEach(t => {
     const unlocked = checkCasinoTitle(t);
     const isEq     = equipped === t.id;
-    const div = document.createElement('div');
+    const label    = `${t.icon} ${t.name}`;
+    const div      = document.createElement('div');
     div.style.cssText = `cursor:pointer;padding:0.45rem 0.65rem;border-radius:6px;font-size:0.74rem;
       background:${isEq ? 'rgba(200,169,106,0.14)' : (unlocked ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.01)')};
       border:1px solid ${isEq ? 'rgba(200,169,106,0.55)' : (unlocked ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)')};
       color:${isEq ? 'var(--gold)' : (unlocked ? 'var(--text)' : 'var(--subtext)')};
       opacity:${unlocked ? '1' : '0.45'};pointer-events:${unlocked ? 'auto' : 'none'}`;
     div.innerHTML = `
-      <span>${isEq ? '✓ ' : ''}${t.label}</span>
+      <span>${isEq ? '✓ ' : ''}${label}</span>
       <span style="font-size:0.6rem;opacity:0.6;margin-left:0.4rem">
-        ${unlocked ? t.rarity.toUpperCase() : '🔒 ' + t.reqText}
+        ${unlocked ? t.rarity.toUpperCase() : '🔒 ' + (t.reqText || t.unlockHint)}
       </span>`;
     div.onclick = () => {
       localStorage.setItem(CASINO_TITLE_KEY, t.id);
       renderCasinoTitlePicker();
       renderCasinoTitles();
       closeModal('casino-title-modal');
-      toast(`🎖️ Title set: ${t.label}`, 'ok');
-      _syncCasinoTitleToFirestore(t.id, t.label);
+      toast(`🎖️ Title set: ${label}`, 'ok');
+      _syncCasinoTitleToFirestore(t.id, label);
     };
     list.appendChild(div);
     if (unlocked) anyUnlocked = true;
@@ -3187,8 +3209,6 @@
     hint.textContent = 'Play more rounds to unlock Casino Titles.';
     list.appendChild(hint);
   }
-
-  openModal('casino-title-modal');
 }
 
   async function saveCasinoProfile() {

@@ -353,76 +353,218 @@ window.TITLES_DATABASE = [
     boost: { luck: 100, coinMult: 100, packLuck: 100, shinyBoost: 99 },
   },
 
-  // ══════════════ CASINO TITLES ═════════════════════════════
+  // ══════════════════════════════════════════════════════════
+  //  CASINO TITLES — stat-basiert
+  //  casino.html liest diese per:
+  //    const CASINO_TITLES = window.TITLES_DATABASE.filter(t => t.category === 'casino');
+  //  Neue Casino-Titel NUR hier eintragen.
+  // ══════════════════════════════════════════════════════════
   {
-    id: 'casino_title_0',
+    id: 'ct_newcomer',
     name: 'Newcomer',
     rarity: 'Common',
     icon: '🎲',
+    category: 'casino',
     description: 'You sat down, placed a chip and lost immediately. A proud tradition.',
     unlockCondition: { type: 'casino_stat', stat: 'rounds', value: 1 },
     unlockHint: 'Play your first round at the Casino.',
+    reqText: 'Play 1 round',
     boost: { luck: 1.0, coinMult: 1.0, packLuck: 0, shinyBoost: 1.0 },
   },
   {
-    id: 'casino_title_1',
-    name: 'Card Shark',
+    id: 'ct_regular',
+    name: 'Regular',
+    rarity: 'Common',
+    icon: '♠',
+    category: 'casino',
+    description: 'They know your face at the door. You tip the dealer. Barely.',
+    unlockCondition: { type: 'casino_stat', stat: 'rounds', value: 25 },
+    unlockHint: 'Play 25 rounds at the Casino.',
+    reqText: 'Play 25 rounds',
+    boost: { luck: 1.0, coinMult: 1.0, packLuck: 0, shinyBoost: 1.0 },
+  },
+  {
+    id: 'ct_gambler',
+    name: 'Gambler',
     rarity: 'Rare',
-    icon: '🦈',
-    description: 'You know the odds. You respect the felt. The dealer is starting to sweat.',
+    icon: '🃏',
+    category: 'casino',
+    description: 'You know the odds. The felt has your fingerprints all over it.',
     unlockCondition: { type: 'casino_stat', stat: 'rounds', value: 100 },
     unlockHint: 'Play 100 rounds at the Casino.',
+    reqText: 'Play 100 rounds',
     boost: { luck: 1.02, coinMult: 1.03, packLuck: 0, shinyBoost: 1.0 },
   },
   {
-    id: 'casino_title_2',
+    id: 'ct_hotstreak',
+    name: 'Hot Streak',
+    rarity: 'Rare',
+    icon: '🔥',
+    category: 'casino',
+    description: 'The table runs hot when you sit down. The dealer is starting to sweat.',
+    unlockCondition: { type: 'casino_stat', stat: 'wins', value: 50 },
+    unlockHint: 'Win 50 rounds.',
+    reqText: 'Win 50 rounds',
+    boost: { luck: 1.03, coinMult: 1.05, packLuck: 0, shinyBoost: 1.0 },
+  },
+  {
+    id: 'ct_highroller',
     name: 'High Roller',
     rarity: 'Epic',
     icon: '💰',
-    description: 'You don\'t count chips. You count victories. The penthouse suite is yours.',
+    category: 'casino',
+    description: "You don't count chips. You count victories. The penthouse suite is yours.",
     unlockCondition: { type: 'casino_stat', stat: 'chips', value: 10000 },
-    unlockHint: 'Accumulate 10,000 chips at the Casino.',
+    unlockHint: 'Own 10,000 chips.',
+    reqText: 'Own 10,000 chips',
     boost: { luck: 1.05, coinMult: 1.08, packLuck: 0.02, shinyBoost: 1.02 },
   },
   {
-    id: 'casino_title_3',
+    id: 'ct_bjmaster',
+    name: '21 Master',
+    rarity: 'Epic',
+    icon: '⭐',
+    category: 'casino',
+    description: "Blackjack isn't luck — it's science. You've proved that 10 times over.",
+    unlockCondition: { type: 'casino_stat', stat: 'blackjacks', value: 10 },
+    unlockHint: 'Get 10 Blackjacks.',
+    reqText: 'Get 10 Blackjacks',
+    boost: { luck: 1.06, coinMult: 1.08, packLuck: 0.02, shinyBoost: 1.03 },
+  },
+  {
+    id: 'ct_underground',
+    name: 'Shadow Dealer',
+    rarity: 'Mythical',
+    icon: '🕳️',
+    category: 'casino',
+    description: "You operate where the lights don't reach. The house doesn't know your name.",
+    unlockCondition: { type: 'casino_stat', stat: 'ugWins', value: 10 },
+    unlockHint: 'Win 10 Underground rounds.',
+    reqText: 'Win 10 Underground rounds',
+    boost: { luck: 1.1, coinMult: 1.12, packLuck: 0.03, shinyBoost: 1.05 },
+  },
+  {
+    id: 'ct_veteran',
     name: 'Casino Veteran',
     rarity: 'Mythical',
     icon: '🎩',
+    category: 'casino',
     description: 'Five hundred hands. Five hundred lessons. The Casino has no more secrets for you.',
     unlockCondition: { type: 'casino_stat', stat: 'rounds', value: 500 },
     unlockHint: 'Survive 500 rounds at the Casino.',
+    reqText: 'Play 500 rounds',
     boost: { luck: 1.1, coinMult: 1.12, packLuck: 0.04, shinyBoost: 1.05 },
   },
   {
-    id: 'casino_title_4',
+    id: 'ct_whale',
     name: 'Whale',
     rarity: 'Legendary',
     icon: '🐋',
+    category: 'casino',
     description: 'The Casino staff knows your name. The ceiling shakes when you bet. You are the market.',
     unlockCondition: { type: 'casino_stat', stat: 'chips', value: 100000 },
-    unlockHint: 'Accumulate 100,000 chips — a true Casino legend.',
+    unlockHint: 'Accumulate 100,000 chips.',
+    reqText: 'Own 100,000 chips',
     boost: { luck: 1.15, coinMult: 1.2, packLuck: 0.07, shinyBoost: 1.08 },
   },
   {
-    id: 'casino_title_5',
-    name: 'The House',
-    rarity: 'SSSR',
-    icon: '🏛️',
-    description: 'You didn\'t just beat the odds. You became them. The Casino whispers your name in fear.',
-    unlockCondition: { type: 'casino_stat', stat: 'wins', value: 1000 },
-    unlockHint: 'Win 1,000 rounds. Ascend beyond the felt.',
-    boost: { luck: 1.3, coinMult: 1.5, packLuck: 0.15, shinyBoost: 1.2 },
-  },
-  {
-    id: 'casino_title_6',
+    id: 'ct_monseur',
     name: 'Le Monseur',
     rarity: 'Hidden',
     icon: '👑',
+    category: 'casino',
     description: 'A thousand hands played. Five hundred victories claimed. The Casino bows.',
     unlockCondition: { type: 'casino_stat', stat: 'rounds', value: 1000, stat2: 'wins', value2: 500 },
     unlockHint: '1,000 rounds and 500 wins. The final throne.',
+    reqText: '1000 rounds · 500 wins',
     boost: { luck: 2.0, coinMult: 2.5, packLuck: 0.4, shinyBoost: 1.8 },
+  },
+
+  // ══════════════════════════════════════════════════════════
+  //  CODE-EXKLUSIVE TITEL
+  //  Werden nur durch Redeem-Codes freigeschaltet (type: 'code_granted').
+  //  checkAndUnlockTitles() überspringt diesen Typ automatisch.
+  // ══════════════════════════════════════════════════════════
+  {
+    id: 'title_chosen_one',
+    name: 'The Chosen One',
+    rarity: 'SSSR',
+    icon: '🌟',
+    category: 'code',
+    description: 'Selected by fate itself. Or someone who knew the right code.',
+    unlockCondition: { type: 'code_granted' },
+    unlockHint: 'Redeem the secret code.',
+    boost: { luck: 1.5, coinMult: 1.5, packLuck: 0.1, shinyBoost: 1.3 },
+  },
+  {
+    id: 'title_insider',
+    name: 'Insider',
+    rarity: 'Epic',
+    icon: '🔐',
+    category: 'code',
+    description: "You know things others don't. The door opened — and you walked through.",
+    unlockCondition: { type: 'code_granted' },
+    unlockHint: 'Redeem the insider code.',
+    boost: { luck: 1.2, coinMult: 1.2, packLuck: 0.05, shinyBoost: 1.1 },
+  },
+
+  // ══════════════════════════════════════════════════════════
+  //  CASINO TITLES — stat-basiert
+  // ══════════════════════════════════════════════════════════
+  {
+    id: 'title_casino_felt_life',
+    name: 'Felt Life',
+    rarity: 'Rare',
+    icon: '🎰',
+    category: ['casino', 'code'],   // ← Array statt doppelter Key
+    description: 'The green felt is your home. The shuffle is your alarm clock.',
+    unlockCondition: { type: 'code_granted' },
+    unlockHint: 'Redeem the Casino felt code.',
+    reqText: 'Redeem the secret code.',
+    boost: { luck: 1.05, coinMult: 1.05, packLuck: 0.01, shinyBoost: 1.0 },
+  },
+  {
+    id: 'title_casino_hakari',
+    name: 'Domain Expansion: Idle Death Gamble',
+    rarity: 'Hidden',
+    icon: '✨',
+    category: ['casino', 'code'],
+    description: 'You’ve entered the "Fever" state! For the next 4 minutes and 11 seconds, you are effectively immortal. Always bet on a jackpot junkie.',
+    unlockCondition: { type: 'code_granted' },
+    unlockHint: 'Find the rhythm of the jackpot hidden in the felt.',
+    reqText: 'Redeem the secret casino felt code.',
+    boost: { 
+      luck: 6.7, coinMult: 67.0, packLuck: 6.9, shinyBoost: 69.0
+    },
+  },
+
+  // ══════════════════════════════════════════════════════════
+  //  SPEZIAL / VIP — manuell vergeben oder admin-only
+  // ══════════════════════════════════════════════════════════
+  {
+    id: 'title_vip',
+    name: 'VIP',
+    rarity: 'Legendary',
+    icon: '💎',
+    category: 'special',
+    description: 'Access granted. Welcome to the inner circle.',
+    unlockCondition: { type: 'admin_only' },
+    unlockHint: '???',
+    boost: { luck: 1.3, coinMult: 1.3, packLuck: 0.1, shinyBoost: 1.2 },
+  },
+
+  // ══════════════════════════════════════════════════════════
+  //  Themed — code only oder admin only
+  // ══════════════════════════════════════════════════════════
+  {
+    id: 'op_will_of_d',
+    name: 'The Will of D.',
+    rarity: 'Hidden',
+    icon: '⭕',
+    description: 'A natural enemy of the Gods. Your luck is a cosmic anomaly.',
+    unlockCondition: { type: 'code_granted' }, 
+    unlockHint: 'Inherited from those who challenge the heavens.',
+    boost: { luck: 15.0, coinMult: 6.7, packLuck: 8.9, shinyBoost: 12.5 }
   },
 
 ];
@@ -1037,13 +1179,12 @@ const titleHTML = [
 
   const unlockedCount = (profileData.unlockedTitles || []).length;
 
-  // Casino Titles aus unlockedTitles filtern und anzeigen
-  const casinoTitleIds = ['casino_title_0','casino_title_1','casino_title_2','casino_title_3','casino_title_4','casino_title_5','casino_title_6'];
-  const unlockedCasinoTitles = (profileData.unlockedTitles || []).filter(id => casinoTitleIds.includes(id));
-  const casinoTitlesHTML = unlockedCasinoTitles.length ? unlockedCasinoTitles.map(id => {
-    const t = window.TITLES_DATABASE.find(x => x.id === id);
-    return t ? `<span style="font-size:0.72rem;margin-right:0.35rem">${t.icon} ${t.name}</span>` : '';
-  }).join('') : '<span style="font-size:0.72rem;color:var(--subtext)">None</span>';
+  const ppAvatar = document.getElementById('pp-avatar');
+  if (ppAvatar) {
+    ppAvatar.innerHTML = profileData.avatarUrl
+      ? `<img src="${profileData.avatarUrl}" alt="Avatar" />`
+      : '✦';
+  }
 
   document.getElementById('pp-username').textContent    = profileData.username || 'Unknown';
   document.getElementById('pp-title-row').innerHTML     = titleHTML;
@@ -1051,8 +1192,11 @@ const titleHTML = [
   document.getElementById('pp-showcase-row').innerHTML  = showcaseHTML;
   document.getElementById('pp-stats-section').innerHTML = tcgStatsHTML +
     `<div style="margin-top:0.8rem">
-       <div style="font-size:0.72rem;font-weight:700;color:#c8a96a;margin-bottom:0.35rem">🎰 Casino Titles</div>
-       <div style="margin-bottom:0.6rem">${casinoTitlesHTML}</div>
+       <div style="font-size:0.72rem;font-weight:700;color:#c8a96a;margin-bottom:0.25rem;display:flex;align-items:center;gap:0.5rem">
+         🎰 Casino Titles
+         <span id="pp-casino-titles-count" style="font-weight:400;color:#a0824a;font-size:0.65rem">Loading…</span>
+       </div>
+       <div id="pp-casino-titles-list" style="margin-bottom:0.6rem;display:flex;flex-wrap:wrap;gap:0.2rem"><span style="font-size:0.72rem;color:var(--subtext)">Loading…</span></div>
        <div id="pp-casino-stats" style="font-size:0.72rem;color:var(--subtext)">Loading casino stats…</div>
      </div>`;
 
@@ -1073,6 +1217,36 @@ const titleHTML = [
       const playerSnap = await getDoc(doc(window.fbDb, 'casino_players', uid));
       const pData = playerSnap.exists() ? playerSnap.data() : {};
       const cs    = pData.stats || {};
+
+      // Casino Titles aus casino_players (korrekte Quelle!)
+      const CASINO_TITLES_ALL = (window.TITLES_DATABASE || []).filter(t =>
+        t.category === 'casino' || (Array.isArray(t.category) && t.category.includes('casino'))
+      );
+      const casinoUnlockedIds = (pData.unlockedTitles || []).filter(id =>
+        CASINO_TITLES_ALL.some(t => t.id === id)
+      );
+      const equippedCasinoId = profileData.casinoEquippedTitleId || null;
+
+      const casinoCountEl = document.getElementById('pp-casino-titles-count');
+      if (casinoCountEl)
+        casinoCountEl.textContent = `${casinoUnlockedIds.length} / ${CASINO_TITLES_ALL.length} unlocked`;
+
+      const casinoTitlesEl = document.getElementById('pp-casino-titles-list');
+      if (casinoTitlesEl) {
+        casinoTitlesEl.innerHTML = casinoUnlockedIds.length
+          ? casinoUnlockedIds.map(id => {
+              const t = CASINO_TITLES_ALL.find(x => x.id === id);
+              if (!t) return '';
+              const isEq = id === equippedCasinoId;
+              return `<span style="font-size:0.72rem;display:inline-block;padding:0.15rem 0.45rem;
+                border-radius:4px;margin-bottom:0.15rem;
+                ${isEq
+                  ? 'background:rgba(200,169,106,0.18);border:1px solid rgba(200,169,106,0.55);color:#e2c47a;font-weight:700;'
+                  : 'background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);color:var(--subtext);'
+                }">${t.icon} ${t.name}${isEq ? ' 🎖️' : ''}</span>`;
+            }).filter(Boolean).join('')
+          : '<span style="font-size:0.72rem;color:var(--subtext)">None</span>';
+      }
 
       // Leaderboard Rang ermitteln
       let rank = '—';
