@@ -2876,17 +2876,179 @@ body.is-admin .ccard-count { background: rgba(238,192,96,0.3); color: var(--gold
     const VERSION      = '2.2.1';
     const UPDATE_NAME  = 'QoL Improvements & New Casino Content';
 
-      /* ────────────────────────────────────────────────────────
-     SOUND SYSTEM PLACEHOLDERS
-    ──────────────────────────────────────────────────────── */
+    /* ════════════════════════════════════════════════════════
+       SFX — Web Audio API  (kein externes Asset nötig)
+       Alle Sounds sind synthetisch generiert.
+       ════════════════════════════════════════════════════════ */
+      let _actx = null;
+      function _ctx() {
+        if (!_actx) _actx = new (window.AudioContext || window.webkitAudioContext)();
+        if (_actx.state === 'suspended') _actx.resume();
+        return _actx;
+      }
+
       const SFX = {
-        _s: {
-          hover: null, click: null, flip: null, pull: null, rare: null,
-          sssr: null, collect: null, error: null, coin: null, redeem: null, sell: null,
-        },
+        enabled: true,
+
         play(name) {
-          const s = this._s[name];
-          if (s) { try { s.currentTime = 0; s.play(); } catch {} }
+          if (!this.enabled) return;
+          try { this['_' + name]?.(); } catch {}
+        },
+
+        // ── Short button click ────────────────────────────────
+        _click() {
+          const c = _ctx(), o = c.createOscillator(), g = c.createGain();
+          o.connect(g); g.connect(c.destination);
+          o.type = 'sine';
+          o.frequency.setValueAtTime(640, c.currentTime);
+          o.frequency.exponentialRampToValueAtTime(280, c.currentTime + .08);
+          g.gain.setValueAtTime(.08, c.currentTime);
+          g.gain.exponentialRampToValueAtTime(.001, c.currentTime + .09);
+          o.start(c.currentTime); o.stop(c.currentTime + .09);
+        },
+
+        // ── Subtle card-flip whoosh ───────────────────────────
+        _flip() {
+          const c = _ctx(), buf = c.createBuffer(1, c.sampleRate * .12, c.sampleRate);
+          const d = buf.getChannelData(0);
+          for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+          const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+          s.buffer = buf; f.type = 'bandpass'; f.frequency.value = 2200; f.Q.value = .8;
+          s.connect(f); f.connect(g); g.connect(c.destination);
+          g.gain.setValueAtTime(.18, c.currentTime);
+          g.gain.exponentialRampToValueAtTime(.001, c.currentTime + .12);
+          s.start(c.currentTime);
+        },
+
+        // ── Pack pull — dramatic low whomp + shimmer ──────────
+        _pull() {
+          const c = _ctx();
+          // Low thump
+          const o1 = c.createOscillator(), g1 = c.createGain();
+          o1.connect(g1); g1.connect(c.destination);
+          o1.type = 'sine';
+          o1.frequency.setValueAtTime(90, c.currentTime);
+          o1.frequency.exponentialRampToValueAtTime(40, c.currentTime + .35);
+          g1.gain.setValueAtTime(.5, c.currentTime);
+          g1.gain.exponentialRampToValueAtTime(.001, c.currentTime + .35);
+          o1.start(c.currentTime); o1.stop(c.currentTime + .35);
+          // Rising shimmer
+          [880, 1100, 1320].forEach((hz, i) => {
+            const o = c.createOscillator(), g = c.createGain();
+            o.connect(g); g.connect(c.destination);
+            o.type = 'triangle'; o.frequency.value = hz;
+            const t = c.currentTime + .1 + i * .07;
+            g.gain.setValueAtTime(.05, t);
+            g.gain.exponentialRampToValueAtTime(.001, t + .3);
+            o.start(t); o.stop(t + .3);
+          });
+        },
+
+        // ── Rare reveal — ascending arpeggio ─────────────────
+        _rare() {
+          const c = _ctx();
+          [494, 622, 740, 988].forEach((hz, i) => {
+            const o = c.createOscillator(), g = c.createGain();
+            o.connect(g); g.connect(c.destination);
+            o.type = 'triangle'; o.frequency.value = hz;
+            const t = c.currentTime + i * .07;
+            g.gain.setValueAtTime(.07, t);
+            g.gain.exponentialRampToValueAtTime(.001, t + .38);
+            o.start(t); o.stop(t + .38);
+          });
+        },
+
+        // ── SSSR reveal — epic multi-layer chord + sparkle ───
+        _sssr() {
+          const c = _ctx();
+          // Power chord base
+          [220, 330, 440, 660].forEach((hz, i) => {
+            const o = c.createOscillator(), g = c.createGain();
+            o.connect(g); g.connect(c.destination);
+            o.type = 'sawtooth'; o.frequency.value = hz;
+            const t = c.currentTime + i * .04;
+            g.gain.setValueAtTime(.06, t);
+            g.gain.exponentialRampToValueAtTime(.001, t + .7);
+            o.start(t); o.stop(t + .7);
+          });
+          // High sparkle
+          [1320, 1760, 2200].forEach((hz, i) => {
+            const o = c.createOscillator(), g = c.createGain();
+            o.connect(g); g.connect(c.destination);
+            o.type = 'sine'; o.frequency.value = hz;
+            const t = c.currentTime + .2 + i * .09;
+            g.gain.setValueAtTime(.04, t);
+            g.gain.exponentialRampToValueAtTime(.001, t + .4);
+            o.start(t); o.stop(t + .4);
+          });
+        },
+
+        // ── Collect cards — satisfying chime ─────────────────
+        _collect() {
+          const c = _ctx();
+          [523, 659, 784].forEach((hz, i) => {
+            const o = c.createOscillator(), g = c.createGain();
+            o.connect(g); g.connect(c.destination);
+            o.type = 'triangle'; o.frequency.value = hz;
+            const t = c.currentTime + i * .08;
+            g.gain.setValueAtTime(.08, t);
+            g.gain.exponentialRampToValueAtTime(.001, t + .45);
+            o.start(t); o.stop(t + .45);
+          });
+        },
+
+        // ── Error — descending two-tone buzz ─────────────────
+        _error() {
+          const c = _ctx();
+          [320, 220].forEach((hz, i) => {
+            const o = c.createOscillator(), g = c.createGain();
+            o.connect(g); g.connect(c.destination);
+            o.type = 'square'; o.frequency.value = hz;
+            const t = c.currentTime + i * .1;
+            g.gain.setValueAtTime(.06, t);
+            g.gain.exponentialRampToValueAtTime(.001, t + .12);
+            o.start(t); o.stop(t + .12);
+          });
+        },
+
+        // ── Coin — bright clink ───────────────────────────────
+        _coin() {
+          const c = _ctx();
+          [1046, 1318].forEach((hz, i) => {
+            const o = c.createOscillator(), g = c.createGain();
+            o.connect(g); g.connect(c.destination);
+            o.type = 'sine'; o.frequency.value = hz;
+            const t = c.currentTime + i * .04;
+            g.gain.setValueAtTime(.1, t);
+            g.gain.exponentialRampToValueAtTime(.001, t + .22);
+            o.start(t); o.stop(t + .22);
+          });
+        },
+
+        // ── Redeem code — success jingle ──────────────────────
+        _redeem() {
+          const c = _ctx();
+          [392, 523, 659, 784, 1047].forEach((hz, i) => {
+            const o = c.createOscillator(), g = c.createGain();
+            o.connect(g); g.connect(c.destination);
+            o.type = 'triangle'; o.frequency.value = hz;
+            const t = c.currentTime + i * .075;
+            g.gain.setValueAtTime(.07, t);
+            g.gain.exponentialRampToValueAtTime(.001, t + .4);
+            o.start(t); o.stop(t + .4);
+          });
+        },
+
+        // ── Sell — descending coin sweep ─────────────────────
+        _sell() {
+          const c = _ctx(), o = c.createOscillator(), g = c.createGain();
+          o.connect(g); g.connect(c.destination);
+          o.type = 'sine';
+          o.frequency.setValueAtTime(880, c.currentTime);
+          o.frequency.exponentialRampToValueAtTime(440, c.currentTime + .18);
+          g.gain.setValueAtTime(.09, c.currentTime);
+          g.gain.exponentialRampToValueAtTime(.001, c.currentTime + .2);
+          o.start(c.currentTime); o.stop(c.currentTime + .2);
         },
       };
 
@@ -3122,6 +3284,7 @@ window.onFirebaseAuthChange = function(user) {
           ownedSpecialPacks: [...ownedSpecialPacks],
           questsClaimed: [...questClaimed],
           fightsPlayed, fightsWon,
+          avatarUrl: avatarUrl || null,
           // ── Titles & Profile ────────────────────────────────────
           equippedTitleId:    window.equippedTitleId    || null,
           equippedTitleColor: window.equippedTitleColor || 'purple',
@@ -3575,6 +3738,7 @@ window.onFirebaseAuthChange = function(user) {
         currentCards  = drawSpecialPackCards(pack.packKey, cfg);
         revealedCount = 0;
         saveData();
+        syncProfileStats().catch(() => {});
         _mountPackOverlay(cfg.label || pack.name, currentCards);
         SFX.play('pull');
       }
@@ -4553,6 +4717,7 @@ requestAnimationFrame(() => {
         currentCards.forEach(card => addToCollection(card));
         packsOpened++;
         saveData();
+        syncProfileStats().catch(() => {});
         document.getElementById('pack-overlay').classList.remove('open');
         toast(`✓ ${currentCards.length} card${currentCards.length !== 1 ? 's' : ''} added to collection!`);
         SFX.play('collect');
@@ -4748,6 +4913,7 @@ requestAnimationFrame(() => {
         selected.forEach(card => addToCollection(card));
         packsOpened++;
         saveData();
+        syncProfileStats().catch(() => {});
         closeModal('twist-modal');
         toast(`✓ ${selected.length} card${selected.length !== 1 ? 's' : ''} added from Twist Pack!`);
         SFX.play('collect');
@@ -5370,12 +5536,35 @@ requestAnimationFrame(() => {
         if (cloudBtn) cloudBtn.textContent = isLoggedIn ? '💾 Save to Cloud' : '🔐 Login / Register';
       }
 
+      // ── Öffentliche Profil-Stats in profiles/{username} schreiben ──────────
+      // Wird nach jedem Pack-Öffnen und beim manuellen Cloud-Sync aufgerufen.
+      // profiles/{username} ist öffentlich lesbar → andere User sehen aktuelle Stats.
+      async function syncProfileStats() {
+        if (!fbUser || !username) return;
+        try {
+          const { doc, setDoc } = window.fbFuncs;
+          await setDoc(doc(window.fbDb, 'profiles', username), {
+            packsOpened,
+            collectionSize: collection.length,
+            coins,
+            fightsPlayed,
+            fightsWon,
+            luckPercent,
+            avatarUrl: avatarUrl || null,
+            updatedAt: new Date().toISOString(),
+          }, { merge: true });
+        } catch (e) {
+          console.error('syncProfileStats failed:', e);
+        }
+      }
+
       async function syncToCloud() {
         if (!fbUser) { openAuthModal(); return; }
         SFX.play('click');
         try {
           const { doc, setDoc } = window.fbFuncs;
           await setDoc(doc(window.fbDb, 'users', fbUser.uid), getLocalDataForCloud());
+          await syncProfileStats();
           toast('☁️ Saved to cloud!');
         } catch (e) {
           console.error(e);
@@ -5385,41 +5574,53 @@ requestAnimationFrame(() => {
 
       async function loadFullGameStateFromCloud() {
         if (!fbUser) { toast('❌ Login first!'); openModal('auth-modal'); return; }
-        const confirmed = window.confirm(
-          'Achtung: Dein aktueller lokaler Fortschritt wird durch den Cloud-Speicherstand ersetzt. Fortfahren?'
-        );
-        if (!confirmed) return;
-        try {
-          const { doc, getDoc } = window.fbFuncs;
-          const snap = await getDoc(doc(window.fbDb, 'users', fbUser.uid));
-          if (!snap.exists()) { toast('⚠️ Kein Cloud-Stand gefunden.'); return; }
-          const d = snap.data();
-          coins             = d.coins            ?? 0;
-          collection        = d.collection       || [];
-          questClaimed      = new Set(d.questsClaimed    || []);
-          ownedSpecialPacks = new Set(d.ownedSpecialPacks || []);
-          if (d.luckPercent  != null) luckPercent  = d.luckPercent;
-          if (d.luckLevel    != null) luckLevel    = d.luckLevel;
-          if (d.packsOpened  != null) packsOpened  = d.packsOpened;
-          if (d.unopenedPacks)        unopenedPacks = d.unopenedPacks;
-          if (d.usedCodes)            usedCodes    = new Set(d.usedCodes);
-          if (d.username)           { username = d.username; localStorage.setItem(LS_KEY.USER, username); }
-          if (d.fightsPlayed != null) fightsPlayed = d.fightsPlayed;
-          if (d.fightsWon    != null) fightsWon    = d.fightsWon;
-          if (typeof loadTitleDataFromCloud === 'function') loadTitleDataFromCloud(d);
-          saveData();
-          saveQuestData();
-          updateCasinoSettingsBtn();
-          updateUI();
-          initProfile();
-          renderQuestList();
-          updateQuestFabBadge();
-          renderShopSpecialPacks();
-          toast('☁️ Cloud-Stand erfolgreich geladen!', true);
-        } catch (e) {
-          console.error(e);
-          toast('❌ Laden fehlgeschlagen: ' + e.message);
-        }
+
+        // Custom confirm modal statt window.confirm()
+        document.getElementById('confirm-icon').textContent    = '☁️';
+        document.getElementById('confirm-title').textContent   = 'Cloud-Stand laden?';
+        document.getElementById('confirm-msg').textContent     = 'Dein aktueller lokaler Fortschritt wird durch den Cloud-Speicherstand ersetzt. Diese Aktion kann nicht rückgängig gemacht werden.';
+        document.getElementById('confirm-ok-btn').textContent  = 'Ja, laden';
+        document.getElementById('confirm-ok-btn').className    = 'btn btn-primary btn-full';
+        document.getElementById('confirm-ok-btn').onclick = async () => {
+          closeModal('confirm-modal');
+          try {
+            const { doc, getDoc } = window.fbFuncs;
+            const snap = await getDoc(doc(window.fbDb, 'users', fbUser.uid));
+            if (!snap.exists()) { toast('⚠️ Kein Cloud-Stand gefunden.'); return; }
+            const d = snap.data();
+            coins             = d.coins            ?? 0;
+            collection        = d.collection       || [];
+            questClaimed      = new Set(d.questsClaimed    || []);
+            ownedSpecialPacks = new Set(d.ownedSpecialPacks || []);
+            if (d.luckPercent  != null) luckPercent   = d.luckPercent;
+            if (d.luckLevel    != null) luckLevel     = d.luckLevel;
+            if (d.packsOpened  != null) packsOpened   = d.packsOpened;
+            if (d.unopenedPacks)        unopenedPacks = d.unopenedPacks;
+            if (d.usedCodes)            usedCodes     = new Set(d.usedCodes);
+            if (d.username)           { username = d.username; localStorage.setItem(LS_KEY.USER, username); }
+            if (d.fightsPlayed != null) fightsPlayed  = d.fightsPlayed;
+            if (d.fightsWon    != null) fightsWon     = d.fightsWon;
+            // ── Profilbild aus Cloud laden ───────────────────
+            if (d.avatarUrl) {
+              avatarUrl = d.avatarUrl;
+              localStorage.setItem(LS_KEY.AVATAR, avatarUrl);
+            }
+            if (typeof loadTitleDataFromCloud === 'function') loadTitleDataFromCloud(d);
+            saveData();
+            saveQuestData();
+            updateCasinoSettingsBtn();
+            updateUI();
+            initProfile();
+            renderQuestList();
+            updateQuestFabBadge();
+            renderShopSpecialPacks();
+            toast('☁️ Cloud-Stand erfolgreich geladen!', true);
+          } catch (e) {
+            console.error(e);
+            toast('❌ Laden fehlgeschlagen: ' + e.message);
+          }
+        };
+        openModal('confirm-modal');
       }
 
       async function loadFromCloud(uid) {
@@ -5642,6 +5843,7 @@ requestAnimationFrame(() => {
           currentCards.forEach(c => addToCollection(c));
           packsOpened++;
           saveData();
+          syncProfileStats().catch(() => {});
           renderCollection();
           renderStats();
           currentCards  = [];
