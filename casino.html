@@ -1034,17 +1034,35 @@
       <div class="tab-pane" id="tab-stats">
 
         <!-- Your Stats -->
-        <div class="section-box">
-          <div class="section-title">🎲 Your Stats</div>
-          <div class="stats-grid" style="margin-bottom:0">
-            <div class="stat-tile"><div class="stat-val" id="st-rounds">0</div><div class="stat-lbl">Rounds</div></div>
-            <div class="stat-tile"><div class="stat-val" id="st-wins">0</div><div class="stat-lbl">Wins</div></div>
-            <div class="stat-tile"><div class="stat-val" id="st-losses">0</div><div class="stat-lbl">Losses</div></div>
-            <div class="stat-tile"><div class="stat-val" id="st-bj">0</div><div class="stat-lbl">21s (×1.5)</div></div>
-            <div class="stat-tile"><div class="stat-val" id="st-pushes">0</div><div class="stat-lbl">Pushes</div></div>
-            <div class="stat-tile"><div class="stat-val" id="st-bigwin">0</div><div class="stat-lbl">Best Win</div></div>
+      <div class="section-box">
+        <div class="section-title">🎲 Your Stats</div>
+        <div class="stats-grid" style="margin-bottom:0">
+          <div class="stat-tile">
+            <div class="stat-val" id="st-rounds">0</div>
+            <div class="stat-lbl">Rounds</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-val" id="st-wins">0</div>
+            <div class="stat-lbl">Wins</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-val" id="st-losses">0</div>
+            <div class="stat-lbl">Losses</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-val" id="st-bj">0</div>
+            <div class="stat-lbl">21s (×1.5)</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-val" id="st-winrate">0.0%</div>
+            <div class="stat-lbl">Win Rate</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-val" id="st-bigwin">0</div>
+            <div class="stat-lbl">Best Win</div>
           </div>
         </div>
+      </div>
 
         <!-- Casino Profile — OBEN über Stats -->
         <div class="section-box">
@@ -2436,13 +2454,25 @@
   ═══════════════════════════════════════════════════════ */
   function renderStats() {
     const s = casinoStats;
-    document.getElementById('st-rounds').textContent = s.rounds || 0;
-    document.getElementById('st-wins').textContent   = s.wins   || 0;
+    const rounds = s.rounds || 0;
+    const wins = s.wins || 0;
+
+    // Win-Rate berechnen (0 wenn noch keine Runden gespielt wurden)
+    const winRate = rounds > 0 ? ((wins / rounds) * 100).toFixed(1) : "0.0";
+
+    document.getElementById('st-rounds').textContent = rounds;
+    document.getElementById('st-wins').textContent   = wins;
     document.getElementById('st-losses').textContent = s.losses || 0;
     document.getElementById('st-bj').textContent     = s.blackjacks || 0;
-    document.getElementById('st-pushes').textContent = s.pushes || 0;
+    
+    // Hier ersetzen wir Pushes durch die Win-Rate
+    const winRateEl = document.getElementById('st-winrate'); // ID angepasst
+    if (winRateEl) {
+        winRateEl.textContent = winRate + "%";
+    }
+
     document.getElementById('st-bigwin').textContent = (s.bigwin || 0).toLocaleString();
-  }
+}
 
   let _lbLoaded = false;
   async function renderLeaderboard() {
