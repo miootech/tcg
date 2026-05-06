@@ -1239,7 +1239,295 @@
   ════════════════════════════════════════════════════ -->
   <script>
   'use strict';
-  /* ── CONSTANTS ─────────────────────────────────────── */
+
+  /* ════════════════════════════════════════════════════════
+     SFX — Web Audio API  (kein externes Asset nötig)
+     Alle Sounds synthetisch generiert.
+     SFX.play('name') ist überall aufrufbar.
+  ════════════════════════════════════════════════════════ */
+  let _actx = null;
+  function _ctx() {
+    if (!_actx) _actx = new (window.AudioContext || window.webkitAudioContext)();
+    if (_actx.state === 'suspended') _actx.resume();
+    return _actx;
+  }
+
+  const SFX = {
+    enabled: true,
+    play(name) { if (this.enabled) try { this['_'+name]?.(); } catch {} },
+
+    // ── General click ─────────────────────────────────────
+    _click() {
+      const c=_ctx(),o=c.createOscillator(),g=c.createGain();
+      o.connect(g);g.connect(c.destination);o.type='sine';
+      o.frequency.setValueAtTime(600,c.currentTime);
+      o.frequency.exponentialRampToValueAtTime(260,c.currentTime+.07);
+      g.gain.setValueAtTime(.07,c.currentTime);
+      g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.08);
+      o.start(c.currentTime);o.stop(c.currentTime+.08);
+    },
+
+    // ── Tab switch — subtle blip ──────────────────────────
+    _tab() {
+      const c=_ctx(),o=c.createOscillator(),g=c.createGain();
+      o.connect(g);g.connect(c.destination);o.type='sine';
+      o.frequency.setValueAtTime(900,c.currentTime);
+      o.frequency.exponentialRampToValueAtTime(700,c.currentTime+.05);
+      g.gain.setValueAtTime(.04,c.currentTime);
+      g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.06);
+      o.start(c.currentTime);o.stop(c.currentTime+.06);
+    },
+
+    // ── Bet placed — chip tap ─────────────────────────────
+    _bet() {
+      const c=_ctx(),o=c.createOscillator(),g=c.createGain();
+      o.connect(g);g.connect(c.destination);o.type='triangle';
+      o.frequency.setValueAtTime(1200,c.currentTime);
+      o.frequency.exponentialRampToValueAtTime(800,c.currentTime+.06);
+      g.gain.setValueAtTime(.06,c.currentTime);
+      g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.07);
+      o.start(c.currentTime);o.stop(c.currentTime+.07);
+    },
+
+    // ── Deal — card swoosh × 4 ───────────────────────────
+    _deal() {
+      const c=_ctx();
+      [0,.12,.22,.32].forEach(t=>{
+        const buf=c.createBuffer(1,c.sampleRate*.09,c.sampleRate);
+        const d=buf.getChannelData(0);
+        for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*(1-i/d.length);
+        const s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();
+        s.buffer=buf;f.type='bandpass';f.frequency.value=3000+t*800;f.Q.value=.7;
+        s.connect(f);f.connect(g);g.connect(c.destination);
+        g.gain.setValueAtTime(.14,c.currentTime+t);
+        g.gain.exponentialRampToValueAtTime(.001,c.currentTime+t+.09);
+        s.start(c.currentTime+t);
+      });
+    },
+
+    // ── Single card hit — crisp swish ─────────────────────
+    _card() {
+      const c=_ctx();
+      const buf=c.createBuffer(1,c.sampleRate*.08,c.sampleRate);
+      const d=buf.getChannelData(0);
+      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*(1-i/d.length);
+      const s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();
+      s.buffer=buf;f.type='bandpass';f.frequency.value=2800;f.Q.value=.9;
+      s.connect(f);f.connect(g);g.connect(c.destination);
+      g.gain.setValueAtTime(.12,c.currentTime);
+      g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.08);
+      s.start(c.currentTime);
+    },
+
+    // ── Win — triumphant ascending chord ─────────────────
+    _win() {
+      const c=_ctx();
+      [392,494,587,784].forEach((hz,i)=>{
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='triangle';o.frequency.value=hz;
+        const t=c.currentTime+i*.06;
+        g.gain.setValueAtTime(.08,t);
+        g.gain.exponentialRampToValueAtTime(.001,t+.5);
+        o.start(t);o.stop(t+.5);
+      });
+    },
+
+    // ── Blackjack — epic win with shimmer ────────────────
+    _bj() {
+      const c=_ctx();
+      // Power base
+      [261,330,392,523,659].forEach((hz,i)=>{
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='triangle';o.frequency.value=hz;
+        const t=c.currentTime+i*.055;
+        g.gain.setValueAtTime(.09,t);
+        g.gain.exponentialRampToValueAtTime(.001,t+.65);
+        o.start(t);o.stop(t+.65);
+      });
+      // High sparkle
+      [1047,1319,1568].forEach((hz,i)=>{
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='sine';o.frequency.value=hz;
+        const t=c.currentTime+.25+i*.08;
+        g.gain.setValueAtTime(.045,t);
+        g.gain.exponentialRampToValueAtTime(.001,t+.35);
+        o.start(t);o.stop(t+.35);
+      });
+    },
+
+    // ── Lose — sad descending ─────────────────────────────
+    _lose() {
+      const c=_ctx();
+      [330,262].forEach((hz,i)=>{
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='triangle';o.frequency.value=hz;
+        const t=c.currentTime+i*.14;
+        g.gain.setValueAtTime(.07,t);
+        g.gain.exponentialRampToValueAtTime(.001,t+.35);
+        o.start(t);o.stop(t+.35);
+      });
+    },
+
+    // ── Bust — dramatic failure ───────────────────────────
+    _bust() {
+      const c=_ctx();
+      const o=c.createOscillator(),g=c.createGain();
+      o.connect(g);g.connect(c.destination);o.type='sawtooth';
+      o.frequency.setValueAtTime(300,c.currentTime);
+      o.frequency.exponentialRampToValueAtTime(60,c.currentTime+.45);
+      g.gain.setValueAtTime(.1,c.currentTime);
+      g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.5);
+      o.start(c.currentTime);o.stop(c.currentTime+.5);
+    },
+
+    // ── Push / tie — neutral double ping ─────────────────
+    _push() {
+      const c=_ctx();
+      [523,523].forEach((hz,i)=>{
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='sine';o.frequency.value=hz*(i?1.2:1);
+        const t=c.currentTime+i*.1;
+        g.gain.setValueAtTime(.06,t);
+        g.gain.exponentialRampToValueAtTime(.001,t+.18);
+        o.start(t);o.stop(t+.18);
+      });
+    },
+
+    // ── Double down — power punch ─────────────────────────
+    _double() {
+      const c=_ctx();
+      [220,440,880].forEach((hz,i)=>{
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='sawtooth';o.frequency.value=hz;
+        const t=c.currentTime+i*.04;
+        g.gain.setValueAtTime(.07,t);
+        g.gain.exponentialRampToValueAtTime(.001,t+.25);
+        o.start(t);o.stop(t+.25);
+      });
+    },
+
+    // ── Split — two-note scissors ─────────────────────────
+    _split() {
+      const c=_ctx();
+      [523,659].forEach((hz,i)=>{
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='triangle';o.frequency.value=hz;
+        const t=c.currentTime+i*.08;
+        g.gain.setValueAtTime(.07,t);
+        g.gain.exponentialRampToValueAtTime(.001,t+.22);
+        o.start(t);o.stop(t+.22);
+      });
+    },
+
+    // ── Insurance — shield hum ────────────────────────────
+    _insurance() {
+      const c=_ctx(),o=c.createOscillator(),g=c.createGain();
+      o.connect(g);g.connect(c.destination);o.type='sine';
+      o.frequency.setValueAtTime(440,c.currentTime);
+      o.frequency.linearRampToValueAtTime(528,c.currentTime+.2);
+      g.gain.setValueAtTime(.06,c.currentTime);
+      g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.28);
+      o.start(c.currentTime);o.stop(c.currentTime+.28);
+    },
+
+    // ── Error ─────────────────────────────────────────────
+    _error() {
+      const c=_ctx();
+      [280,190].forEach((hz,i)=>{
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='square';o.frequency.value=hz;
+        const t=c.currentTime+i*.1;
+        g.gain.setValueAtTime(.06,t);
+        g.gain.exponentialRampToValueAtTime(.001,t+.12);
+        o.start(t);o.stop(t+.12);
+      });
+    },
+
+    // ── Chip purchase — coin cascade ──────────────────────
+    _chip() {
+      const c=_ctx();
+      [1046,1318,1568,2093].forEach((hz,i)=>{
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='sine';o.frequency.value=hz;
+        const t=c.currentTime+i*.05;
+        g.gain.setValueAtTime(.07,t);
+        g.gain.exponentialRampToValueAtTime(.001,t+.22);
+        o.start(t);o.stop(t+.22);
+      });
+    },
+
+    // ── Redeem code — success jingle ─────────────────────
+    _redeem() {
+      const c=_ctx();
+      [392,523,659,784,1047].forEach((hz,i)=>{
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='triangle';o.frequency.value=hz;
+        const t=c.currentTime+i*.075;
+        g.gain.setValueAtTime(.07,t);
+        g.gain.exponentialRampToValueAtTime(.001,t+.4);
+        o.start(t);o.stop(t+.4);
+      });
+    },
+
+    // ── Collect gift / reward ─────────────────────────────
+    _collect() {
+      const c=_ctx();
+      [523,659,784,1047].forEach((hz,i)=>{
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='triangle';o.frequency.value=hz;
+        const t=c.currentTime+i*.07;
+        g.gain.setValueAtTime(.07,t);
+        g.gain.exponentialRampToValueAtTime(.001,t+.4);
+        o.start(t);o.stop(t+.4);
+      });
+    },
+
+    // ── Unlock / purchase theme ───────────────────────────
+    _unlock() {
+      const c=_ctx();
+      [440,554,659,880].forEach((hz,i)=>{
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type='triangle';o.frequency.value=hz;
+        const t=c.currentTime+i*.06;
+        g.gain.setValueAtTime(.06,t);
+        g.gain.exponentialRampToValueAtTime(.001,t+.35);
+        o.start(t);o.stop(t+.35);
+      });
+    },
+
+    // ── Underground — dark low rumble + eerie tone ────────
+    _underground() {
+      const c=_ctx();
+      // Sub rumble
+      const o1=c.createOscillator(),g1=c.createGain();
+      o1.connect(g1);g1.connect(c.destination);o1.type='sine';
+      o1.frequency.setValueAtTime(55,c.currentTime);
+      o1.frequency.exponentialRampToValueAtTime(40,c.currentTime+.6);
+      g1.gain.setValueAtTime(.25,c.currentTime);
+      g1.gain.exponentialRampToValueAtTime(.001,c.currentTime+.7);
+      o1.start(c.currentTime);o1.stop(c.currentTime+.7);
+      // Eerie high tone
+      const o2=c.createOscillator(),g2=c.createGain();
+      o2.connect(g2);g2.connect(c.destination);o2.type='sine';
+      o2.frequency.setValueAtTime(660,c.currentTime+.15);
+      o2.frequency.linearRampToValueAtTime(440,c.currentTime+.7);
+      g2.gain.setValueAtTime(.04,c.currentTime+.15);
+      g2.gain.exponentialRampToValueAtTime(.001,c.currentTime+.75);
+      o2.start(c.currentTime+.15);o2.stop(c.currentTime+.75);
+    },
+  };
   const ADMIN_EMAIL     = 'alimalik67065@gmail.com';
   const CHIPS_START     = 1500;
   const DAILY_LIMIT     = 1000;
@@ -1554,6 +1842,7 @@
      TABS
   ═══════════════════════════════════════════════════════ */
   function switchTab(name) {
+    SFX.play('tab');
     document.querySelectorAll('.c-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
     if (name === 'stats') { renderStats(); renderChart(); renderPrismaticPanel(); renderCasinoTitlePicker(); renderCasinoTitles(); _lbLoaded = false; renderLeaderboard(); }
@@ -1564,9 +1853,9 @@
   /* ═══════════════════════════════════════════════════════
      BLACKJACK ENGINE
   ═══════════════════════════════════════════════════════ */
-  function setBet(n)       { document.getElementById('bet-input').value = n; }
-  function setBetHalf()    { document.getElementById('bet-input').value = Math.max(1, Math.floor(chips / 2)); }
-  function setBetAllIn()   { document.getElementById('bet-input').value = chips; }
+  function setBet(n)       { SFX.play('bet'); document.getElementById('bet-input').value = n; }
+  function setBetHalf()    { SFX.play('bet'); document.getElementById('bet-input').value = Math.max(1, Math.floor(chips / 2)); }
+  function setBetAllIn()   { SFX.play('bet'); document.getElementById('bet-input').value = chips; }
 
   function dealHand() {
     if (gameActive) return;
@@ -1576,6 +1865,7 @@
 
     chips -= currentBet;
     saveChips();
+    SFX.play('deal');
 
     gameActive   = true;
     roundEnded   = false;
@@ -1622,6 +1912,7 @@
 
   function playerHit() {
     if (!gameActive || roundEnded) return;
+    SFX.play('card');
     disableActions();
     const card = drawCards(1)[0];
     if (playingSplit) splitHand.push(card);
@@ -1637,6 +1928,7 @@
 
   function playerStand() {
     if (!gameActive || roundEnded) return;
+    SFX.play('click');
     if (!playingSplit && splitHand.length > 0) {
       playingSplit = true;
       document.getElementById('split-hand-area').style.display = '';
@@ -1648,7 +1940,8 @@
 
   function playerDouble() {
     if (!gameActive || roundEnded) return;
-    if (chips < currentBet) { toast('⚠️ Not enough chips to double!'); return; }
+    if (chips < currentBet) { toast('⚠️ Not enough chips to double!'); SFX.play('error'); return; }
+    SFX.play('double');
     chips -= currentBet;
     currentBet *= 2;
     saveChips();
@@ -1661,6 +1954,7 @@
 
   function playerSplit() {
     if (!canSplit(playerHand)) return;
+    SFX.play('split');
     chips -= currentBet;
     saveChips();
     splitHand = [playerHand.pop()];
@@ -1678,10 +1972,11 @@
     const bar = document.getElementById('insurance-bar');
     if (bar.classList.contains('ins-disabled')) return;
     insuranceBet = Math.floor(currentBet * 0.5);
-    if (chips < insuranceBet) { toast('⚠️ Not enough chips!'); return; }
+    if (chips < insuranceBet) { toast('⚠️ Not enough chips!'); SFX.play('error'); return; }
     chips -= insuranceBet;
     hasInsurance = true;
     saveChips();
+    SFX.play('insurance');
     bar.classList.add('ins-disabled');
     document.getElementById('ins-yes-btn').disabled = true;
     toast(`🛡 Insurance taken for ${insuranceBet} chips`);
@@ -1713,6 +2008,7 @@
     while (handValue(dealerHand) < 17) {
       const card = drawCards(1)[0];
       dealerHand.push(card);
+      SFX.play('card');
       renderHands(false);
       await sleep(420);
     }
@@ -1831,6 +2127,13 @@
     document.getElementById('result-title').textContent  = titleStr;
     document.getElementById('result-payout').textContent = payStr;
     document.getElementById('result-detail').textContent = detStr;
+
+    // ── SFX based on outcome ────────────────────────────────
+    if      (main.cls === 'bj')   SFX.play('bj');
+    else if (main.cls === 'win')  SFX.play('win');
+    else if (main.cls === 'push') SFX.play('push');
+    else if (pBust)               SFX.play('bust');
+    else                          SFX.play('lose');
 
     document.getElementById('bet-area').style.pointerEvents = '';
     document.getElementById('deal-btn').disabled = false;
@@ -2254,6 +2557,7 @@
     saveTcgCoins(tcgCoins - coinCost);
     chips += chipsAmt;
     saveChips();
+    SFX.play('chip');
     if (!isVIP) { limit.used += chipsAmt; saveDailyLimit(limit); }
     updateLimitUI();
     toast(`🔴 +${chipsAmt} chips! (🪙 -${coinCost.toLocaleString()})`, 'ok');
@@ -2268,6 +2572,7 @@
     if (tcgCoins < cost) { toast(`⚠️ Need 🪙 ${cost.toLocaleString()} coins!`); return; }
     saveTcgCoins(tcgCoins - cost);
     chips += amt; saveChips();
+    SFX.play('chip');
     document.getElementById('vip-chip-input').value = '';
     toast(`🔴 +${amt} chips! (🪙 -${cost.toLocaleString()})`, 'ok');
   }
@@ -2324,6 +2629,7 @@
       }
       if (totalChips !== 0) {
         chips = Math.max(0, chips + totalChips); saveChips();
+        SFX.play(totalChips > 0 ? 'collect' : 'error');
         const sign = totalChips > 0 ? '+' : '';
         toast(`👑 Admin: ${sign}${totalChips.toLocaleString()} casino chips!`, totalChips > 0 ? 'epic' : 'error');
       }
@@ -2732,6 +3038,7 @@
      UNDERGROUND TABLE
   ═══════════════════════════════════════════════════════ */
   function enterUnderground() {
+    SFX.play('underground');
     if (undergroundTickets < 1) { toast('⚠️ No Underground Ticket! Buy one in the Shop.'); return; }
     undergroundTickets--;
     saveUGTickets();
@@ -2759,6 +3066,7 @@
     undergroundTickets++;
     saveChips();
     saveUGTickets();
+    SFX.play('unlock');
     document.getElementById('ug-ticket-count').textContent = undergroundTickets;
     document.getElementById('ug-badge').textContent = `${undergroundTickets} Ticket(s)`;
     toast('🕳️ Underground Ticket purchased!', 'ok');
@@ -2809,6 +3117,7 @@
     ownedThemes.push(id);
     saveChips();
     saveTheme();
+    SFX.play('unlock');
     renderThemeShop('theme-shop-grid', false);
     renderThemeShop('theme-toggle-grid', true);
     toast('🎨 Theme purchased!', 'ok');
@@ -3009,17 +3318,19 @@ async function redeemCasinoCode() {
   try { usedCodes = JSON.parse(localStorage.getItem('cztcg5_codes_v2') || '[]'); } catch {}
   if (usedCodes.includes(hashedInput)) {
     toast('❌ Code bereits verwendet.', 'error');
+    SFX.play('error');
     document.getElementById('casino-code-input').value = '';
     return;
   }
 
   // 3. Reward-Objekt aus codes.js holen
   const reward = window.CODE_HASHES?.[hashedInput];
-  if (!reward) { toast('❌ Ungültiger Code.', 'error'); return; }
+  if (!reward) { SFX.play('error'); toast('❌ Ungültiger Code.', 'error'); return; }
 
   // 3b. Ablauf-Prüfung (expires: 0 = niemals, sonst Unix-Timestamp in ms)
   if (window.isCodeExpired?.(reward)) {
     toast('⌛ Dieser Code ist abgelaufen.', 'error');
+    SFX.play('error');
     document.getElementById('casino-code-input').value = '';
     return;
   }
@@ -3088,6 +3399,7 @@ async function redeemCasinoCode() {
     usedCodes: arrayUnion(hashedInput)
   }).catch(() => {});
 
+  SFX.play('redeem');
   toast(reward.msg || '✅ Code eingelöst!', 'ok');
   document.getElementById('casino-code-input').value = '';
   updateUI();

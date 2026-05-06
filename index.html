@@ -5577,9 +5577,9 @@ requestAnimationFrame(() => {
 
         // Custom confirm modal statt window.confirm()
         document.getElementById('confirm-icon').textContent    = '☁️';
-        document.getElementById('confirm-title').textContent   = 'Cloud-Stand laden?';
-        document.getElementById('confirm-msg').textContent     = 'Dein aktueller lokaler Fortschritt wird durch den Cloud-Speicherstand ersetzt. Diese Aktion kann nicht rückgängig gemacht werden.';
-        document.getElementById('confirm-ok-btn').textContent  = 'Ja, laden';
+        document.getElementById('confirm-title').textContent   = 'Cloud Load Confirmation';
+        document.getElementById('confirm-msg').textContent     = '⚠️ This will overwrite your current game state with the cloud data. Are you sure?';
+        document.getElementById('confirm-ok-btn').textContent  = 'Yes, Load from Cloud';
         document.getElementById('confirm-ok-btn').className    = 'btn btn-primary btn-full';
         document.getElementById('confirm-ok-btn').onclick = async () => {
           closeModal('confirm-modal');
