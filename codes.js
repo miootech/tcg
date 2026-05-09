@@ -211,7 +211,7 @@ const ACTIVE_SEASON_CODES = {
   // ── Version 2.3.2 ────────────────────────────────────
 
   // "biggestbird"
-  "d1c9e5a3f8b2c4e5a6f7b8c9d0e1f2a3b4c5d6e7": {
+  "9eee67932cd4412377f7b9124cd63fd01731bd29": {
     type:    "packs",
     packs:   [{ packKey: "godpack", count: 5 }],
     coins:   50000,
@@ -220,7 +220,7 @@ const ACTIVE_SEASON_CODES = {
   },
 
   // "freeamo2" — Shiny-Karte (cardId 5401) Version 2.3.2
-  "e6352908707142f7aa0448ff242882d592ca817e": {
+  "42de40507ea951356bc761b9092c8259d4c3b08e": {
     type:    "id_reward",
     cardId:  5903,
     coins:   10000,
@@ -314,7 +314,7 @@ const CASINO_CODES = {
   // ── Version 2.3.2 ────────────────────────────────────
   
   // "twopairs" — 2.000 Chips
-  "1177659560f2795ec2501861787d5598696e5720": {
+  "1e024bbb077e929daafa98f242d4dba38936c9e7": {
     type:    "chips",
     chips:   2000,
     expires: 0,
@@ -322,7 +322,7 @@ const CASINO_CODES = {
   },
 
   // "triplethreat" — 4.000 Chips + 1x Starter
-  "7f72260193165b597ec31a7424075f3a09335f6f": {
+  "1dbf8a3fb5bc418b0087f68f21f53861e8f61901": {
     type:  "chips",
     chips: 4000,
     packs: [
@@ -333,7 +333,7 @@ const CASINO_CODES = {
   },
 
   // "straightwin" — 7.000 Chips
-  "35140809804e112d4d95b542017326e7924c585c": {
+  "97112ce044aa61c5e37b33d1ba2082c75d5c2d00": {
     type:    "chips",
     chips:   7000,
     expires: 0,
@@ -341,7 +341,7 @@ const CASINO_CODES = {
   },
 
   // "flushpower" — 10.000 Chips + 1x Royale
-  "df831037748464673644f128c11e3f8910080838": {
+  "a4e91e06e6a7ecc37dcaff35a942485a8b8beb6b": {
     type:  "chips",
     chips: 10000,
     packs: [
@@ -352,7 +352,7 @@ const CASINO_CODES = {
   },
 
   // "fullhouse" — 14.000 Chips + 1x Starter
-  "495638a169b3658252c80389270df33038676646": {
+  "023f1653afe3d7145a2efa03005104818ab85d88": {
     type:  "chips",
     chips: 14000,
     packs: [
@@ -363,7 +363,7 @@ const CASINO_CODES = {
   },
 
   // "fourofakind" — 18.000 Chips + 1x Jackpot Vault
-  "957e84f676343516541604a806d203e0e7a2b270": {
+  "a521043f2ad082f30bfcf3eb3b3429ab5c0c2055": {
     type:  "chips",
     chips: 18000,
     packs: [
@@ -374,7 +374,7 @@ const CASINO_CODES = {
   },
 
   // "royalflush" — 25.000 Chips + 1x Royale
-  "99738f66810cecf809460593679808a3f8981f7d": {
+  "a0baaf7208e5b663d2a525268d342bf8b45e33b9": {
     type:  "chips",
     chips: 25000,
     packs: [
