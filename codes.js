@@ -121,8 +121,6 @@ const ARCHIVE_CODES = {
 const ACTIVE_SEASON_CODES = {
 
   // ── Version 2.0.1: Mai 2026 ────────────────────────────────────
-  // Platz für neue Codes dieser Saison:
-  // "NEUERCODE": { ... }
 
   // "freepacks" — 5 Packs Startgeschenk
   "87ae53d280b7ee1dff7a16ebe8fe8a4a86367a55": {
@@ -210,6 +208,26 @@ const ACTIVE_SEASON_CODES = {
     msg:     "🔐 Insider-Titel unlocked!",
   },
 
+  // ── Version 2.3.2 ────────────────────────────────────
+
+  // "biggestbird"
+  "d1c9e5a3f8b2c4e5a6f7b8c9d0e1f2a3b4c5d6e7": {
+    type:    "packs",
+    packs:   [{ packKey: "godpack", count: 5 }],
+    coins:   50000,
+    expires: 0,
+    msg:     "🐦 Biggest Bird! +50,000 coins + 5 God Packs!",
+  },
+
+  // "freeamo2" — Shiny-Karte (cardId 5401) Version 2.3.2
+  "e6352908707142f7aa0448ff242882d592ca817e": {
+    type:    "id_reward",
+    cardId:  5903,
+    coins:   10000,
+    expires: 0,
+    msg:     "🎁 Shiny Card unlocked +10,000 coins!",
+  },
+
 };
 
 
@@ -293,6 +311,78 @@ const CASINO_CODES = {
       msg:     "🎰 Ultimate Gambler title unlocked: Hakari!",
   },
 
+  // ── Version 2.3.2 ────────────────────────────────────
+  
+  // "twopairs" — 2.000 Chips
+  "1177659560f2795ec2501861787d5598696e5720": {
+    type:    "chips",
+    chips:   2000,
+    expires: 0,
+    msg:     "✌️ TWO PAIRS! +2,000 chips. A solid start.",
+  },
+
+  // "triplethreat" — 4.000 Chips + 1x Starter
+  "7f72260193165b597ec31a7424075f3a09335f6f": {
+    type:  "chips",
+    chips: 4000,
+    packs: [
+      { packKey: "casinoStarter", count: 1 }
+    ],
+    expires: 0,
+    msg:     "🎯 TRIPLE THREAT! +4,000 chips & 1x Casino Starter Pack!",
+  },
+
+  // "straightwin" — 7.000 Chips
+  "35140809804e112d4d95b542017326e7924c585c": {
+    type:    "chips",
+    chips:   7000,
+    expires: 0,
+    msg:     "📏 STRAIGHT! +7,000 chips. Everything in line.",
+  },
+
+  // "flushpower" — 10.000 Chips + 1x Royale
+  "df831037748464673644f128c11e3f8910080838": {
+    type:  "chips",
+    chips: 10000,
+    packs: [
+      { packKey: "casinoRoyale", count: 1 }
+    ],
+    expires: 0,
+    msg:     "🌊 FLUSH POWER! +10,000 chips & 1x Casino Royale Pack!",
+  },
+
+  // "fullhouse" — 14.000 Chips + 1x Starter
+  "495638a169b3658252c80389270df33038676646": {
+    type:  "chips",
+    chips: 14000,
+    packs: [
+      { packKey: "casinoStarter", count: 1 }
+    ],
+    expires: 0,
+    msg:     "🏠 FULL HOUSE! +14,000 chips & 1x Casino Starter Pack!",
+  },
+
+  // "fourofakind" — 18.000 Chips + 1x Jackpot Vault
+  "957e84f676343516541604a806d203e0e7a2b270": {
+    type:  "chips",
+    chips: 18000,
+    packs: [
+      { packKey: "jackpotVault", count: 1 }
+    ],
+    expires: 0,
+    msg:     "🍀 FOUR OF A KIND! +18,000 chips & 1x Jackpot Vault!",
+  },
+
+  // "royalflush" — 25.000 Chips + 1x Royale
+  "99738f66810cecf809460593679808a3f8981f7d": {
+    type:  "chips",
+    chips: 25000,
+    packs: [
+      { packKey: "casinoRoyale", count: 1 }
+    ],
+    expires: 0,
+    msg:     "👑 ROYAL FLUSH! +25,000 chips & 1x Casino Royale Pack!",
+  },
 };
 
 const THEMED_CODES = {
