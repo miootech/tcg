@@ -42,7 +42,6 @@
   <script src="packs.js"></script>
   <script src="codes.js"></script>
   <script src="titles.js"></script>
-  <script src="admin.js"></script>
 
   <style>
     /* ═══════════════════════════════════════════════════════
@@ -755,109 +754,6 @@
     @keyframes lbSlideIn { from{opacity:0;transform:translateX(-12px)} to{opacity:1;transform:none} }
     @keyframes lbPulse   { 0%,100%{opacity:0.5} 50%{opacity:1} }
 
-    /* ════════════════════════════════════════════════════════
-       TEXAS HOLD'EM POKER
-    ════════════════════════════════════════════════════════ */
-    .poker-street-bar {
-      display:flex;align-items:center;justify-content:space-between;
-      padding:0.5rem 0.9rem;background:var(--surface-2);
-      border:1px solid var(--border);border-radius:var(--r-md);margin-bottom:0.6rem;gap:0.5rem;
-    }
-    .poker-street-pill {
-      font-size:0.72rem;font-weight:700;color:var(--gold);text-transform:uppercase;
-      letter-spacing:0.08em;background:var(--gold-dim);border:1px solid var(--gold-border);
-      border-radius:var(--r-pill);padding:0.18rem 0.65rem;
-    }
-    .poker-pot-pill { font-family:"DM Mono",monospace;font-size:0.88rem;font-weight:700;color:var(--gold-2);display:flex;align-items:center;gap:0.3rem; }
-    .poker-felt {
-      background:radial-gradient(ellipse at center,var(--felt-2) 0%,var(--felt) 60%,#060f09 100%);
-      border:2px solid rgba(200,169,106,0.22);border-radius:var(--r-xl);padding:0.9rem;
-      position:relative;box-shadow:inset 0 0 40px rgba(0,0,0,0.6),0 8px 24px rgba(0,0,0,0.5);
-      margin-bottom:0.6rem;
-    }
-    .poker-felt::before { content:"";position:absolute;inset:6px;border-radius:calc(var(--r-xl) - 4px);border:1px solid rgba(200,169,106,0.1);pointer-events:none; }
-    .poker-community   { display:flex;gap:0.38rem;justify-content:center;align-items:center;min-height:88px;flex-wrap:wrap; }
-    .poker-card-slot   { width:58px;height:82px;border-radius:7px;flex-shrink:0;border:1px dashed rgba(200,169,106,0.16);background:rgba(0,0,0,0.18); }
-    .poker-ring        { display:grid;grid-template-columns:1fr 1fr;gap:0.45rem;margin-bottom:0.6rem; }
-    .poker-seat {
-      background:var(--surface-2);border:1px solid var(--border);
-      border-radius:var(--r-md);padding:0.6rem 0.7rem;transition:all 0.25s;position:relative;overflow:hidden;
-    }
-    .poker-seat.active-seat { border-color:var(--gold-border-hi);box-shadow:0 0 16px var(--gold-glow);background:var(--surface-3);animation:pkGlow 1.4s ease-in-out infinite; }
-    .poker-seat.my-seat     { border-color:rgba(100,180,255,0.3); }
-    .poker-seat.folded      { opacity:0.32; }
-    @keyframes pkGlow { 0%,100%{box-shadow:0 0 16px var(--gold-glow)} 50%{box-shadow:0 0 28px rgba(200,169,106,0.55)} }
-    .poker-seat-top   { display:flex;align-items:center;justify-content:space-between;margin-bottom:0.2rem; }
-    .poker-seat-name  { font-size:0.74rem;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:85px; }
-    .poker-seat-chips { font-size:0.65rem;color:var(--gold-2);font-weight:700;margin-bottom:0.15rem; }
-    .poker-seat-bet   { font-size:0.6rem;color:var(--subtext-2); }
-    .pk-badge        { font-size:0.55rem;font-weight:700;padding:1px 5px;border-radius:var(--r-pill);margin-left:2px; }
-    .pk-dealer       { background:rgba(200,169,106,0.2);color:var(--gold);border:1px solid var(--gold-border); }
-    .pk-sb           { background:rgba(60,200,60,0.2);color:#70e090;border:1px solid rgba(60,200,60,0.3); }
-    .pk-bb           { background:rgba(60,100,220,0.2);color:#88aaff;border:1px solid rgba(60,100,220,0.3); }
-    .pk-turn         { background:rgba(200,169,106,0.18);color:var(--gold);border:1px solid var(--gold-border); }
-    .pk-action       { font-size:0.57rem;font-weight:700;padding:1px 5px;border-radius:var(--r-pill);display:inline-block;margin-top:2px; }
-    .pka-fold        { background:rgba(150,30,30,0.28);color:#ff9090; }
-    .pka-call        { background:rgba(30,150,30,0.28);color:#70e090; }
-    .pka-check       { background:rgba(30,90,200,0.28);color:#88aaff; }
-    .pka-raise       { background:rgba(200,150,0,0.28);color:var(--gold); }
-    .pka-allin       { background:rgba(200,50,100,0.28);color:#ff7aaa; }
-    .pka-blind       { background:rgba(150,100,200,0.2);color:#d0aaff; }
-    .poker-hole-row  { display:flex;gap:0.22rem;margin-top:0.3rem;min-height:56px;align-items:flex-end; }
-    .pk-mini {
-      width:38px;height:54px;border-radius:5px;border:1px solid rgba(0,0,0,0.2);
-      background:#faf7f0;display:flex;flex-direction:column;align-items:center;
-      justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.6);flex-shrink:0;gap:0;
-    }
-    .pk-mini.back { background:linear-gradient(135deg,#0a1f4e,#030d24);border-color:rgba(200,169,106,0.22); }
-    .pk-mini.red  { color:#b00; }
-    .pk-mini.blk  { color:#111; }
-    .pk-mini-r    { font-family:"DM Mono",monospace;font-weight:700;font-size:0.62rem;line-height:1; }
-    .pk-mini-s    { font-size:0.5rem;line-height:1; }
-    .poker-hand-name  { font-size:0.58rem;font-weight:700;color:#c084fc;display:inline-block;background:rgba(150,50,200,0.12);border:1px solid rgba(150,50,200,0.28);border-radius:var(--r-pill);padding:1px 6px;margin-top:0.2rem; }
-    .poker-win-stamp  { font-size:0.58rem;font-weight:700;color:#70e070;display:inline-block;background:rgba(60,180,60,0.14);border:1px solid rgba(60,180,60,0.28);border-radius:var(--r-pill);padding:1px 6px;margin-top:0.2rem; }
-    .poker-action-zone { display:flex;flex-direction:column;gap:0.4rem;margin-bottom:0.6rem; }
-    .poker-action-btns { display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.38rem; }
-    .poker-raise-row   { display:flex;gap:0.38rem; }
-    .poker-presets     { display:flex;gap:0.3rem;flex-wrap:wrap; }
-    .pk-preset {
-      flex:1;min-width:40px;padding:0.3rem 0;background:var(--surface-3);
-      border:1px solid var(--border);border-radius:var(--r-sm);
-      font-size:0.7rem;font-weight:700;cursor:pointer;color:var(--subtext-2);
-      transition:all 0.18s;text-align:center;
-    }
-    .pk-preset:hover        { background:var(--gold-dim);border-color:var(--gold-border);color:var(--gold); }
-    .pk-preset.pk-allin     { background:rgba(168,40,40,0.1);border-color:rgba(168,40,40,0.35);color:#ff9090; }
-    .pk-preset.pk-allin:hover { background:rgba(168,40,40,0.22); }
-    .poker-winner-box {
-      background:linear-gradient(135deg,rgba(200,169,106,0.09),rgba(200,169,106,0.03));
-      border:1px solid var(--gold-border-hi);border-radius:var(--r-lg);
-      padding:0.85rem;text-align:center;margin-bottom:0.5rem;animation:fadeUp 0.3s var(--ease) both;
-    }
-    .poker-winner-name { font-family:"Playfair Display",serif;font-size:1.1rem;color:var(--gold-2);margin-bottom:0.2rem; }
-    .poker-winner-hand { font-size:0.75rem;color:var(--subtext-2); }
-    /* Theme support for poker felt */
-    .theme-velvet .poker-felt { background:linear-gradient(160deg,#0d0018,#1a0030 55%,#2a0050)!important;border-color:rgba(180,100,255,0.6)!important; }
-    .theme-blood  .poker-felt { background:linear-gradient(160deg,#0f0000,#200008 55%,#380010)!important;border-color:rgba(220,30,60,0.65)!important; }
-    .theme-felt   .poker-felt { background:linear-gradient(160deg,#012a14,#024520 55%,#016030)!important;border-color:rgba(100,220,120,0.5)!important; }
-    .underground-active .poker-felt { background:linear-gradient(160deg,#0e0022,#20004a 60%,#3E1F47)!important;border-color:rgba(200,100,255,0.45)!important; }
-
-    /* ════════════════════════════════════════════════════════
-       ADMIN: Individual / Everyone toggle
-    ════════════════════════════════════════════════════════ */
-    .adm-mode-toggle {
-      width:100%;padding:0.5rem 0.85rem;border-radius:var(--r-md);cursor:pointer;
-      font-family:"Quicksand",sans-serif;font-weight:700;font-size:0.8rem;
-      border:1px solid rgba(180,158,255,0.25);background:rgba(180,158,255,0.1);color:#c084fc;
-      transition:all 0.22s;display:flex;align-items:center;justify-content:space-between;gap:0.5rem;
-      margin-bottom:0.5rem;
-    }
-    .adm-mode-toggle.everyone { border-color:rgba(200,169,106,0.35);background:rgba(200,169,106,0.12);color:var(--gold); }
-    .adm-everyone-note {
-      display:none;width:100%;padding:0.5rem 1rem;border-radius:var(--r-md);
-      background:rgba(200,169,106,0.07);border:1px dashed rgba(200,169,106,0.28);
-      font-size:0.72rem;color:var(--gold);text-align:center;font-weight:700;margin-bottom:0.5rem;
-    }
 
   </style>
 </head>
@@ -900,7 +796,6 @@
 
     <nav class="casino-tabs">
       <button class="c-tab active" data-tab="table" onclick="switchTab('table')">🃏 Table</button>
-      <button class="c-tab" data-tab="poker" onclick="switchTab('poker')">♠️ Poker</button>
       <button class="c-tab" data-tab="shop"  onclick="switchTab('shop')">🏪 Shop</button>
       <button class="c-tab" data-tab="stats" onclick="switchTab('stats')">📊 Stats</button>
     </nav>
@@ -1217,143 +1112,13 @@
         <div class="section-box">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.55rem">
             <div class="section-title" style="margin-bottom:0">🏆 Global Leaderboard</div>
-            <button id="lb-push-btn" class="c-btn c-btn-ghost c-btn-sm" onclick="manualPushLeaderboard()" style="font-size:0.7rem;padding:0.28rem 0.65rem;display:none">📤 Submit Score</button>
+            <button id="lb-push-btn" class="c-btn c-btn-ghost c-btn-sm" onclick="manualPushLeaderboard()" style="font-size:0.7rem;padding:0.28rem 0.65rem;display:none">📤 Eintragen</button>
           </div>
-          <div style="font-size:0.72rem;color:var(--subtext);font-style:italic;margin-bottom:0.5rem">Updates after every round</div>
+          <div style="font-size:0.72rem;color:var(--subtext);font-style:italic;margin-bottom:0.5rem">Updates nach jeder Runde</div>
           <div id="lb-list"><div style="text-align:center;color:var(--subtext);font-size:0.82rem;padding:1rem">Loading…</div></div>
         </div>
 
       </div><!-- /#tab-stats -->
-
-      <!-- ══ TAB: POKER ════════════════════════════════════ -->
-      <div class="tab-pane" id="tab-poker">
-
-        <!-- Lobby -->
-        <div id="poker-lobby">
-          <div class="section-box">
-            <div class="section-title">♠️ Texas Hold'em</div>
-            <div style="font-size:0.75rem;color:var(--subtext-2);margin-bottom:0.9rem;line-height:1.65">
-              Online multiplayer poker — create a room and share the code.<br>
-              Rooms auto-delete when everyone leaves or after 6 hours.
-            </div>
-            <div style="display:flex;flex-direction:column;gap:0.5rem">
-              <button class="table-mode-btn" onclick="openCreatePokerRoom()">
-                <span class="tmb-icon">🏰</span>
-                <div>
-                  <span class="tmb-label">Create Poker Room</span>
-                  <span class="tmb-desc">Host a table for 2–6 players · Share the code</span>
-                  <span class="tmb-badge">Login Required</span>
-                </div>
-              </button>
-              <button class="table-mode-btn" onclick="openJoinPokerRoom()">
-                <span class="tmb-icon">🚪</span>
-                <div>
-                  <span class="tmb-label">Join Poker Room</span>
-                  <span class="tmb-desc">Enter a 4-character room code to join</span>
-                  <span class="tmb-badge">Login Required</span>
-                </div>
-              </button>
-            </div>
-          </div>
-          <div class="section-box">
-            <div class="section-title">📖 Rules</div>
-            <button class="c-btn c-btn-ghost c-btn-full c-btn-sm" onclick="openModal('poker-rules-modal')">♠️ Read Texas Hold'em Rules</button>
-          </div>
-        </div><!-- /#poker-lobby -->
-
-        <!-- Waiting Room -->
-        <div id="poker-waiting-room" style="display:none">
-          <div class="pt-room section-box">
-            <div class="section-title" id="pk-room-title">Poker Room</div>
-            <div class="pt-room-code" id="pk-room-code">——</div>
-            <div class="pt-status" id="pk-wait-status">Waiting for players…</div>
-            <div class="pt-players" id="pk-wait-players"></div>
-            <div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;margin-top:0.5rem">
-              <button class="c-btn c-btn-gold c-btn-sm" id="pk-start-btn" onclick="startPokerGame()" style="display:none">▶ Start Game</button>
-              <button class="c-btn c-btn-ghost c-btn-sm" onclick="leavePokerRoom()">Leave Room</button>
-            </div>
-          </div>
-          <div class="pt-chat">
-            <div class="pt-chat-header"><div class="chat-live-dot"></div> Table Chat</div>
-            <div class="pt-chat-msgs" id="pk-chat-msgs"><div class="chat-msg sys">Chat begins here.</div></div>
-            <div class="pt-chat-input-row">
-              <input class="pt-chat-input" id="pk-chat-input" placeholder="Message…" maxlength="120"
-                     onkeydown="if(event.key==='Enter')pkSendChat()" />
-              <button class="pt-chat-send" onclick="pkSendChat()">Send</button>
-            </div>
-          </div>
-        </div><!-- /#poker-waiting-room -->
-
-        <!-- Game Area -->
-        <div id="poker-game-area" style="display:none">
-
-          <div class="poker-street-bar">
-            <span class="poker-street-pill" id="pk-street">Pre-Flop</span>
-            <div class="poker-pot-pill">
-              <span style="font-size:0.65rem;color:var(--subtext-2)">POT</span>
-              <span id="pk-pot">0</span>
-              <span style="font-size:0.65rem;color:var(--subtext-2)">🔴</span>
-            </div>
-            <span style="font-size:0.65rem;color:var(--subtext-2)" id="pk-pcount"></span>
-          </div>
-
-          <div class="poker-felt">
-            <div class="poker-community" id="pk-community"></div>
-          </div>
-
-          <div class="poker-ring" id="pk-ring"></div>
-
-          <!-- Action zone -->
-          <div class="poker-action-zone" id="pk-actions" style="display:none">
-            <div class="poker-action-btns">
-              <button class="c-btn c-btn-crimson" onclick="pkAction('fold')">Fold</button>
-              <button class="c-btn c-btn-ghost" id="pk-check-btn" onclick="pkAction('check')">Check</button>
-              <button class="c-btn c-btn-gold"  id="pk-call-btn"  onclick="pkAction('call')">Call</button>
-            </div>
-            <div class="poker-raise-row">
-              <input type="number" id="pk-raise-input" class="bet-input"
-                     placeholder="Raise amount…" min="1" style="flex:1;font-size:0.95rem;text-align:center" />
-              <button class="c-btn c-btn-gold c-btn-sm" onclick="pkRaiseInput()">Raise ↑</button>
-            </div>
-            <div class="poker-presets">
-              <span class="pk-preset" onclick="pkPreset(0.25)">¼ Pot</span>
-              <span class="pk-preset" onclick="pkPreset(0.333)">⅓ Pot</span>
-              <span class="pk-preset" onclick="pkPreset(0.5)">½ Pot</span>
-              <span class="pk-preset pk-allin" onclick="pkPreset('allin')">ALL IN</span>
-            </div>
-          </div>
-
-          <!-- Winner box -->
-          <div id="pk-winner-wrap" style="display:none">
-            <div class="poker-winner-box">
-              <div class="poker-winner-name" id="pk-winner-name">—</div>
-              <div class="poker-winner-hand" id="pk-winner-hand"></div>
-            </div>
-          </div>
-
-          <!-- Host: next hand -->
-          <div id="pk-next-wrap" style="display:none;text-align:center;margin-bottom:0.5rem">
-            <button class="c-btn c-btn-gold" onclick="startPokerGame()">▶ Next Hand</button>
-          </div>
-
-          <div style="display:flex;justify-content:center;margin-bottom:0.5rem">
-            <button class="c-btn c-btn-ghost c-btn-sm" onclick="leavePokerRoom()">🚪 Leave Table</button>
-          </div>
-
-          <!-- In-game chat -->
-          <div class="pt-chat">
-            <div class="pt-chat-header"><div class="chat-live-dot"></div> Table Chat</div>
-            <div class="pt-chat-msgs" id="pk-game-chat"><div class="chat-msg sys">Chat clears when room closes.</div></div>
-            <div class="pt-chat-input-row">
-              <input class="pt-chat-input" id="pk-game-chat-input" placeholder="Message…" maxlength="120"
-                     onkeydown="if(event.key==='Enter')pkSendChat()" />
-              <button class="pt-chat-send" onclick="pkSendChat()">Send</button>
-            </div>
-          </div>
-
-        </div><!-- /#poker-game-area -->
-
-      </div><!-- /#tab-poker -->
 
     </div><!-- /.casino-body -->
   <!-- Casino Title Modal -->
@@ -1372,67 +1137,16 @@
 
   </div><!-- /#casino-app -->
 
-  <!-- ══ POKER: JOIN MODAL ══════════════════════════════ -->
-  <div class="modal-overlay" id="poker-join-modal">
-    <div class="modal-box" style="border-radius:var(--r-xl) var(--r-xl) 0 0">
-      <button class="modal-close" onclick="closeModal('poker-join-modal')">✕</button>
-      <div class="modal-title">🚪 Join Poker Room</div>
-      <input type="text" class="c-input" id="pk-join-input" placeholder="Room code…" maxlength="6"
-             style="margin-bottom:0.75rem;text-align:center;font-size:1.3rem;letter-spacing:0.2em;text-transform:uppercase"
-             onkeydown="if(event.key==='Enter')joinPokerRoom()" />
-      <div style="display:flex;gap:0.5rem">
-        <button class="c-btn c-btn-ghost c-btn-full" onclick="closeModal('poker-join-modal')">Cancel</button>
-        <button class="c-btn c-btn-gold c-btn-full" onclick="joinPokerRoom()">Join ♠️</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ POKER: RULES MODAL ═════════════════════════════ -->
-  <div class="modal-overlay center" id="poker-rules-modal">
-    <div class="modal-box" style="max-width:400px">
-      <button class="modal-close" onclick="closeModal('poker-rules-modal')">✕</button>
-      <div class="modal-title">♠️ Texas Hold'em — Rules</div>
-      <div style="font-size:0.78rem;line-height:1.72;color:var(--text)">
-        <p style="color:var(--gold);font-weight:700;margin-bottom:0.25rem">🎯 Objective</p>
-        <p style="margin-bottom:0.75rem">Build the best 5-card hand from your 2 Hole Cards and up to 5 Community Cards. Best hand wins the pot.</p>
-        <p style="color:var(--gold);font-weight:700;margin-bottom:0.25rem">🔄 Game Flow</p>
-        <p style="margin-bottom:0.15rem"><b>1. Pre-Flop</b> — 2 hidden Hole Cards each. SB (50🔴) &amp; BB (100🔴) post blinds. UTG acts first.</p>
-        <p style="margin-bottom:0.15rem"><b>2. Flop</b> — 3 Community Cards revealed. Betting round starts left of Dealer.</p>
-        <p style="margin-bottom:0.15rem"><b>3. Turn</b> — 4th Community Card. Another betting round.</p>
-        <p style="margin-bottom:0.75rem"><b>4. River</b> — 5th Community Card. Final betting → Showdown.</p>
-        <p style="color:var(--gold);font-weight:700;margin-bottom:0.25rem">🃏 Actions</p>
-        <p><b>Fold</b> — Give up. Lose current bet. &nbsp;|&nbsp; <b>Check</b> — Pass (no open bet).</p>
-        <p style="margin-bottom:0.75rem"><b>Call</b> — Match the bet. &nbsp;|&nbsp; <b>Raise</b> — Increase (min = cur + 100). &nbsp;|&nbsp; <b>All In</b> — All chips.</p>
-        <p style="color:var(--gold);font-weight:700;margin-bottom:0.3rem">🏆 Hand Ranking (Strongest → Weakest)</p>
-        <div style="display:flex;flex-direction:column;gap:0.16rem;font-size:0.72rem;background:var(--surface-2);border-radius:var(--r-md);padding:0.6rem 0.75rem;margin-bottom:0.75rem">
-          <div>🥇 <b>Royal Flush</b> — A K Q J 10 same suit</div>
-          <div>🥈 <b>Straight Flush</b> — 5 consecutive, same suit</div>
-          <div>🥉 <b>Four of a Kind</b> — 4 identical values</div>
-          <div>4️⃣ <b>Full House</b> — Three of a Kind + Pair</div>
-          <div>5️⃣ <b>Flush</b> — 5 cards same suit</div>
-          <div>6️⃣ <b>Straight</b> — 5 consecutive values</div>
-          <div>7️⃣ <b>Three of a Kind</b> — 3 identical values</div>
-          <div>8️⃣ <b>Two Pair</b> — Two different pairs</div>
-          <div>9️⃣ <b>One Pair</b> — One pair</div>
-          <div>🔟 <b>High Card</b> — Highest card decides</div>
-        </div>
-        <p style="color:var(--gold);font-weight:700;margin-bottom:0.25rem">🎰 Blinds &amp; Buy-In</p>
-        <p style="font-size:0.73rem;margin-bottom:0.5rem">SB: <b>🔴 50</b> · BB: <b>🔴 100</b> · Buy-in: <b>🔴 up to 2,000 chips</b> from your balance.</p>
-        <p style="color:var(--gold);font-weight:700;margin-bottom:0.25rem">💠 Prismatic Buffs</p>
-        <p style="font-size:0.72rem;color:var(--subtext-2)"><b>Coin Multiplier</b> and <b>Cashback</b> are active in Poker. BJ-specific buffs only apply in Blackjack.</p>
-      </div>
-    </div>
-  </div>
-
   <!-- ══ ADMIN PANEL MODAL ══════════════════════════════ -->
   <div class="modal-overlay center" id="admin-modal">
-    <div class="modal-box" style="border-color:rgba(200,169,106,0.3);max-width:400px">
+    <div class="modal-box" style="border-color:rgba(200,169,106,0.3);max-width:380px">
       <button class="modal-close" onclick="closeModal('admin-modal')">✕</button>
       <div class="modal-title">👑 Admin Panel</div>
 
+      <!-- God Mode -->
       <button class="god-mode-toggle" id="gm-toggle-btn" onclick="toggleGodMode()">👁 God Mode: OFF</button>
-      <button class="god-mode-toggle" style="margin-top:0.4rem;border-color:rgba(100,180,255,0.35);background:rgba(100,180,255,0.08);color:#88aaff" onclick="adminRefreshLeaderboard()">🔄 Refresh Leaderboard</button>
-      <button class="god-mode-toggle" style="margin-top:0.4rem;border-color:rgba(180,100,255,0.35);background:rgba(180,100,255,0.08);color:#c47aff" onclick="adminUnlockAllTitles()">🏅 Unlock All Titles (Self)</button>
+      <button class="god-mode-toggle" style="margin-top:0.45rem;border-color:rgba(100,180,255,0.35);background:rgba(100,180,255,0.08);color:#88aaff" onclick="adminRefreshLeaderboard()">🔄 Leaderboard Refresh</button>
+      <button class="god-mode-toggle" style="margin-top:0.45rem;border-color:rgba(180,100,255,0.35);background:rgba(180,100,255,0.08);color:#c47aff" onclick="adminUnlockAllTitles()">🏅 Unlock All Titles (Self)</button>
 
       <div class="adm-section-title">Self Controls</div>
       <div class="adm-grid">
@@ -1452,29 +1166,11 @@
         <button class="c-btn c-btn-ghost c-btn-sm c-btn-full" onclick="adminSelfChips(50000)">+50k</button>
       </div>
 
-      <!-- ── Gift Section ── -->
-      <div class="adm-section-title">Send Gift</div>
-
-      <!-- Individual / Everyone toggle -->
-      <button class="adm-mode-toggle" id="adm-mode-btn" data-mode="individual" onclick="adminToggleMode()">
-        <span id="adm-mode-label">👤 Individual — tap to switch</span>
-        <span style="font-size:0.62rem;opacity:0.55">⇄</span>
-      </button>
-
-      <!-- Individual: username -->
-      <div id="adm-indiv-section" style="margin-bottom:0.5rem">
-        <div class="adm-field">
-          <label>Username (comma-separated for multiple)</label>
-          <input type="text" class="adm-input" id="adm-target-user"
-                 placeholder="username or user1, user2…" style="color:var(--text)" />
-        </div>
+      <div class="adm-section-title">Give to Player</div>
+      <div class="adm-field" style="margin-bottom:0.5rem">
+        <label>Username</label>
+        <input type="text" class="adm-input" id="adm-target-user" placeholder="Username…" style="color:var(--text)" />
       </div>
-
-      <!-- Everyone badge -->
-      <div class="adm-everyone-note" id="adm-everyone-note">
-        🌍 Gift will be sent to every player in the database
-      </div>
-
       <div class="adm-grid">
         <div class="adm-field">
           <label>Casino Chips 🔴 <span style="color:var(--rose);font-size:0.65rem">(neg = deduct)</span></label>
@@ -1485,7 +1181,7 @@
           <input type="number" class="adm-input" id="adm-give-coins" placeholder="0" />
         </div>
       </div>
-      <div class="adm-grid" style="margin-bottom:0.6rem">
+      <div class="adm-grid" style="margin-bottom:0.75rem">
         <div class="adm-field">
           <label>Pack 📦</label>
           <select class="adm-input" id="adm-give-pack" style="color:var(--text)">
@@ -1497,7 +1193,7 @@
           <input type="number" class="adm-input" id="adm-give-pack-qty" placeholder="1" min="1" max="99" value="1" />
         </div>
       </div>
-      <div class="adm-field" style="margin-bottom:0.6rem">
+      <div class="adm-field" style="margin-bottom:0.75rem">
         <label>Title 🏅</label>
         <select class="adm-input" id="adm-give-title" style="color:var(--text)">
           <option value="">— none —</option>
@@ -1507,11 +1203,9 @@
         <label>Message (optional)</label>
         <input type="text" class="adm-input" id="adm-give-msg" placeholder="Optional note…" style="color:var(--text)" />
       </div>
-      <button class="c-btn c-btn-gold c-btn-full c-btn-sm" id="adm-send-btn" onclick="adminGiveToPlayer()">
-        📬 Send Gift via Mailbox
-      </button>
+      <button class="c-btn c-btn-gold c-btn-full c-btn-sm" onclick="adminGiveToPlayer()">📬 Send Gift via Mailbox</button>
 
-      <div class="adm-section-title" style="margin-top:0.85rem">Stats Tweak</div>
+      <div class="adm-section-title">Stats Tweak</div>
       <div class="adm-grid">
         <div class="adm-field">
           <label>Set Wins</label>
@@ -1816,6 +1510,7 @@
     // ── Underground — dark low rumble + eerie tone ────────
     _underground() {
       const c=_ctx();
+      // Sub rumble
       const o1=c.createOscillator(),g1=c.createGain();
       o1.connect(g1);g1.connect(c.destination);o1.type='sine';
       o1.frequency.setValueAtTime(55,c.currentTime);
@@ -1823,6 +1518,7 @@
       g1.gain.setValueAtTime(.25,c.currentTime);
       g1.gain.exponentialRampToValueAtTime(.001,c.currentTime+.7);
       o1.start(c.currentTime);o1.stop(c.currentTime+.7);
+      // Eerie high tone
       const o2=c.createOscillator(),g2=c.createGain();
       o2.connect(g2);g2.connect(c.destination);o2.type='sine';
       o2.frequency.setValueAtTime(660,c.currentTime+.15);
@@ -1830,163 +1526,6 @@
       g2.gain.setValueAtTime(.04,c.currentTime+.15);
       g2.gain.exponentialRampToValueAtTime(.001,c.currentTime+.75);
       o2.start(c.currentTime+.15);o2.stop(c.currentTime+.75);
-    },
-
-    // ── Poker: room join — welcoming chime ────────────────
-    _pk_join() {
-      const c=_ctx();
-      [440,554,659].forEach((hz,i)=>{
-        const o=c.createOscillator(),g=c.createGain();
-        o.connect(g);g.connect(c.destination);o.type='sine';o.frequency.value=hz;
-        const t=c.currentTime+i*.08;
-        g.gain.setValueAtTime(.07,t);g.gain.exponentialRampToValueAtTime(.001,t+.4);
-        o.start(t);o.stop(t+.4);
-      });
-    },
-
-    // ── Poker: deal — rapid card-slide burst ──────────────
-    _pk_deal() {
-      const c=_ctx();
-      for(let i=0;i<4;i++){
-        const buf=c.createBuffer(1,c.sampleRate*.07,c.sampleRate);
-        const d=buf.getChannelData(0);
-        for(let j=0;j<d.length;j++) d[j]=(Math.random()*2-1)*(1-j/d.length);
-        const s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();
-        s.buffer=buf;f.type='bandpass';f.frequency.value=2600+i*300;f.Q.value=.8;
-        s.connect(f);f.connect(g);g.connect(c.destination);
-        g.gain.setValueAtTime(.13,c.currentTime+i*.1);
-        g.gain.exponentialRampToValueAtTime(.001,c.currentTime+i*.1+.07);
-        s.start(c.currentTime+i*.1);
-      }
-    },
-
-    // ── Poker: fold — soft descending thud ────────────────
-    _pk_fold() {
-      const c=_ctx(),o=c.createOscillator(),g=c.createGain();
-      o.connect(g);g.connect(c.destination);o.type='triangle';
-      o.frequency.setValueAtTime(280,c.currentTime);
-      o.frequency.exponentialRampToValueAtTime(140,c.currentTime+.22);
-      g.gain.setValueAtTime(.09,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.25);
-      o.start(c.currentTime);o.stop(c.currentTime+.25);
-    },
-
-    // ── Poker: check — neutral hollow tap ─────────────────
-    _pk_check() {
-      const c=_ctx(),o=c.createOscillator(),g=c.createGain();
-      o.connect(g);g.connect(c.destination);o.type='sine';
-      o.frequency.setValueAtTime(700,c.currentTime);
-      o.frequency.exponentialRampToValueAtTime(500,c.currentTime+.09);
-      g.gain.setValueAtTime(.06,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.1);
-      o.start(c.currentTime);o.stop(c.currentTime+.1);
-    },
-
-    // ── Poker: call — double chip click ───────────────────
-    _pk_call() {
-      const c=_ctx();
-      [900,1100].forEach((hz,i)=>{
-        const o=c.createOscillator(),g=c.createGain();
-        o.connect(g);g.connect(c.destination);o.type='triangle';o.frequency.value=hz;
-        const t=c.currentTime+i*.065;
-        g.gain.setValueAtTime(.07,t);g.gain.exponentialRampToValueAtTime(.001,t+.13);
-        o.start(t);o.stop(t+.13);
-      });
-    },
-
-    // ── Poker: raise — ascending power pulse ──────────────
-    _pk_raise() {
-      const c=_ctx();
-      [330,440,554,659].forEach((hz,i)=>{
-        const o=c.createOscillator(),g=c.createGain();
-        o.connect(g);g.connect(c.destination);o.type='sawtooth';o.frequency.value=hz;
-        const t=c.currentTime+i*.05;
-        g.gain.setValueAtTime(.06,t);g.gain.exponentialRampToValueAtTime(.001,t+.24);
-        o.start(t);o.stop(t+.24);
-      });
-    },
-
-    // ── Poker: all-in — dramatic slam + stinger ───────────
-    _pk_allin() {
-      const c=_ctx();
-      const o1=c.createOscillator(),g1=c.createGain();
-      o1.connect(g1);g1.connect(c.destination);o1.type='sine';
-      o1.frequency.setValueAtTime(120,c.currentTime);
-      o1.frequency.exponentialRampToValueAtTime(55,c.currentTime+.5);
-      g1.gain.setValueAtTime(.22,c.currentTime);g1.gain.exponentialRampToValueAtTime(.001,c.currentTime+.55);
-      o1.start(c.currentTime);o1.stop(c.currentTime+.55);
-      [880,1100,1320].forEach((hz,i)=>{
-        const o=c.createOscillator(),g=c.createGain();
-        o.connect(g);g.connect(c.destination);o.type='triangle';o.frequency.value=hz;
-        const t=c.currentTime+.06+i*.04;
-        g.gain.setValueAtTime(.08,t);g.gain.exponentialRampToValueAtTime(.001,t+.32);
-        o.start(t);o.stop(t+.32);
-      });
-    },
-
-    // ── Poker: community card flip ────────────────────────
-    _pk_flip() {
-      const c=_ctx();
-      const buf=c.createBuffer(1,c.sampleRate*.055,c.sampleRate);
-      const d=buf.getChannelData(0);
-      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*(1-i/d.length);
-      const s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();
-      s.buffer=buf;f.type='bandpass';f.frequency.value=3200;f.Q.value=1.2;
-      s.connect(f);f.connect(g);g.connect(c.destination);
-      g.gain.setValueAtTime(.11,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.055);
-      s.start(c.currentTime);
-    },
-
-    // ── Poker: showdown drum roll → resolve chord ─────────
-    _pk_showdown() {
-      const c=_ctx();
-      for(let i=0;i<6;i++){
-        const buf=c.createBuffer(1,c.sampleRate*.04,c.sampleRate);
-        const d=buf.getChannelData(0);
-        for(let j=0;j<d.length;j++) d[j]=(Math.random()*2-1)*(1-j/d.length);
-        const s=c.createBufferSource(),f=c.createBiquadFilter(),g=c.createGain();
-        s.buffer=buf;f.type='bandpass';f.frequency.value=800;f.Q.value=1;
-        s.connect(f);f.connect(g);g.connect(c.destination);
-        const t=c.currentTime+i*.07;
-        g.gain.setValueAtTime(.09+i*.015,t);g.gain.exponentialRampToValueAtTime(.001,t+.04);
-        s.start(t);
-      }
-      [392,494,587].forEach((hz,i)=>{
-        const o=c.createOscillator(),g=c.createGain();
-        o.connect(g);g.connect(c.destination);o.type='triangle';o.frequency.value=hz;
-        const t=c.currentTime+.46+i*.06;
-        g.gain.setValueAtTime(.08,t);g.gain.exponentialRampToValueAtTime(.001,t+.5);
-        o.start(t);o.stop(t+.5);
-      });
-    },
-
-    // ── Poker: win — triumphant fanfare + sparkle ─────────
-    _pk_win() {
-      const c=_ctx();
-      [261,330,392,494,587,784].forEach((hz,i)=>{
-        const o=c.createOscillator(),g=c.createGain();
-        o.connect(g);g.connect(c.destination);o.type='triangle';o.frequency.value=hz;
-        const t=c.currentTime+i*.055;
-        g.gain.setValueAtTime(.09,t);g.gain.exponentialRampToValueAtTime(.001,t+.55);
-        o.start(t);o.stop(t+.55);
-      });
-      [1047,1319,1568,2093].forEach((hz,i)=>{
-        const o=c.createOscillator(),g=c.createGain();
-        o.connect(g);g.connect(c.destination);o.type='sine';o.frequency.value=hz;
-        const t=c.currentTime+.3+i*.07;
-        g.gain.setValueAtTime(.04,t);g.gain.exponentialRampToValueAtTime(.001,t+.3);
-        o.start(t);o.stop(t+.3);
-      });
-    },
-
-    // ── Admin: gift sent — royal fanfare ──────────────────
-    _admin_gift() {
-      const c=_ctx();
-      [523,659,784,1047,1319].forEach((hz,i)=>{
-        const o=c.createOscillator(),g=c.createGain();
-        o.connect(g);g.connect(c.destination);o.type='triangle';o.frequency.value=hz;
-        const t=c.currentTime+i*.06;
-        g.gain.setValueAtTime(.08,t);g.gain.exponentialRampToValueAtTime(.001,t+.45);
-        o.start(t);o.stop(t+.45);
-      });
     },
   };
   const ADMIN_EMAIL     = 'alimalik67065@gmail.com';
@@ -2309,7 +1848,6 @@
     if (name === 'stats') { renderStats(); renderChart(); renderPrismaticPanel(); renderCasinoTitlePicker(); renderCasinoTitles(); _lbLoaded = false; renderLeaderboard(); }
     if (name === 'shop')  { renderCasinoPacks(); renderCasinoTcgPacks(); renderThemeShop('theme-shop-grid', false); renderThemeShop('theme-toggle-grid', true); }
     if (name === 'shop')  { tcgCoins = parseFloat(localStorage.getItem('cztcg5_coins') || '0'); updateLimitUI(); }
-    if (name === 'poker') { SFX.play('pk_join'); }
   }
 
   /* ═══════════════════════════════════════════════════════
@@ -3343,32 +2881,16 @@
     _lbLoaded = false;
     document.getElementById('lb-list').innerHTML = '<div style="text-align:center;color:var(--subtext);font-size:0.82rem;padding:1rem">Refreshing…</div>';
     pushChipsToLeaderboard(true).then(() => renderLeaderboard());
-    toast('🔄 Leaderboard refreshing…', 'ok');
+    toast('🔄 Leaderboard wird aktualisiert…', 'ok');
   }
 
   async function manualPushLeaderboard() {
-    if (!currentUser) { toast('⚠️ Please log in first!'); return; }
+    if (!currentUser) { toast('⚠️ Bitte zuerst einloggen!'); return; }
     await pushChipsToLeaderboard(true);
     _lbLoaded = false;
-    document.getElementById('lb-list').innerHTML = '<div style="text-align:center;color:var(--subtext);font-size:0.82rem;padding:1rem">Loading…</div>';
+    document.getElementById('lb-list').innerHTML = '<div style="text-align:center;color:var(--subtext);font-size:0.82rem;padding:1rem">Wird geladen…</div>';
     await renderLeaderboard();
-    toast('✅ Leaderboard updated!', 'ok');
-  }
-
-  /* ── Admin target mode toggle (Individual ⇄ Everyone) ── */
-  function adminToggleMode() {
-    const btn   = document.getElementById('adm-mode-btn');
-    const label = document.getElementById('adm-mode-label');
-    const indiv = document.getElementById('adm-indiv-section');
-    const note  = document.getElementById('adm-everyone-note');
-    if (!btn) return;
-    const isEveryone = btn.dataset.mode !== 'everyone';
-    btn.dataset.mode = isEveryone ? 'everyone' : 'individual';
-    btn.classList.toggle('everyone', isEveryone);
-    if (label) label.textContent = isEveryone ? '🌍 Everyone — tap to switch' : '👤 Individual — tap to switch';
-    if (indiv) indiv.style.display = isEveryone ? 'none' : '';
-    if (note)  note.style.display  = isEveryone ? '' : 'none';
-    SFX.play('click');
+    toast('✅ Leaderboard aktualisiert!', 'ok');
   }
 
   function toggleGodMode() {
@@ -3461,80 +2983,55 @@
   }
 
   async function adminGiveToPlayer() {
-    if (!isAdmin || !window.fbDb || !window.fbFuncs) return;
-    const btn       = document.getElementById('adm-send-btn');
-    const modeBtn   = document.getElementById('adm-mode-btn');
-    const mode      = modeBtn?.dataset.mode || 'individual';
-    const giveChips = parseInt(document.getElementById('adm-give-chips')?.value) || 0;
-    const giveCoins = parseInt(document.getElementById('adm-give-coins')?.value) || 0;
-    const packKey   = document.getElementById('adm-give-pack')?.value || '';
-    const packQty   = Math.max(1, parseInt(document.getElementById('adm-give-pack-qty')?.value) || 1);
-    const titleId   = document.getElementById('adm-give-title')?.value || '';
-    const msg       = document.getElementById('adm-give-msg')?.value.trim() || '🎁 A gift from the Casino Admin!';
+    if (!isAdmin || !window.fbDb) return;
+    const target    = document.getElementById('adm-target-user').value.trim();
+    const giveChips = parseInt(document.getElementById('adm-give-chips').value) || 0;
+    const giveCoins = parseInt(document.getElementById('adm-give-coins').value) || 0;
+    const givePackKey = document.getElementById('adm-give-pack').value;
+    const givePackQty = Math.max(1, parseInt(document.getElementById('adm-give-pack-qty').value) || 1);
+    const giveTitleId = document.getElementById('adm-give-title').value;
+    const msg         = document.getElementById('adm-give-msg').value.trim() || '🎁 A gift from the Casino Admin!';
 
-    if (giveChips === 0 && giveCoins === 0 && !packKey && !titleId) {
-      toast('⚠️ Add something to the gift!'); return;
+    if (!target) { toast('⚠️ Enter a username!'); return; }
+    if (giveChips === 0 && giveCoins === 0 && !givePackKey && !giveTitleId) {
+      toast('⚠️ Nothing to send — fill in at least one field!'); return;
     }
+
     const attachments = {};
     if (giveChips !== 0) attachments.casino_chips = giveChips;
-    if (giveCoins !== 0) attachments.coins = giveCoins;
-    if (packKey) {
-      const cfg = (typeof SPECIAL_PACK_CFG !== 'undefined' && SPECIAL_PACK_CFG[packKey]) || {};
-      attachments.pack = { packKey, name: cfg.label||cfg.name||packKey, icon: cfg.icon||'📦',
-                           bg: cfg.bg||'', sellValue: cfg.sellValue||0, qty: packQty };
+    if (giveCoins !== 0) attachments.coins         = giveCoins;
+    if (givePackKey) {
+      const cfg = (typeof SPECIAL_PACK_CFG !== 'undefined' && SPECIAL_PACK_CFG[givePackKey]) || {};
+      attachments.pack = {
+        packKey:   givePackKey,
+        name:      cfg.label || cfg.name || givePackKey,
+        icon:      cfg.icon  || '📦',
+        bg:        cfg.bg    || '',
+        sellValue: cfg.sellValue || 0,
+        qty:       givePackQty,
+      };
     }
-    if (titleId) attachments.titleId = titleId;
+    if (giveTitleId) attachments.titleId = giveTitleId;
 
-    if (btn) { btn.disabled = true; btn.textContent = '⏳ Sending…'; }
     try {
-      const { collection: col, addDoc, getDocs, serverTimestamp: st } = window.fbFuncs;
-
-      if (mode === 'everyone') {
-        // Broadcast to every username document
-        const snap = await getDocs(col(window.fbDb, 'usernames'));
-        let count = 0;
-        for (const d of snap.docs) {
-          try {
-            await addDoc(col(window.fbDb, 'mailbox'), {
-              sender: '👑 Casino Admin', receiver: d.id, message: msg,
-              attachments, timestamp: st(), collected: false, isAdminGift: true,
-            });
-            count++;
-          } catch {}
-        }
-        SFX.play('admin_gift');
-        toast(`👑 Gift sent to ${count} players!`, 'ok');
-      } else {
-        // Individual — supports comma-separated list
-        const rawInput = document.getElementById('adm-target-user')?.value.trim() || '';
-        if (!rawInput) { toast('⚠️ Enter a username!'); return; }
-        const targets = rawInput.split(',').map(s => s.trim()).filter(Boolean);
-        let sent = 0;
-        for (const target of targets) {
-          try {
-            await addDoc(col(window.fbDb, 'mailbox'), {
-              sender: '👑 Casino Admin', receiver: target, message: msg,
-              attachments, timestamp: st(), collected: false, isAdminGift: true,
-            });
-            sent++;
-          } catch {}
-        }
-        SFX.play('admin_gift');
-        toast(`✅ Gift sent to ${sent}/${targets.length} player(s)!`, 'ok');
-      }
-
-      // Clear fields
-      ['adm-give-chips','adm-give-coins','adm-give-msg'].forEach(id => {
-        const el = document.getElementById(id); if (el) el.value = '';
+      const { collection: col, addDoc, serverTimestamp: st } = window.fbFuncs;
+      await addDoc(col(window.fbDb,'mailbox'), {
+        sender:      '👑 Casino Admin',
+        receiver:    target,
+        message:     msg,
+        attachments,
+        timestamp:   st(),
+        collected:   false,
+        isAdminGift: true,
       });
-      ['adm-give-pack','adm-give-title'].forEach(id => {
-        const el = document.getElementById(id); if (el) el.value = '';
-      });
-      const pqEl = document.getElementById('adm-give-pack-qty');
-      if (pqEl) pqEl.value = '1';
-      closeModal('admin-modal');
+      toast(`✅ Gift sent to ${target}!`, 'ok');
+      document.getElementById('adm-give-chips').value    = '';
+      document.getElementById('adm-give-coins').value    = '';
+      document.getElementById('adm-give-pack').value     = '';
+      document.getElementById('adm-give-pack-qty').value = '1';
+      document.getElementById('adm-give-title').value    = '';
+      document.getElementById('adm-give-msg').value      = '';
     } catch(e) { toast('❌ ' + e.message); }
-    finally { if (btn) { btn.disabled = false; btn.textContent = '📬 Send Gift via Mailbox'; } }
   }
 
   /* ═══════════════════════════════════════════════════════
@@ -4284,582 +3781,27 @@ function loadPrismaticCards() {
   })();
 
   function goToMenuAfterRound() {
-    document.getElementById('game-area').style.display  = 'none';
-    document.getElementById('table-menu').style.display = 'block';
-    document.getElementById('round-result').style.display = 'none';
+  // Versteckt das Spielfeld
+  document.getElementById('game-area').style.display = 'none';
+  // Zeigt das Modus-Menü wieder an
+  document.getElementById('table-menu').style.display = 'block';
+  
+  // Blendet das Result-Overlay für das nächste Spiel aus
+  document.getElementById('round-result').style.display = 'none';
+}
+
+/* ── Cross-Tab Sync: index.html → casino.html ── */
+window.addEventListener('storage', (e) => {
+  // TCG-Coins geändert (z.B. Pack-Kauf in index.html) → Shop-Anzeige aktualisieren
+  if (e.key === 'cztcg5_coins' && e.newValue !== null) {
+    tcgCoins = parseFloat(e.newValue) || 0;
+    updateLimitUI();
   }
-
-  /* ── Cross-Tab Sync ── */
-  window.addEventListener('storage', (e) => {
-    if (e.key === 'cztcg5_coins' && e.newValue !== null) {
-      tcgCoins = parseFloat(e.newValue) || 0; updateLimitUI();
-    }
-  });
-
-  /* ═══════════════════════════════════════════════════════
-     TEXAS HOLD'EM POKER ENGINE
-  ═══════════════════════════════════════════════════════ */
-  const PK_SB    = 50;
-  const PK_BB    = 100;
-  const PK_BUYIN = 2000;
-  const PK_TTL   = 6 * 3600 * 1000;
-  const PK_VNUM  = {
-    '2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,
-    '10':10,'JACK':11,'QUEEN':12,'KING':13,'ACE':14,
-  };
-  const PK_VDISP = { '10':'10','JACK':'J','QUEEN':'Q','KING':'K','ACE':'A' };
-  const PK_SSYM  = { HEARTS:'♥',DIAMONDS:'♦',CLUBS:'♣',SPADES:'♠' };
-  const PK_SRED  = { HEARTS:true,DIAMONDS:true,CLUBS:false,SPADES:false };
-  const PK_HANDS = ['High Card','One Pair','Two Pair','Three of a Kind','Straight',
-                    'Flush','Full House','Four of a Kind','Straight Flush','Royal Flush'];
-
-  let pkId    = null; // current table Firestore doc ID
-  let pkRole  = null; // 'host' | 'guest'
-  let pkUnsub = null;
-  let pkChatU = null;
-  let pkData  = null; // latest snapshot
-  let pkMyUid = null;
-
-  /* ── Evaluator helpers ── */
-  function _pkCombos(arr,k){
-    if(k===0)return[[]];
-    if(arr.length<k)return[];
-    const[h,...t]=arr;
-    return[..._pkCombos(t,k-1).map(c=>[h,...c]),..._pkCombos(t,k)];
+  // Codes von index.html eingelöst → kein UI-Update nötig, nur Logging
+  if (e.key === 'cztcg5_codes_v2') {
+    console.log('[Casino] usedCodes updated from TCG page.');
   }
-  function _pkVn(v){ return PK_VNUM[v]||2; }
-  function _pkVd(v){ return PK_VDISP[v]||v; }
-
-  function _pk5(h5){
-    const vs=h5.map(c=>_pkVn(c.value)).sort((a,b)=>b-a);
-    const ss=h5.map(c=>c.suit);
-    const fl=ss.every(s=>s===ss[0]);
-    const uc=[...new Set(vs)].sort((a,b)=>b-a);
-    let str=false,shi=0;
-    if(uc.length>=5&&uc[0]-uc[4]===4){str=true;shi=uc[0];}
-    if(uc[0]===14&&uc[1]===5&&uc[2]===4&&uc[3]===3&&uc[4]===2){str=true;shi=5;}
-    const cnt={};vs.forEach(v=>cnt[v]=(cnt[v]||0)+1);
-    const grp=Object.entries(cnt).sort((a,b)=>b[1]-a[1]||b[0]-a[0]);
-    const g=grp.map(([,c])=>c);
-    let rk=0,nm=PK_HANDS[0],tie=[...vs];
-    if(fl&&str&&shi===14&&vs[4]===10){rk=9;nm=PK_HANDS[9];tie=[14];}
-    else if(fl&&str)                  {rk=8;nm=PK_HANDS[8];tie=[shi];}
-    else if(g[0]===4)                 {rk=7;nm=PK_HANDS[7];tie=[+grp[0][0],+grp[1][0]];}
-    else if(g[0]===3&&g[1]===2)       {rk=6;nm=PK_HANDS[6];tie=[+grp[0][0],+grp[1][0]];}
-    else if(fl)                       {rk=5;nm=PK_HANDS[5];}
-    else if(str)                      {rk=4;nm=PK_HANDS[4];tie=[shi];}
-    else if(g[0]===3)                 {rk=3;nm=PK_HANDS[3];tie=[+grp[0][0],...vs.filter(v=>v!==+grp[0][0])];}
-    else if(g[0]===2&&g[1]===2)       {rk=2;nm=PK_HANDS[2];tie=[+grp[0][0],+grp[1][0],+(grp[2]?.[0])||0];}
-    else if(g[0]===2)                 {rk=1;nm=PK_HANDS[1];tie=[+grp[0][0],...vs.filter(v=>v!==+grp[0][0])];}
-    const sc=rk*1e9+tie.reduce((a,v,i)=>a+v*Math.pow(15,4-i),0);
-    return{rk,nm,sc,tie};
-  }
-
-  function pkEvalBest(hole,comm){
-    const all=[...(hole||[]),...(comm||[])];
-    if(all.length<2)return{rk:-1,nm:'—',sc:-1};
-    if(all.length<5){
-      const vs=all.map(c=>_pkVn(c.value)).sort((a,b)=>b-a);
-      const cnt={};vs.forEach(v=>cnt[v]=(cnt[v]||0)+1);
-      const mx=Math.max(...Object.values(cnt));
-      const pairs=Object.values(cnt).filter(c=>c===2).length;
-      if(mx===3)return{rk:3,nm:'Three of a Kind',sc:0};
-      if(mx===2&&pairs===2)return{rk:2,nm:'Two Pair',sc:0};
-      if(mx===2)return{rk:1,nm:'One Pair',sc:0};
-      return{rk:0,nm:`${_pkVd(Object.keys(PK_VNUM).find(k=>PK_VNUM[k]===vs[0])||'?')} High`,sc:vs[0]};
-    }
-    return _pkCombos(all,5).reduce((best,c)=>{
-      const s=_pk5(c);return s.sc>best.sc?s:best;
-    },{rk:-1,nm:'—',sc:-1});
-  }
-
-  function _pkCmp(a,b){
-    if(a.rk!==b.rk)return a.rk-b.rk;
-    const ta=a.tie||[],tb=b.tie||[];
-    for(let i=0;i<Math.max(ta.length,tb.length);i++){
-      const d=(ta[i]||0)-(tb[i]||0);if(d)return d;
-    }return 0;
-  }
-
-  /* ── Room management ── */
-  function openCreatePokerRoom(){
-    if(!requireLogin(()=>{}))return;
-    const uid=currentUser.uid,uname=currentUsername,code=genCode();
-    const buyIn=Math.min(PK_BUYIN,chips);
-    if(buyIn<PK_BB*2){toast(`⚠️ Need at least ${PK_BB*2} chips to play!`);return;}
-    const{collection:col,addDoc,serverTimestamp:st}=window.fbFuncs;
-    addDoc(col(window.fbDb,'casino_tables'),{
-      game:'poker',code,host:uname,hostUid:uid,
-      players:[{uid,username:uname,chips:buyIn,holeCards:[],bet:0,totalBet:0,folded:false,allIn:false,lastAction:null}],
-      state:'waiting',communityCards:[],deck:[],deckPtr:0,pot:0,
-      currentBet:0,actedUids:[],dealerIdx:-1,bbIdx:-1,currentPlayerIdx:0,
-      round:0,maxPlayers:6,createdAt:st(),expiresAt:Date.now()+PK_TTL,
-    }).then(ref=>{
-      chips-=buyIn;saveChips();
-      pkId=ref.id;pkRole='host';pkMyUid=uid;
-      _pkShowRoom(code,ref.id,true);
-      SFX.play('pk_join');
-      toast(`🏰 Room created! Code: ${code}`,'ok');
-    }).catch(e=>toast('❌ '+e.message));
-  }
-
-  function openJoinPokerRoom(){
-    if(!requireLogin(()=>{}))return;
-    document.getElementById('pk-join-input').value='';
-    openModal('poker-join-modal');
-  }
-
-  async function joinPokerRoom(){
-    const code=document.getElementById('pk-join-input')?.value.trim().toUpperCase();
-    if(!code){toast('⚠️ Enter a room code!');return;}
-    const uid=currentUser.uid,uname=currentUsername;
-    try{
-      const{collection:col,query:q,where,getDocs:gd,doc,updateDoc,arrayUnion,deleteDoc}=window.fbFuncs;
-      const snap=await gd(q(col(window.fbDb,'casino_tables'),where('code','==',code),where('game','==','poker')));
-      if(snap.empty){toast('⚠️ Room not found!');SFX.play('error');return;}
-      const td=snap.docs[0];const d=td.data();
-      if(d.expiresAt&&Date.now()>d.expiresAt){
-        await deleteDoc(doc(window.fbDb,'casino_tables',td.id)).catch(()=>{});
-        toast('⚠️ Room has expired!');return;
-      }
-      if(d.state!=='waiting'){toast('⚠️ Game already in progress!');SFX.play('error');return;}
-      if((d.players||[]).length>=(d.maxPlayers||6)){toast('⚠️ Room is full!');SFX.play('error');return;}
-      if((d.players||[]).some(p=>p.uid===uid)){toast('Already in this room!');return;}
-      const buyIn=Math.min(PK_BUYIN,chips);
-      if(buyIn<PK_BB*2){toast(`⚠️ Need at least ${PK_BB*2} chips!`);return;}
-      chips-=buyIn;saveChips();
-      await updateDoc(doc(window.fbDb,'casino_tables',td.id),{
-        players:arrayUnion({uid,username:uname,chips:buyIn,holeCards:[],bet:0,totalBet:0,folded:false,allIn:false,lastAction:null})
-      });
-      pkId=td.id;pkRole='guest';pkMyUid=uid;
-      closeModal('poker-join-modal');
-      _pkShowRoom(code,td.id,false);
-      SFX.play('pk_join');
-    }catch(e){toast('❌ '+e.message);}
-  }
-
-  function _pkShowRoom(code,tableId,isHost){
-    document.getElementById('poker-lobby').style.display='none';
-    document.getElementById('poker-waiting-room').style.display='block';
-    document.getElementById('poker-game-area').style.display='none';
-    document.getElementById('pk-room-code').textContent=code;
-    document.getElementById('pk-room-title').textContent=isHost?'🏰 Your Poker Room':'🚪 Joined Room';
-    document.getElementById('pk-start-btn').style.display=isHost?'':'none';
-    _pkSubRoom(tableId);_pkSubChat(tableId);
-  }
-
-  function _pkSubRoom(tableId){
-    if(pkUnsub){pkUnsub();pkUnsub=null;}
-    const{doc,onSnapshot}=window.fbFuncs;
-    pkUnsub=onSnapshot(doc(window.fbDb,'casino_tables',tableId),snap=>{
-      if(!snap.exists()){leavePokerRoom();return;}
-      const d=snap.data();
-      if(d.expiresAt&&Date.now()>d.expiresAt){toast('⚠️ Room expired.');leavePokerRoom();return;}
-      pkData=d;
-      const inGame=d.state!=='waiting';
-      document.getElementById('poker-waiting-room').style.display=inGame?'none':'block';
-      document.getElementById('poker-game-area').style.display=inGame?'block':'none';
-      if(inGame)_pkRenderGame(d);
-      else _pkRenderWait(d);
-      if(pkRole==='host'&&inGame)_pkMaybeAdvance(d,tableId);
-    });
-  }
-
-  function _pkSubChat(tableId){
-    if(pkChatU){pkChatU();pkChatU=null;}
-    const{collection:col,query:q,orderBy:ob,onSnapshot:sn,limit:lim}=window.fbFuncs;
-    pkChatU=sn(q(col(window.fbDb,`casino_tables/${tableId}/chat`),ob('ts'),lim(50)),snap=>{
-      ['pk-chat-msgs','pk-game-chat'].forEach(id=>{
-        const el=document.getElementById(id);if(!el)return;
-        el.innerHTML='';
-        if(snap.empty){el.innerHTML='<div class="chat-msg sys">Chat begins here.</div>';return;}
-        snap.forEach(d=>{
-          const data=d.data();const div=document.createElement('div');
-          div.className='chat-msg'+(data.sys?' sys':'');
-          div.innerHTML=data.sys?data.text:`<span class="chat-user">${data.user}:</span>${data.text}`;
-          el.appendChild(div);
-        });
-        el.scrollTop=el.scrollHeight;
-      });
-    });
-  }
-
-  async function pkSendChat(){
-    if(!pkId||!currentUser)return;
-    const ids=['pk-chat-input','pk-game-chat-input'];
-    let text='';
-    for(const id of ids){const el=document.getElementById(id);if(el&&el.value.trim()){text=el.value.trim();el.value='';break;}}
-    if(!text)return;
-    const{collection:col,addDoc,serverTimestamp:st}=window.fbFuncs;
-    await addDoc(col(window.fbDb,`casino_tables/${pkId}/chat`),{user:currentUsername,text,ts:st()}).catch(()=>{});
-  }
-
-  async function leavePokerRoom(){
-    if(pkUnsub){pkUnsub();pkUnsub=null;}
-    if(pkChatU){pkChatU();pkChatU=null;}
-    if(pkId&&currentUser&&window.fbFuncs){
-      try{
-        const{doc,getDoc,updateDoc,getDocs,collection:col,deleteDoc}=window.fbFuncs;
-        const ref=doc(window.fbDb,'casino_tables',pkId);
-        const snap=await getDoc(ref);
-        if(snap.exists()){
-          const d=snap.data();
-          const me=(d.players||[]).find(p=>p.uid===currentUser.uid);
-          if(me&&d.state==='waiting'){chips+=me.chips;saveChips();}
-          const rest=(d.players||[]).filter(p=>p.uid!==currentUser.uid);
-          if(!rest.length){
-            const cs=await getDocs(col(window.fbDb,`casino_tables/${pkId}/chat`));
-            for(const x of cs.docs)await deleteDoc(x.ref);
-            await deleteDoc(ref);
-          }else await updateDoc(ref,{players:rest});
-        }
-      }catch{}
-    }
-    pkId=null;pkRole=null;pkData=null;pkMyUid=null;
-    document.getElementById('poker-waiting-room').style.display='none';
-    document.getElementById('poker-game-area').style.display='none';
-    document.getElementById('poker-lobby').style.display='';
-  }
-
-  function _pkRenderWait(d){
-    const el=document.getElementById('pk-wait-players');if(!el)return;
-    el.innerHTML=(d.players||[]).map(p=>`
-      <div class="pt-player${p.uid===pkMyUid?' me':''}">
-        ${p.uid===pkMyUid?'👤 ':''}${p.username}
-        <span style="color:var(--gold);font-size:0.68rem"> · 🔴 ${(p.chips||0).toLocaleString()}</span>
-      </div>`).join('');
-    document.getElementById('pk-wait-status').textContent=
-      `⏳ Waiting (${(d.players||[]).length}/${d.maxPlayers||6}) — need at least 2`;
-    const sb=document.getElementById('pk-start-btn');
-    if(sb)sb.style.display=pkRole==='host'&&(d.players||[]).length>=2?'':'none';
-  }
-
-  /* ── Game Start (host only) ── */
-  async function startPokerGame(){
-    if(pkRole!=='host'||!pkData)return;
-    const players=pkData.players||[];
-    if(players.length<2){toast('⚠️ Need at least 2 players!');return;}
-    SFX.play('pk_deal');
-    const n=players.length,round=(pkData.round||0)+1;
-    const dIdx=round%n,sbIdx=(dIdx+1)%n,bbIdx=(dIdx+2)%n,firstIdx=(bbIdx+1)%n;
-    const deck=shuffleDeck(buildDeck(1));let ptr=0;
-    const newP=players.map((p,i)=>{
-      const h=[deck[ptr++],deck[ptr++]];
-      let bet=0;
-      if(i===sbIdx)bet=Math.min(PK_SB,p.chips);
-      if(i===bbIdx)bet=Math.min(PK_BB,p.chips);
-      return{...p,holeCards:h,bet,totalBet:bet,folded:false,
-             allIn:bet>0&&bet>=p.chips,chips:p.chips-bet,lastAction:i===sbIdx?'SB':i===bbIdx?'BB':null};
-    });
-    const pot=newP.reduce((s,p)=>s+p.bet,0);
-    const{doc,updateDoc,serverTimestamp:st,collection:col,addDoc}=window.fbFuncs;
-    await updateDoc(doc(window.fbDb,'casino_tables',pkId),{
-      state:'preflop',players:newP,communityCards:[],deck:deck.slice(ptr),
-      deckPtr:0,pot,currentBet:PK_BB,actedUids:[],dealerIdx:dIdx,bbIdx,
-      currentPlayerIdx:firstIdx,round,winners:null,handResults:null,lastActionAt:st(),
-    });
-    await addDoc(col(window.fbDb,`casino_tables/${pkId}/chat`),{
-      sys:true,text:`🃏 Hand #${round} · Dealer: ${players[dIdx].username} · SB: ${players[sbIdx].username} · BB: ${players[bbIdx].username}`,ts:st()
-    });
-  }
-
-  /* ── Player actions ── */
-  async function pkAction(type){
-    if(!pkData||!pkMyUid)return;
-    const d=pkData,players=d.players||[];
-    const mi=players.findIndex(p=>p.uid===pkMyUid);
-    if(mi<0||d.currentPlayerIdx!==mi){toast('⚠️ Not your turn!');SFX.play('error');return;}
-    const me=players[mi];
-    const curBet=d.currentBet||0,myBet=me.bet||0,myChips=me.chips||0;
-    const newP=players.map(p=>({...p}));
-    let pot=d.pot||0,newCurBet=curBet,newActed=[...(d.actedUids||[])];
-
-    if(type==='fold'){
-      SFX.play('pk_fold');
-      newP[mi].folded=true;newP[mi].lastAction='Fold';
-    }else if(type==='check'){
-      if(myBet<curBet){toast('⚠️ Must call or raise!');SFX.play('error');return;}
-      SFX.play('pk_check');newP[mi].lastAction='Check';
-    }else if(type==='call'){
-      const toCall=Math.min(curBet-myBet,myChips);
-      newP[mi].chips-=toCall;newP[mi].bet+=toCall;newP[mi].totalBet+=toCall;pot+=toCall;
-      newP[mi].allIn=newP[mi].chips<=0;newP[mi].lastAction=`Call`;
-      SFX.play('pk_call');
-    }else return;
-
-    if(type!=='fold')newActed=[...new Set([...newActed,pkMyUid])];
-    const n=players.length;
-    let nextIdx=(mi+1)%n,loops=0;
-    while((newP[nextIdx].folded||newP[nextIdx].allIn)&&loops<n){nextIdx=(nextIdx+1)%n;loops++;}
-    const nonFolded=newP.filter(p=>!p.folded);
-    const{doc,updateDoc,serverTimestamp:st}=window.fbFuncs;
-    if(nonFolded.length===1){
-      nonFolded[0].chips+=pot;
-      if(nonFolded[0].uid===pkMyUid){chips=nonFolded[0].chips;saveChips();}
-      await updateDoc(doc(window.fbDb,'casino_tables',pkId),{
-        players:newP,pot:0,state:'showdown',currentPlayerIdx:nextIdx,actedUids:newActed,
-        winners:[{username:nonFolded[0].username,amount:pot,handName:'Last player standing'}],lastActionAt:st()
-      });
-      SFX.play('pk_win');return;
-    }
-    await updateDoc(doc(window.fbDb,'casino_tables',pkId),{
-      players:newP,pot,currentBet:newCurBet,currentPlayerIdx:nextIdx,actedUids:newActed,lastActionAt:st()
-    });
-  }
-
-  async function pkRaiseInput(){
-    const val=parseInt(document.getElementById('pk-raise-input')?.value)||0;
-    if(val<=0){toast('⚠️ Enter raise amount!');return;}
-    if(!pkData||!pkMyUid)return;
-    const d=pkData,players=d.players||[];
-    const mi=players.findIndex(p=>p.uid===pkMyUid);
-    if(mi<0||d.currentPlayerIdx!==mi){toast('⚠️ Not your turn!');SFX.play('error');return;}
-    const me=players[mi];
-    const myBet=me.bet||0,myChips=me.chips||0;
-    const toAdd=Math.min(val-myBet,myChips);
-    if(toAdd<=0){toast('⚠️ Invalid amount!');return;}
-    const newBet=myBet+toAdd;
-    if(newBet<d.currentBet+PK_BB&&toAdd<myChips){toast(`⚠️ Min raise: ${(d.currentBet||0)+PK_BB}!`);return;}
-    const newP=players.map(p=>({...p}));
-    newP[mi].chips-=toAdd;newP[mi].bet=newBet;newP[mi].totalBet+=toAdd;
-    newP[mi].allIn=newP[mi].chips<=0;
-    newP[mi].lastAction=newP[mi].allIn?'All In':`Raise`;
-    const pot=(d.pot||0)+toAdd;
-    const newActed=newBet>d.currentBet?[pkMyUid]:[...new Set([...(d.actedUids||[]),pkMyUid])];
-    if(newBet>d.currentBet)newP.forEach((p,i)=>{if(i!==mi&&!p.folded&&!p.allIn)p.lastAction=null;});
-    const n=players.length;
-    let nextIdx=(mi+1)%n,loops=0;
-    while((newP[nextIdx].folded||newP[nextIdx].allIn)&&loops<n){nextIdx=(nextIdx+1)%n;loops++;}
-    SFX.play(newP[mi].allIn?'pk_allin':'pk_raise');
-    const{doc,updateDoc,serverTimestamp:st}=window.fbFuncs;
-    await updateDoc(doc(window.fbDb,'casino_tables',pkId),{
-      players:newP,pot,currentBet:Math.max(d.currentBet||0,newBet),
-      actedUids:newActed,currentPlayerIdx:nextIdx,lastActionAt:st()
-    });
-  }
-
-  function pkPreset(fraction){
-    if(!pkData)return;
-    const me=(pkData.players||[]).find(p=>p.uid===pkMyUid);
-    const pot=pkData.pot||0,curBet=pkData.currentBet||0;
-    const myChips=(me?.chips||0)+(me?.bet||0);
-    let amt;
-    if(fraction==='allin'){amt=myChips;}
-    else{amt=Math.min(Math.max(curBet+PK_BB,Math.floor(pot*fraction)),myChips);}
-    const el=document.getElementById('pk-raise-input');if(el)el.value=amt;
-    SFX.play('bet');
-  }
-
-  /* ── Host: advance street ── */
-  async function _pkMaybeAdvance(d,tableId){
-    if(d.state==='waiting'||d.state==='showdown')return;
-    const players=d.players||[];
-    const nonFolded=players.filter(p=>!p.folded);
-    if(nonFolded.length<=1){await _pkShowdown(d,tableId);return;}
-    const active=players.filter(p=>!p.folded&&!p.allIn);
-    const acted=d.actedUids||[];
-    const allDone=active.length===0||active.every(p=>acted.includes(p.uid)&&p.bet>=(d.currentBet||0));
-    if(!allDone)return;
-    const streets=['preflop','flop','turn','river'];
-    const nxt=streets.indexOf(d.state)+1;
-    if(nxt>0&&nxt<streets.length)await _pkNextStreet(d,tableId,streets[nxt]);
-    else if(nxt>=streets.length)await _pkShowdown(d,tableId);
-  }
-
-  async function _pkNextStreet(d,tableId,next){
-    const deck=d.deck||[];let ptr=d.deckPtr||0;
-    const comm=[...(d.communityCards||[])];
-    if(next==='flop'){comm.push(deck[ptr++],deck[ptr++],deck[ptr++]);}
-    else if(next==='turn'){ptr++;comm.push(deck[ptr++]);}
-    else if(next==='river'){ptr++;comm.push(deck[ptr++]);}
-    SFX.play('pk_flip');
-    const n=(d.players||[]).length;
-    const resetP=(d.players||[]).map(p=>({...p,bet:0,lastAction:null}));
-    let first=(d.dealerIdx+1)%n,loops=0;
-    while((resetP[first].folded||resetP[first].allIn)&&loops<n){first=(first+1)%n;loops++;}
-    const{doc,updateDoc,serverTimestamp:st,collection:col,addDoc}=window.fbFuncs;
-    await updateDoc(doc(window.fbDb,'casino_tables',tableId),{
-      state:next,communityCards:comm,deckPtr:ptr,players:resetP,
-      currentBet:0,actedUids:[],currentPlayerIdx:first,lastActionAt:st()
-    });
-    await addDoc(col(window.fbDb,`casino_tables/${tableId}/chat`),{
-      sys:true,text:`🎴 ${next.toUpperCase()}`,ts:st()
-    });
-  }
-
-  async function _pkShowdown(d,tableId){
-    SFX.play('pk_showdown');
-    const players=d.players||[];
-    const comm=d.communityCards||[];
-    const active=players.filter(p=>!p.folded);
-    const pot=d.pot||0;
-    const res={};
-    active.forEach(p=>{res[p.uid]=pkEvalBest(p.holeCards||[],comm);});
-    let best=null;
-    Object.values(res).forEach(r=>{if(!best||_pkCmp(r,best)>0)best=r;});
-    const winners=active.filter(p=>res[p.uid]&&_pkCmp(res[p.uid],best)===0);
-    const split=Math.floor(pot/winners.length);
-    // Prismatic buffs
-    const coinMult=getPrismBuff('coinmult','passiveMult');
-    const cashback=getPrismBuff('cashback','cashbackPct');
-    const newP=players.map(p=>({...p}));
-    winners.forEach(w=>{
-      let won=split;
-      if(coinMult>0){const b=Math.floor(won*coinMult);won+=b;if(b>0&&w.uid===pkMyUid)toast(`💰 Prismatic Bonus: +${b}!`,'ok');}
-      const idx=newP.findIndex(x=>x.uid===w.uid);
-      if(idx>=0)newP[idx].chips+=won;
-      if(w.uid===pkMyUid){chips=newP[idx].chips;saveChips();}
-    });
-    const meIdx=newP.findIndex(p=>p.uid===pkMyUid);
-    if(cashback>0&&meIdx>=0&&!winners.some(w=>w.uid===pkMyUid)&&newP[meIdx].totalBet>0){
-      const ref=Math.floor(newP[meIdx].totalBet*cashback);
-      chips+=ref;saveChips();if(ref>0)toast(`🔄 Cashback: +${ref}!`,'ok');
-    }
-    const{doc,updateDoc,serverTimestamp:st,collection:col,addDoc}=window.fbFuncs;
-    await updateDoc(doc(window.fbDb,'casino_tables',tableId),{
-      state:'showdown',players:newP,pot:0,
-      winners:winners.map(w=>({username:w.username,amount:split,handName:res[w.uid]?.nm||'Winner'})),
-      handResults:Object.fromEntries(active.map(p=>[p.uid,{nm:res[p.uid]?.nm||'—'}])),lastActionAt:st()
-    });
-    const wMsg=winners.map(w=>`${w.username} (${res[w.uid]?.nm||'?'})`).join(' & ')+` win 🔴${split.toLocaleString()}!`;
-    await addDoc(col(window.fbDb,`casino_tables/${tableId}/chat`),{sys:true,text:`🏆 ${wMsg}`,ts:st()});
-    SFX.play('pk_win');
-  }
-
-  /* ── Rendering ── */
-  function _pkRenderGame(d){
-    const stLabels={waiting:'⏳ Waiting',preflop:'♠️ Pre-Flop',flop:'🎴 Flop',turn:'🔄 Turn',river:'🌊 River',showdown:'🏆 Showdown'};
-    const g=id=>document.getElementById(id);
-    if(g('pk-street'))g('pk-street').textContent=stLabels[d.state]||d.state;
-    if(g('pk-pot'))g('pk-pot').textContent=(d.pot||0).toLocaleString();
-    if(g('pk-pcount'))g('pk-pcount').textContent=`${(d.players||[]).length}/${d.maxPlayers||6}`;
-    _pkRenderComm(d.communityCards||[]);
-    _pkRenderRing(d);
-    _pkRenderActions(d);
-    _pkRenderWinner(d);
-    const nw=g('pk-next-wrap');
-    if(nw)nw.style.display=pkRole==='host'&&d.state==='showdown'?'':'none';
-  }
-
-  function _pkRenderComm(cards){
-    const area=document.getElementById('pk-community');if(!area)return;
-    area.innerHTML='';
-    for(let i=0;i<5;i++){
-      if(cards[i])area.appendChild(_pkCardEl(cards[i]));
-      else{const s=document.createElement('div');s.className='poker-card-slot';area.appendChild(s);}
-    }
-  }
-
-  function _pkCardEl(card){
-    const el=document.createElement('div');el.className='playing-card';
-    const isRed=PK_SRED[card?.suit];
-    const sym=PK_SSYM[card?.suit]||'?';
-    const lbl=_pkVd(card?.value||'?');
-    el.classList.add(isRed?'card-red':'card-black');
-    el.innerHTML=`<div class="card-inner"><div><div class="card-rank">${lbl}</div><div class="card-suit">${sym}</div></div><div class="card-center">${sym}</div><div class="card-bottom"><div class="card-rank">${lbl}</div><div class="card-suit">${sym}</div></div></div>`;
-    return el;
-  }
-
-  function _pkMini(card,faceDown){
-    const el=document.createElement('div');el.className='pk-mini';
-    if(!card||faceDown){el.classList.add('back');return el;}
-    const isRed=PK_SRED[card.suit];
-    el.classList.add(isRed?'red':'blk');
-    const r=document.createElement('span');r.className='pk-mini-r';r.textContent=_pkVd(card.value);
-    const s=document.createElement('span');s.className='pk-mini-s';s.textContent=PK_SSYM[card.suit]||'?';
-    el.appendChild(r);el.appendChild(s);return el;
-  }
-
-  function _pkRenderRing(d){
-    const ring=document.getElementById('pk-ring');if(!ring)return;
-    ring.innerHTML='';
-    (d.players||[]).forEach((p,i)=>{
-      const isMe=p.uid===pkMyUid;
-      const isAct=i===d.currentPlayerIdx&&!['waiting','showdown'].includes(d.state);
-      const isDlr=i===d.dealerIdx&&d.state!=='waiting';
-      const isSB=i===((d.dealerIdx+1)%(d.players.length))&&d.state!=='waiting'&&(d.round||0)>0;
-      const isBB=i===d.bbIdx&&d.state!=='waiting'&&(d.round||0)>0;
-      const seat=document.createElement('div');
-      seat.className=['poker-seat',isAct?'active-seat':'',isMe?'my-seat':'',p.folded?'folded':''].filter(Boolean).join(' ');
-
-      const badges=[];
-      if(isDlr)badges.push('<span class="pk-badge pk-dealer">D</span>');
-      if(isSB) badges.push('<span class="pk-badge pk-sb">SB</span>');
-      if(isBB) badges.push('<span class="pk-badge pk-bb">BB</span>');
-      if(isAct)badges.push('<span class="pk-badge pk-turn">●</span>');
-
-      const actMap={Fold:'pka-fold',Call:'pka-call',Check:'pka-check',Raise:'pka-raise','All In':'pka-allin',SB:'pka-blind',BB:'pka-blind'};
-      const actBadge=p.lastAction?`<span class="pk-action ${actMap[p.lastAction]||'pka-check'}">${p.lastAction}</span>`:'';
-
-      const showHole=isMe||(d.state==='showdown'&&!p.folded);
-      const hole=p.holeCards||[];
-      const eval_r=showHole&&hole.length>=2?pkEvalBest(hole,d.communityCards||[]):null;
-      const isWinner=d.state==='showdown'&&(d.winners||[]).some(w=>w.username===p.username);
-
-      const holeDiv=document.createElement('div');holeDiv.className='poker-hole-row';
-      if(d.state!=='waiting'){
-        holeDiv.appendChild(_pkMini(hole[0]??null,!showHole));
-        holeDiv.appendChild(_pkMini(hole[1]??null,!showHole));
-      }
-
-      seat.innerHTML=`
-        <div class="poker-seat-top">
-          <span class="poker-seat-name">${isMe?'👤 ':''}${p.username}${p.allIn?' <b style="color:#ff9090;font-size:0.55rem">ALL IN</b>':''}</span>
-          <span>${badges.join('')}</span>
-        </div>
-        <div class="poker-seat-chips">🔴 ${(p.chips||0).toLocaleString()}</div>
-        ${p.bet>0?`<div class="poker-seat-bet">Bet: ${p.bet.toLocaleString()}</div>`:''}
-        ${actBadge}`;
-      if(d.state!=='waiting')seat.appendChild(holeDiv);
-      if(eval_r&&eval_r.rk>=0){
-        const hn=document.createElement('div');hn.className='poker-hand-name';hn.textContent=eval_r.nm;seat.appendChild(hn);
-      }
-      if(isWinner){const ws=document.createElement('div');ws.className='poker-win-stamp';ws.textContent='🏆 Winner';seat.appendChild(ws);}
-      ring.appendChild(seat);
-    });
-  }
-
-  function _pkRenderActions(d){
-    const zone=document.getElementById('pk-actions');if(!zone)return;
-    const players=d.players||[];
-    const mi=players.findIndex(p=>p.uid===pkMyUid);
-    const isMyTurn=mi>=0&&d.currentPlayerIdx===mi&&!['waiting','showdown'].includes(d.state)&&!players[mi]?.folded;
-    zone.style.display=isMyTurn?'flex':'none';
-    if(!isMyTurn)return;
-    const me=players[mi];
-    const curBet=d.currentBet||0,myBet=me.bet||0;
-    const canCheck=myBet>=curBet;
-    const checkBtn=document.getElementById('pk-check-btn');
-    const callBtn=document.getElementById('pk-call-btn');
-    if(checkBtn){checkBtn.disabled=!canCheck;checkBtn.textContent=canCheck?'Check':'—';}
-    if(callBtn){
-      const toCall=Math.min(curBet-myBet,me.chips||0);
-      callBtn.textContent=toCall>0?`Call ${toCall.toLocaleString()}`:'Call';
-      callBtn.disabled=curBet<=myBet;
-    }
-    // Update preset labels with actual amounts
-    const pot=d.pot||0;const myChips=(me.chips||0)+(me.bet||0);
-    [[0.25,'¼'],[0.333,'⅓'],[0.5,'½']].forEach(([frac,lbl],i)=>{
-      const el=document.querySelectorAll('.pk-preset:not(.pk-allin)')[i];if(!el)return;
-      const amt=Math.min(Math.max(curBet+PK_BB,Math.floor(pot*frac)),myChips);
-      el.textContent=`${lbl} Pot (${amt.toLocaleString()})`;
-    });
-  }
-
-  function _pkRenderWinner(d){
-    const box=document.getElementById('pk-winner-wrap');if(!box)return;
-    if(d.state!=='showdown'||!(d.winners||[]).length){box.style.display='none';return;}
-    box.style.display='block';
-    const w=d.winners[0];
-    const nm=document.getElementById('pk-winner-name');
-    const hd=document.getElementById('pk-winner-hand');
-    if(nm)nm.textContent=d.winners.length>1?d.winners.map(x=>x.username).join(' & '):w.username;
-    if(hd){
-      const parts=d.winners.map(x=>`${x.username}: ${x.handName||'?'}`).join(' | ');
-      hd.textContent=`🔴 +${w.amount.toLocaleString()} chips · ${parts}${d.winners.length>1?' (split)':''}`;
-    }
-  }
-
+});
   </script>
 </body>
 </html>
