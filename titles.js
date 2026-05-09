@@ -1252,7 +1252,7 @@ const titleHTML = [
       let rank = '—';
       try {
         const { query: q, orderBy: ob, limit: lim } = window.fbFuncs;
-        const lbSnap = await getDocs(query(collection(window.fbDb, 'casino_leaderboard'), orderBy('chips','desc')));
+        const lbSnap = await getDocs(query(collection(window.fbDb, 'casino_players'), orderBy('chips','desc')));
         const lbDocs = lbSnap.docs;
         const pos = lbDocs.findIndex(d => d.id === uid);
         if (pos !== -1) rank = `#${pos + 1}`;

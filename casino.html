@@ -1529,7 +1529,7 @@
     },
   };
   const ADMIN_EMAIL     = 'alimalik67065@gmail.com';
-  const CHIPS_START     = 1500;
+  const CHIPS_START     = 20000;
   const DAILY_LIMIT     = 1000;
   const COINS_PER_CHIP  = 1000;
   const VIP_TITLE_IDS   = ['title_vip', 'admin_title', 'quest_title_5'];
@@ -1712,11 +1712,27 @@
   /* ═══════════════════════════════════════════════════════
      AUTH & INIT
   ═══════════════════════════════════════════════════════ */
+  let leaderboardSyncInterval = null;
   window.onCasinoAuthChange = function(user) {
     currentUser = user;
     isAdmin = !!(user && user.email === ADMIN_EMAIL);
     if (user) {
-      currentUsername = localStorage.getItem('cztcg5_user') || user.email.split('@')[0];
+
+  // alten Timer stoppen
+  if (leaderboardSyncInterval) {
+    clearInterval(leaderboardSyncInterval);
+    leaderboardSyncInterval = null;
+  }
+
+  currentUsername = localStorage.getItem('cztcg5_user') || user.email.split('@')[0];
+
+  // SOFORT einmal syncen
+  autoSyncLeaderboard(true);
+
+  // danach alle 60 Minuten
+  leaderboardSyncInterval = setInterval(() => {
+    autoSyncLeaderboard();
+  }, 60 * 60 * 1000);
       document.getElementById('auth-dot').classList.remove('off');
       document.getElementById('auth-name').textContent = currentUsername;
       if (isAdmin) {
@@ -1728,7 +1744,14 @@
       checkVIP();
       collectCasinoGifts(); // check mailbox for chip gifts
     } else {
-      currentUsername = null;
+
+  // Timer stoppen
+  if (leaderboardSyncInterval) {
+    clearInterval(leaderboardSyncInterval);
+    leaderboardSyncInterval = null;
+  }
+
+  currentUsername = null;
       document.getElementById('auth-dot').classList.add('off');
       document.getElementById('auth-name').textContent = 'Guest';
       document.getElementById('admin-crown-btn').style.display = 'none';
@@ -2115,7 +2138,10 @@
     if (roundHistory.length > 10) roundHistory.shift();
     saveChips();
     saveStats();
-    pushChipsToLeaderboard();
+
+await uploadChipsToCloud();
+await autoSyncLeaderboard();
+
 
     const rEl = document.getElementById('round-result');
     const titleStr = splitRes ? `${main.title} / ${splitRes.title}` : main.title;
@@ -2637,20 +2663,76 @@
   }
 
   async function pushChipsToLeaderboard(force = false) {
-    if (!currentUser || !window.fbDb || !currentUsername) return;
-    if (!force) {
-      const lastPush = parseInt(localStorage.getItem('lb_last_push') || '0');
-      const now = Date.now();
-      if (now - lastPush < 3600000) return; // max. 1x pro Stunde
-      localStorage.setItem('lb_last_push', now);
-    }
-    try {
-      const { doc, setDoc, serverTimestamp: st } = window.fbFuncs;
-      await setDoc(doc(window.fbDb,'casino_leaderboard',currentUser.uid), {
-        username: currentUsername, chips, updatedAt: st()
-      }, { merge: true });
-    } catch(e) { console.warn('Leaderboard push failed:', e.message); }
+  if (!currentUser || !window.fbDb || !currentUsername) return;
+  if (!force) {
+    const lastPush = parseInt(localStorage.getItem('lb_last_push') || '0');
+    const now = Date.now();
+    if (now - lastPush < 3600000) return;
+    localStorage.setItem('lb_last_push', now);
   }
+
+  try {
+    const { doc, setDoc, serverTimestamp: st } = window.fbFuncs;
+
+    await setDoc(doc(window.fbDb,'casino_players',currentUser.uid), {
+      username: currentUsername,
+      chips,
+      updatedAt: st()
+    }, { merge: true });
+
+  } catch(e) {
+    console.warn('Leaderboard push failed:', e.message);
+  }
+}
+
+async function autoSyncLeaderboard(force = false) {
+  if (!currentUser || !window.fbDb || !window.fbFuncs) return;
+
+  try {
+    const {
+      doc,
+      getDoc,
+      setDoc,
+      serverTimestamp: st
+    } = window.fbFuncs;
+
+    // echten Cloud-Wert laden
+    const playerRef  = doc(window.fbDb, 'casino_players', currentUser.uid);
+    const playerSnap = await getDoc(playerRef);
+
+    if (!playerSnap.exists()) {
+      console.warn('casino_players document not found');
+      return;
+    }
+
+    const playerData = playerSnap.data();
+
+    const cloudChips = playerData.chips || 0;
+    const username   = playerData.username || currentUsername || 'Unknown';
+
+    // in leaderboard schreiben
+    await setDoc(
+      doc(window.fbDb, 'casino_players', currentUser.uid),
+      {
+        username,
+        chips: cloudChips,
+        updatedAt: st()
+      },
+      { merge: true }
+    );
+
+    console.log('[Leaderboard] synced:', username, cloudChips);
+    _lbLoaded = false;
+    renderLeaderboard();
+
+  } catch (e) {
+    console.warn('Leaderboard auto-sync failed:', e);
+  }
+}
+
+async function pushChipsToLeaderboard(force = false) {
+  await autoSyncLeaderboard(force);
+}
 
   /* ═══════════════════════════════════════════════════════
      RADAR / SPIDER CHART
@@ -2788,7 +2870,7 @@
     el.innerHTML = '<div style="text-align:center;color:var(--subtext);font-size:0.75rem;padding:1rem;font-style:italic;animation:lbPulse 1.2s ease-in-out infinite">Loading leaderboard…</div>';
     try {
       const { collection: col, query: q, orderBy: ob, limit: lim, getDocs: gd } = window.fbFuncs;
-      const snap = await gd(q(col(window.fbDb,'casino_leaderboard'), ob('chips','desc'), lim(10)));
+      const snap = await gd(q(col(window.fbDb,'casino_players'), ob('chips','desc'), lim(10)));
       if (snap.empty) { el.innerHTML = '<div style="text-align:center;color:var(--subtext);padding:1.5rem;font-size:0.82rem">No entries yet. Be first! 🏆</div>'; return; }
 
       const entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -2884,9 +2966,10 @@
     toast('🔄 Leaderboard wird aktualisiert…', 'ok');
   }
 
+
   async function manualPushLeaderboard() {
     if (!currentUser) { toast('⚠️ Bitte zuerst einloggen!'); return; }
-    await pushChipsToLeaderboard(true);
+    await autoSyncLeaderboard(true);
     _lbLoaded = false;
     document.getElementById('lb-list').innerHTML = '<div style="text-align:center;color:var(--subtext);font-size:0.82rem;padding:1rem">Wird geladen…</div>';
     await renderLeaderboard();
